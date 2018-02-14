@@ -1,6 +1,6 @@
 %A short script for opening fslview and looking at an image file
 
-function fslview(imagefile)
+function module_fslview_job(imagefile)
 
 fsldir = '/imaging/local/software/fsl/fsl64/fsl-5.0.3/fsl';
 

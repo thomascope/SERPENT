@@ -25,7 +25,7 @@ preprocessedpathstem = '/imaging/tc02/7T_pilot_preprocessed/';
 cnt = 0;
 
 cnt = cnt + 1;
-subjects{cnt} = 'kp';
+subjects{cnt} = 'KP2';
 dates{cnt} = '20180208';
 fullid{cnt} = '20180208_U-ID39822';
 basedir{cnt} = '7T_full_paradigm_pilot_third_kp';
@@ -36,7 +36,7 @@ minvols(cnt) = 213; %The minumum number of volumes in any EPI run
 group(cnt) = 1;
 
 cnt = cnt + 1;
-subjects{cnt} = 'am';
+subjects{cnt} = 'AM';
 dates{cnt} = '20171215';
 fullid{cnt} = '20171215_U-ID39471';
 basedir{cnt} = '7T_full_paradigm_pilot_third_am';

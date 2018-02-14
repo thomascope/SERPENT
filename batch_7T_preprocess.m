@@ -125,3 +125,166 @@ parfor crun = 1:nrun
     end
     
 end
+
+%% Now realign the EPIs
+
+realignworkedcorrectly = zeros(1,nrun);
+parfor crun = 1:nrun
+    theseepis = find(strncmp(blocksout{crun},'Run',3))
+    filestorealign = cell(1,length(theseepis));
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    for i = 1:length(theseepis)
+        filestorealign{i} = spm_select('ExtFPList',outpath,['^topup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
+    end
+    flags = struct;
+    flags.fhwm = 3;
+    try
+    spm_realign(filestorealign,flags)
+    realignworkedcorrectly(crun) = 1;
+    catch
+    realignworkedcorrectly(crun) = 0;
+    end
+end
+
+%% Now reslice the mean image
+
+resliceworkedcorrectly = zeros(1,nrun);
+parfor crun = 1:nrun
+    theseepis = find(strncmp(blocksout{crun},'Run',3))
+    filestorealign = cell(1,length(theseepis));
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    for i = 1:length(theseepis)
+        filestorealign{i} = spm_select('ExtFPList',outpath,['^topup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
+    end
+    flags = struct
+    flags.which = 0;
+    try
+    spm_reslice(filestorealign,flags)
+    resliceworkedcorrectly(crun) = 1;
+    catch
+    resliceworkedcorrectly(crun) = 0;
+    end
+end
+
+%% Now co-register estimate, using structural as reference, mean as source and epi as others, then reslice only the mean
+
+coregisterworkedcorrectly = zeros(1,nrun);
+
+parfor crun = 1:nrun
+    job = struct
+    job.eoptions.cost_fun = 'nmi'
+    job.eoptions.tol = [repmat(0.02,1,3), repmat(0.01,1,6), repmat(0.001,1,3)];
+    job.eoptions.sep = [4 2];
+    job.eoptions.fwhm = [7 7];
+    
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    job.ref = {[outpath 'structural.nii,1']};
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    job.source = {[outpath 'meantopup_' blocksin{crun}{theseepis(1)} ',1']};
+    
+    filestocoregister = cell(1,length(theseepis));
+    filestocoregister_list = [];
+    for i = 1:length(theseepis)
+        filestocoregister{i} = spm_select('ExtFPList',outpath,['^topup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
+        filestocoregister_list = [filestocoregister_list; filestocoregister{i}]
+    end
+    filestocoregister = cellstr(filestocoregister_list);
+    
+    job.other = filestocoregister
+    
+    try
+        spm_run_coreg(job)
+        
+        % Now co-register reslice the mean EPI
+        P = char(job.ref{:},job.source{:});
+        spm_reslice(P)
+        
+        coregisterworkedcorrectly(crun) = 1;
+    catch
+        coregisterworkedcorrectly(crun) = 0;
+    end
+end
+
+%% Now normalise write for visualisation and smooth at 3 and 8
+nrun = size(subjects,2); % enter the number of runs here
+%jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
+jobfile = {[scriptdir 'module_normalise_smooth_job.m']};
+inputs = cell(2, nrun);
+
+for crun = 1:nrun
+    inputs{1, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+    
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    outpath = [preprocessedpathstem subjects{crun} '/'];  
+    filestonormalise = cell(1,length(theseepis));
+    filestonormalise_list = [];
+    for i = 1:length(theseepis)
+        filestonormalise{i} = spm_select('ExtFPList',outpath,['^topup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
+        filestonormalise_list = [filestonormalise_list; filestonormalise{i}];
+    end
+    inputs{2, crun} = cellstr(filestonormalise_list);
+    inputs{3, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+    inputs{4, crun} = cellstr([outpath 'structural.nii,1']);
+    inputs{5, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+    inputs{6, crun} = cellstr([outpath 'structural.nii,1']);
+end
+
+normalisesmoothworkedcorrectly = zeros(1,nrun);
+jobs = repmat(jobfile, 1, 1);
+
+parfor crun = 1:nrun
+    spm('defaults', 'fMRI');
+    spm_jobman('initcfg')
+    try
+        spm_jobman('run', jobs, inputs{:,crun});
+        normalisesmoothworkedcorrectly(crun) = 1;
+    catch
+        normalisesmoothworkedcorrectly(crun) = 0;
+    end
+end
+
+% %% Now do a univariate SPM analysis (currently only implemented for 3 or 4 runs)
+% nrun = size(subjects,2); % enter the number of runs here
+% jobfile = cell;
+% jobfile{3} = {[scriptdir 'module_univariate_3runs.m']};
+% jobfile{4} = {[scriptdir 'module_univariate_4runs.m']};
+% inputs = cell(0, nrun);
+% 
+% for crun = 1:nrun
+%     theseepis = find(strncmp(blocksout{crun},'Run',3));
+%     outpath = [preprocessedpathstem subjects{crun} '/'];  
+%     filestoanalyse = cell(1,length(theseepis));
+%     
+%     tempDesign = module_get_event_times(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+%       
+%     inputs{1, crun} = [outpath '/stats_8'];
+%     for i = 1:length(theseepis)
+%         filestoanalyse{i} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
+%         inputs{(10*(sess-1))+2, crun} = cellstr(filestoanalyse{i});
+%         inputs{(10*(sess-1))+3, crun} = cat(2, tempDesign{sess}{1:9})';
+%         inputs{(10*(sess-1))+4, crun} = cat(2, tempDesign{sess}{10:18})';
+%         inputs{(10*(sess-1))+5, crun} = cat(2, tempDesign{sess}{19:27})';
+%         inputs{(10*(sess-1))+6, crun} = cat(2, tempDesign{sess}{28:36})';
+%         inputs{(10*(sess-1))+7, crun} = cat(2, tempDesign{sess}{37:45})';
+%         inputs{(10*(sess-1))+8, crun} = cat(2, tempDesign{sess}{46:54})';
+%         inputs{(10*(sess-1))+9, crun} = cat(2, tempDesign{sess}{[55:63, 73]})';
+%         inputs{(10*(sess-1))+10, crun} = cat(2, tempDesign{sess}{[64:72, 74]})';
+%         inputs{(10*(sess-1))+11, crun} = ['rp_topup_' blocksin{crun}{theseepis(i)} '.txt'];
+%     end
+%     jobs{crun} = jobfile{length(theseepis)};
+%     
+% end
+% 
+% normalisesmoothworkedcorrectly = zeros(1,nrun);
+% parfor crun = 1:nrun
+%     spm('defaults', 'fMRI');
+%     spm_jobman('initcfg')
+%     try
+%         spm_jobman('run', jobs{crun}, inputs{:,crun});
+%         normalisesmoothworkedcorrectly(crun) = 1;
+%     catch
+%         normalisesmoothworkedcorrectly(crun) = 0;
+%     end
+% end
+
+

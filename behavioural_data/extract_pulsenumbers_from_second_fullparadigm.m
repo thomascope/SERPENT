@@ -1,4 +1,4 @@
-function [startpulses,stimType,stimNumber,stimName] = extract_pulsenumbers_from_second_fullparadigm(fileName,runI)
+function [startpulses,stimType,stimNumber,stimName] = extract_pulsenumbers_from_second_fullparadigm(fileName,runI,nRuns)
 
 %A function for outputting the values required for MVPA. 
 %Stilltodo: Divide mismatches by vowel transition. 
@@ -45,7 +45,7 @@ stimNumber = this_word; %Easy for the normal trials as recorded by the delivery 
 written_indexC = strfind(trialtype,'Written Only');
 written_index = find(not(cellfun('isempty', written_indexC)));
 for i = 1:length(written_index)
-    j = i+(18*(6-runI));
+    j = i+(16*(nRuns-runI));
     if strcmp('MisMatch',cue_types{response_order.this_cue_types(j)}) %This isn't a mistake - I really programmed the stimulus delivery this way. What a burke.
         stimNumber(end+1) = response_order.this_word(j);
     elseif strcmp('Neutral',cue_types{response_order.this_cue_types(j)})
@@ -58,7 +58,7 @@ end
 response_indexC = strfind(trialtype,'Response Trial');
 response_index = find(not(cellfun('isempty', response_indexC)));
 for i = 1:length(response_index)
-    j = i+(18*(6-runI));
+    j = i+(16*(nRuns-runI));
     if strcmp('Match',cue_types{response_order.this_cue_types(j)}) %This isn't a mistake - I really programmed the stimulus delivery this way. What a burke.
         stimNumber(end+1) = response_order.this_word(j);
     elseif strcmp('MisMatch',cue_types{response_order.this_cue_types(j)})
