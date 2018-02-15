@@ -1,4 +1,4 @@
-function tempDesign = module_get_event_times(subj_initials,testing_date,nRuns,nVolumes)
+function tempDesign = module_get_complex_event_times(subj_initials,testing_date,nRuns,nVolumes)
 
 
 %clear all
@@ -11,13 +11,13 @@ addpath(genpath('/imaging/tc02/toolboxes'));
 
 nSessions=1;
 nWords  = 16;  % there were 16 different words presented in the experiment
-nTrialtypes = 8; % there were 8 conditions - Match low, Match high, Mismatch low, Mismatch high, Neutral low, Neutral high, Writtenonly, Response
-tr           = 2.5;   % the EPI volumes were acquired every 3 seconds
-stimdur      = 0.6;   % the audio stimuli lasted approx 0.5 seconds
-stimdelay    = 1.7; % the audio stimulus was presented 2200ms after the scanner pulse
+nTrialtypes = 8; % there were 6 conditions - Match low, Match high, Mismatch low, Mismatch high, Writtenonly, Response. For legacy purposes 2 extra space provided for neutral conditions, one of which is now used to model the written word and one the button press.
+tr           = 2.5;   % the EPI volumes were acquired every 2.5 seconds
+stimdur      = 0.5;   % the audio and visual stimuli lasted approx 0.5 seconds
+stimdelay    = 1.7; % the audio stimulus was presented 1700ms after the scanner pulse
+cuedelay = 1; % the written stimulus was presented 1000ms after the scanner pulse
+responsedelay = 1.05; % the response cue was presented 1050ms after the spoken cue
 condition_order = {'Match low','Match high','Mismatch low','Mismatch high','Neutral low','Neutral high','Writtenonly','Response'}; %NB: In the new AFC there were no neutral trials, so these are zeros
-
-% % load the subject's image ordering (the same ordering is valid for both sessions)
 
 % pre allocate cell arrays
 tempOnsets   = cell(1,nRuns);
@@ -40,9 +40,10 @@ for runI=1:nRuns
     fileName = this_file.name;
     %read the scanning log file
  
-    [startpulses,stimType,stimNumber,stimName] = extract_pulsenumbers_from_AFC_paradigm([behaviour_folder '/' fileName],runI);
+    [startpulses,stimType,stimNumber,stimName,writtenNumber,all_rts] = extract_pulsenumbers_from_AFC_paradigm_wordidentity([behaviour_folder '/' fileName],runI);
     
     starttime = ((startpulses-1) * tr) + stimdelay; % Remember first pulse occurs at time zero
+    writtentime = ((startpulses-1) * tr) + cuedelay;
     
     if size(stimNumber,2) ~= size(starttime,2)
         warning('Something has gone wrong in recording the stimulus types. Padding with NaNs but you MUST check your data')
@@ -52,11 +53,19 @@ for runI=1:nRuns
     for condJ = 1:nTrialtypes
         for condI=1:nWords
             tempOnsets{condI+((condJ-1)*nWords)}=starttime(stimNumber==condI & stimType==condJ);
+            if condJ == 5 %Written only onsets
+                tempOnsets{condI+((condJ-1)*nWords)}=writtentime(writtenNumber==condI);
+            elseif condJ == 6 && condI == 1 %Model button presses
+                tempOnsets{condI+((condJ-1)*nWords)}=starttime(stimType==8)+1.05+(all_rts(all_rts~=0)/1000);
+            end
         end
     end
     
     tempOnsets{nTrialtypes*nWords+1}=starttime(stimNumber==0 & stimType==7);
     tempOnsets{nTrialtypes*nWords+2}=starttime(stimNumber==0 & stimType==8);
+    
+    
+    
     
     tempDesign{runI} = tempOnsets;
 end
