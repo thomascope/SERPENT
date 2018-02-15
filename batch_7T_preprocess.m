@@ -405,3 +405,12 @@ for crun = 1:nrun
 end
 end
 
+%% Now begin the MVPA proper! RSA within the mask first
+data_smoo = 3; %Smoothing on MVPA data
+mask_smoo = 8; %Smoothing on MVPA mask
+mask_cond = 'sound';
+%mask_cond = 'written';
+
+for crun = 1:nrun
+mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond '_001.nii'];
+data_path = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(data_smoo) '/'];
