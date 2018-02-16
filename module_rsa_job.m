@@ -1,4 +1,9 @@
-function module_rsa_job(tpattern_numbers,mask_path,data_path)
+function [avgRDM, stats_p_r] = module_rsa_job(tpattern_numbers,mask_path,data_path,condition_number,condition_name)
+
+condJ = condition_number+100; %To avoid figure numbers over-writing open SPM windows
+
+addpath(genpath('/imaging/tc02/toolboxes')); %Where is the RSA toolbox?
+
 
 %Define matrices based on shared features
 
@@ -183,7 +188,7 @@ for sessionI=1 %At the moment, only implements average
     end
         
     RDMs(1,sessionI).RDM   = squareform(pdist(thesepatterns,'correlation'));
-    RDMs(1,sessionI).name = ['Test']; %XXX 
+    RDMs(1,sessionI).name = condition_name; 
     %RDMs(1,sessionI).name  = sprintf('Univariate Mask | session %d | condition %s excluding %s',sessionI,condition_order{condJ},num2str(find(all_empty_conditions)));
     RDMs(1,sessionI).color = [];
 end
@@ -200,8 +205,9 @@ end
 
 % avgRDM = averageRDMs_subjectSession(RDMs,'subject');
 avgRDM = RDMs(1,1); %At the moment only average is implemented
-avgRDM.name=sprintf('RDM across sessions | condition %s',condition_order{condJ});
+%avgRDM.name=sprintf('RDM across sessions | condition %s',condition_order{condJ});
 
+figI = condJ;
 figure(figI);set(gcf,'Position',[100 100 800 800],'Color','w')
 showRDMs(avgRDM,figI);
 
@@ -216,13 +222,12 @@ Vowel1 = 1:4; Vowel2 = 5:8; Vowel3 = 9:12; Vowel4 = 13:16;
 
 nCols=4;
 cmap=RDMcolormap;
-colors=cmap([1 111 222],:);
+colors=cmap([1 80 155 222],:);
 options.categoryColors=zeros(length(tpattern_numbers),3);
 options.categoryColors(Vowel1,:)=repmat(colors(1,:),length(Vowel1),1);
 options.categoryColors(Vowel2,:)=repmat(colors(2,:),length(Vowel2),1);
 options.categoryColors(Vowel3,:)=repmat(colors(3,:),length(Vowel3),1);
-options.categoryColors(Vowel4,:)=repmat(colors(3,:),length(Vowel4),1);
-options.categoryColors(all_empty_conditions,:) = [];
+options.categoryColors(Vowel4,:)=repmat(colors(4,:),length(Vowel4),1);
 
 options.spheres=2;
 options.cols=options.categoryColors;
@@ -316,7 +321,6 @@ stats_p_r=compareRefRDM2candRDMs(avgRDM, judgments, userOptions);
 % ---------------------------------------------------------------------
 % add a second model
 
-pause
 
 
 % ---------------------------------------------------------------------

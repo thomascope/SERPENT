@@ -143,10 +143,10 @@ parfor crun = 1:nrun
     flags = struct;
     flags.fhwm = 3;
     try
-    spm_realign(filestorealign,flags)
-    realignworkedcorrectly(crun) = 1;
+        spm_realign(filestorealign,flags)
+        realignworkedcorrectly(crun) = 1;
     catch
-    realignworkedcorrectly(crun) = 0;
+        realignworkedcorrectly(crun) = 0;
     end
 end
 
@@ -163,10 +163,10 @@ parfor crun = 1:nrun
     flags = struct
     flags.which = 0;
     try
-    spm_reslice(filestorealign,flags)
-    resliceworkedcorrectly(crun) = 1;
+        spm_reslice(filestorealign,flags)
+        resliceworkedcorrectly(crun) = 1;
     catch
-    resliceworkedcorrectly(crun) = 0;
+        resliceworkedcorrectly(crun) = 0;
     end
 end
 
@@ -219,7 +219,7 @@ for crun = 1:nrun
     inputs{1, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
     
     theseepis = find(strncmp(blocksout{crun},'Run',3));
-    outpath = [preprocessedpathstem subjects{crun} '/'];  
+    outpath = [preprocessedpathstem subjects{crun} '/'];
     filestonormalise = cell(1,length(theseepis));
     filestonormalise_list = [];
     for i = 1:length(theseepis)
@@ -256,11 +256,11 @@ inputs = cell(0, nrun);
 
 for crun = 1:nrun
     theseepis = find(strncmp(blocksout{crun},'Run',3));
-    outpath = [preprocessedpathstem subjects{crun} '/'];  
+    outpath = [preprocessedpathstem subjects{crun} '/'];
     filestoanalyse = cell(1,length(theseepis));
     
     tempDesign = module_get_event_times(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-      
+    
     inputs{1, crun} = cellstr([outpath 'stats_8']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
@@ -269,8 +269,8 @@ for crun = 1:nrun
         inputs{(8*(sess-1))+4, crun} = cat(2, tempDesign{sess}{17:32})';
         inputs{(8*(sess-1))+5, crun} = cat(2, tempDesign{sess}{33:48})';
         inputs{(8*(sess-1))+6, crun} = cat(2, tempDesign{sess}{49:64})';
-%         inputs{(8*(sess-1))+7, crun} = cat(2, tempDesign{sess}{65:80})';
-%         inputs{(8*(sess-1))+8, crun} = cat(2, tempDesign{sess}{81:96})';
+        %         inputs{(8*(sess-1))+7, crun} = cat(2, tempDesign{sess}{65:80})';
+        %         inputs{(8*(sess-1))+8, crun} = cat(2, tempDesign{sess}{81:96})';
         inputs{(8*(sess-1))+7, crun} = cat(2, tempDesign{sess}{[97:112, 129]})';
         inputs{(8*(sess-1))+8, crun} = cat(2, tempDesign{sess}{[113:128, 130]})';
         inputs{(8*(sess-1))+9, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
@@ -300,11 +300,11 @@ inputs = cell(0, nrun);
 
 for crun = 1:nrun
     theseepis = find(strncmp(blocksout{crun},'Run',3));
-    outpath = [preprocessedpathstem subjects{crun} '/'];  
+    outpath = [preprocessedpathstem subjects{crun} '/'];
     filestoanalyse = cell(1,length(theseepis));
     
     tempDesign = module_get_complex_event_times(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-      
+    
     inputs{1, crun} = cellstr([outpath 'stats_multi_3']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
@@ -343,11 +343,11 @@ end
 
 for crun = 1:nrun
     theseepis = find(strncmp(blocksout{crun},'Run',3));
-    outpath = [preprocessedpathstem subjects{crun} '/'];  
+    outpath = [preprocessedpathstem subjects{crun} '/'];
     filestoanalyse = cell(1,length(theseepis));
     
     tempDesign = module_get_complex_event_times(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-      
+    
     inputs{1, crun} = cellstr([outpath 'stats_multi_8']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
@@ -388,29 +388,201 @@ t_thresh = 3.11; % p<0.001 uncorrected
 smoothing_kernels = [3, 8];
 
 for smoo = smoothing_kernels
-for crun = 1:nrun
-    spmpath = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(smoo) '/'];  
-    outpath = [preprocessedpathstem subjects{crun} '/'];
-    this_spm = load([spmpath 'SPM.mat']);
-    writtenindex = structfind(thisSPM.SPM.xCon,'name','Normal<Written - All Sessions');
-    if numel(writtenindex) ~= 1
-        error('Something went wrong with finding the written mask condition')
+    for crun = 1:nrun
+        spmpath = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(smoo) '/'];
+        outpath = [preprocessedpathstem subjects{crun} '/'];
+        this_spm = load([spmpath 'SPM.mat']);
+        writtenindex = structfind(thisSPM.SPM.xCon,'name','Normal<Written - All Sessions');
+        if numel(writtenindex) ~= 1
+            error('Something went wrong with finding the written mask condition')
+        end
+        soundindex = structfind(thisSPM.SPM.xCon,'name','Normal>silence - All Sessions');
+        if numel(soundindex) ~= 1
+            error('Something went wrong with finding the sound mask condition')
+        end
+        spm_imcalc([spmpath 'spmT_' sprintf('%04d',soundindex) '.nii'],[outpath 'mask_' num2str(smoo) '_sound_001.nii'],'i1>3.11')
+        spm_imcalc([spmpath 'spmT_' sprintf('%04d',writtenindex) '.nii'],[outpath 'mask_' num2str(smoo) '_written_001.nii'],'i1>3.11')
     end
-    soundindex = structfind(thisSPM.SPM.xCon,'name','Normal>silence - All Sessions');
-    if numel(soundindex) ~= 1
-        error('Something went wrong with finding the sound mask condition')
-    end
-    spm_imcalc([spmpath 'spmT_' sprintf('%04d',soundindex) '.nii'],[outpath 'mask_' num2str(smoo) '_sound_001.nii'],'i1>3.11')
-    spm_imcalc([spmpath 'spmT_' sprintf('%04d',writtenindex) '.nii'],[outpath 'mask_' num2str(smoo) '_written_001.nii'],'i1>3.11')
 end
+
+%% Now create anatomical masks for later MVPA
+nrun = size(subjects,2); % enter the number of runs here
+
+% First create masks
+
+for crun = 1:nrun
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    currentdir = pwd;
+    cd(outpath)
+    xA=spm_atlas('load','Neuromorphometrics');
+    for i = 1:size(xA.labels,2)
+        all_labels{i} = xA.labels(i).name;
+    end
+    search_labels = {
+        'Left STG'
+        'Left PT'
+        'Left PrG'
+        'Left FO'
+        'Left TrIFG'
+        };
+    S = cell(1,length(search_labels));
+    for i = 1:length(search_labels)
+        S{i} = find(strncmp(all_labels,search_labels{i},size(search_labels{i},2)));
+    end
+    
+    for i = 1:size(S,2)
+        fname=strcat(strrep(search_labels{i}, ' ', '_'),'.nii');
+        VM=spm_atlas('mask',xA,xA.labels(S{i}).name);
+        VM.fname=fname;
+        spm_write_vol(VM,spm_read_vols(VM));
+    end
+    
+    fname='atlas_all.nii';
+    VM=spm_atlas('mask',xA,all_labels);
+    VM.fname=fname;
+    spm_write_vol(VM,spm_read_vols(VM));
+    
+    cd(currentdir)
+    
+end
+
+maskcoregisterworkedcorrectly = zeros(1,nrun);
+
+parfor crun = 1:nrun
+    job = struct
+    job.eoptions.cost_fun = 'nmi'
+    job.eoptions.tol = [repmat(0.02,1,3), repmat(0.01,1,6), repmat(0.001,1,3)];
+    job.eoptions.sep = [4 2];
+    job.eoptions.fwhm = [7 7];
+    
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    job.ref = {[outpath 'wstructural.nii']};
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    job.source = {[outpath 'atlas_all.nii']};
+    
+    filestocoregister = cell(1,length(theseepis));
+    filestocoregister_list = [];
+    for i = 1:length(theseepis)
+        filestocoregister{i} = strcat(outpath,strrep(search_labels{i}, ' ', '_'),'.nii');
+        filestocoregister_list = strvcat(filestocoregister_list, filestocoregister{i});
+    end
+    filestocoregister = cellstr(filestocoregister_list);
+    
+    job.other = filestocoregister
+    
+    try
+        spm_run_coreg(job)
+        
+        P = char(job.ref{:},job.source{:},job.other{:});
+        %inflate the ROIs a bit to account for smaller brains than template
+        for thisone=3:size(P,1)
+            spm_imcalc(P(thisone,:), P(thisone,:), 'i1*10');
+            spm_smooth(P(thisone,:),P(thisone,:),10);
+            spm_imcalc(P(thisone,:),P(thisone,:),'i1>1');
+        end
+        flags=struct;
+        flags.interp = 0;
+        spm_reslice(P,flags)
+        
+        
+        maskcoregisterworkedcorrectly(crun) = 1;
+    catch
+        maskcoregisterworkedcorrectly(crun) = 0;
+    end
 end
 
 %% Now begin the MVPA proper! RSA within the mask first
+nrun = size(subjects,2); % enter the number of runs here
 data_smoo = 3; %Smoothing on MVPA data
-mask_smoo = 8; %Smoothing on MVPA mask
-mask_cond = 'sound';
-%mask_cond = 'written';
+mask_smoo = 3; %Smoothing on MVPA mask
+mask_cond = {'sound' 'written'};
+% 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov
+
+avgRDM = cell(size(subjects,2),length(mask_cond),length(conditions));
+stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
 
 for crun = 1:nrun
-mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond '_001.nii'];
-data_path = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(data_smoo) '/'];
+    
+    data_path = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(data_smoo) '/'];
+    
+    for mask_cond_num = 1:length(mask_cond)
+        mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
+        for cond_num = 1:length(conditions)
+            tpattern_numbers = 9+[1:16]+(16*(cond_num-1));
+            [avgRDM{crun,mask_cond_num,cond_num}, stats_p_r{crun,mask_cond_num,cond_num}] = module_rsa_job(tpattern_numbers,mask_path,data_path,cond_num,conditions{cond_num});
+        end
+    end
+end
+all_avgRDM{1} = avgRDM;
+all_stats{1} = stats_p_r;
+
+data_smoo = 3; %Smoothing on MVPA data
+mask_smoo = 8; %Smoothing on MVPA mask
+mask_cond = {'sound' 'written'};
+% 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov
+
+avgRDM = cell(size(subjects,2),length(mask_cond),length(conditions));
+stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
+
+for crun = 1:nrun
+    
+    data_path = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(data_smoo) '/'];
+    
+    for mask_cond_num = 1:length(mask_cond)
+        mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
+        for cond_num = 1:length(conditions)
+            tpattern_numbers = 9+[1:16]+(16*(cond_num-1));
+            [avgRDM{crun,mask_cond_num,cond_num}, stats_p_r{crun,mask_cond_num,cond_num}] = module_rsa_job(tpattern_numbers,mask_path,data_path,cond_num,conditions{cond_num});
+        end
+    end
+end
+all_avgRDM{2} = avgRDM;
+all_stats{2} = stats_p_r;
+
+
+data_smoo = 8; %Smoothing on MVPA data
+mask_smoo = 8; %Smoothing on MVPA mask
+mask_cond = {'sound' 'written'};
+% 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov
+
+avgRDM = cell(size(subjects,2),length(mask_cond),length(conditions));
+stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
+
+for crun = 1:nrun
+    
+    data_path = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(data_smoo) '/'];
+    
+    for mask_cond_num = 1:length(mask_cond)
+        mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
+        for cond_num = 1:length(conditions)
+            tpattern_numbers = 9+[1:16]+(16*(cond_num-1));
+            [avgRDM{crun,mask_cond_num,cond_num}, stats_p_r{crun,mask_cond_num,cond_num}] = module_rsa_job(tpattern_numbers,mask_path,data_path,cond_num,conditions{cond_num});
+        end
+    end
+end
+all_avgRDM{3} = avgRDM;
+all_stats{3} = stats_p_r;
+
+nrun = size(subjects,2); % enter the number of runs here
+data_smoo = 3; %Smoothing on MVPA data
+mask_smoo = 3; %Smoothing on MVPA mask
+mask_cond = {'sound' 'written'};
+% 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov
+
+avgRDM = cell(size(subjects,2),length(mask_cond),length(conditions));
+stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
+
+for crun = 1:nrun
+    
+    data_path = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(data_smoo) '/'];
+    
+    for mask_cond_num = 1:length(mask_cond)
+        mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
+        for cond_num = 1:length(conditions)
+            tpattern_numbers = 9+[1:16]+(16*(cond_num-1));
+            [avgRDM{crun,mask_cond_num,cond_num}, stats_p_r{crun,mask_cond_num,cond_num}] = module_rsa_job(tpattern_numbers,mask_path,data_path,cond_num,conditions{cond_num});
+        end
+    end
+end
+all_avgRDM{1} = avgRDM;
+all_stats{1} = stats_p_r;
