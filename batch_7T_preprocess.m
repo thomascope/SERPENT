@@ -409,6 +409,13 @@ end
 nrun = size(subjects,2); % enter the number of runs here
 
 % First create masks
+search_labels = {
+    'Left STG'
+    'Left PT'
+    'Left PrG'
+    'Left FO'
+    'Left TrIFG'
+    };
 
 for crun = 1:nrun
     outpath = [preprocessedpathstem subjects{crun} '/'];
@@ -418,13 +425,7 @@ for crun = 1:nrun
     for i = 1:size(xA.labels,2)
         all_labels{i} = xA.labels(i).name;
     end
-    search_labels = {
-        'Left STG'
-        'Left PT'
-        'Left PrG'
-        'Left FO'
-        'Left TrIFG'
-        };
+
     S = cell(1,length(search_labels));
     for i = 1:length(search_labels)
         S{i} = find(strncmp(all_labels,search_labels{i},size(search_labels{i},2)));
@@ -462,7 +463,7 @@ parfor crun = 1:nrun
     
     filestocoregister = cell(1,length(theseepis));
     filestocoregister_list = [];
-    for i = 1:length(theseepis)
+    for i = 1:length(search_labels)
         filestocoregister{i} = strcat(outpath,strrep(search_labels{i}, ' ', '_'),'.nii');
         filestocoregister_list = strvcat(filestocoregister_list, filestocoregister{i});
     end
@@ -563,10 +564,8 @@ end
 all_avgRDM{3} = avgRDM;
 all_stats{3} = stats_p_r;
 
-nrun = size(subjects,2); % enter the number of runs here
 data_smoo = 3; %Smoothing on MVPA data
-mask_smoo = 3; %Smoothing on MVPA mask
-mask_cond = {'sound' 'written'};
+mask_cond = {'rLeft_STG.nii' 'rLeft_PrG.nii' 'rLeft_FO.nii'};
 % 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov
 
 avgRDM = cell(size(subjects,2),length(mask_cond),length(conditions));
@@ -577,12 +576,37 @@ for crun = 1:nrun
     data_path = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(data_smoo) '/'];
     
     for mask_cond_num = 1:length(mask_cond)
-        mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
+        mask_path = [preprocessedpathstem subjects{crun} '/' mask_cond{mask_cond_num}];
         for cond_num = 1:length(conditions)
             tpattern_numbers = 9+[1:16]+(16*(cond_num-1));
             [avgRDM{crun,mask_cond_num,cond_num}, stats_p_r{crun,mask_cond_num,cond_num}] = module_rsa_job(tpattern_numbers,mask_path,data_path,cond_num,conditions{cond_num});
         end
     end
 end
-all_avgRDM{1} = avgRDM;
-all_stats{1} = stats_p_r;
+all_avgRDM{4} = avgRDM;
+all_stats{4} = stats_p_r;
+
+data_smoo = 3; %Smoothing on MVPA data
+mask_cond = {'rLeft_STG.nii' 'rLeft_PrG.nii' 'rLeft_FO.nii'};
+
+all_combs = combvec(1:nrun,1:length(mask_cond),1:length(conditions));
+
+parfor thisone = 1:size(all_combs,1)
+    crun = all_combs(thisone,1);
+    mask_cond_num = all_combs(thisone,2);
+    cond_num = all_combs(thisone,3);
+    module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},data_smoo)
+    
+end
+
+for crun = 1:nrun  
+    for mask_cond_num = 1:length(mask_cond)
+        for cond_num = 1:length(conditions)
+            mask_name = mask_cond{mask_cond_num};
+            thesedata = load(['./RSA_results/RSA_results_subj' num2str(crun) '_' conditions{cond_num} '_mask_' mask_name(1:end-4) '_smooth_' num2str(data_smoo)],'avgRDM','stats_p_r');
+            avgRDM{crun,mask_cond_num,cond_num} = thesedata.avgRDM;
+            stats_p_r{crun,mask_cond_num,cond_num} = thesedata.stats_p_r;
+        end
+    end
+end
+
