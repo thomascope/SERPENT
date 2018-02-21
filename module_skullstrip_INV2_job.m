@@ -1,12 +1,16 @@
 %-----------------------------------------------------------------------
-% Job saved on 13-Feb-2018 12:34:13 by cfg_util (rev $Rev: 6460 $)
+% Job saved on 19-Feb-2018 11:18:31 by cfg_util (rev $Rev: 6460 $)
 % spm SPM - SPM12 (6906)
 % cfg_basicio BasicIO - Unknown
 %-----------------------------------------------------------------------
-matlabbatch{1}.spm.spatial.preproc.channel.vols = '<UNDEFINED>';
-matlabbatch{1}.spm.spatial.preproc.channel.biasreg = 0.001;
-matlabbatch{1}.spm.spatial.preproc.channel.biasfwhm = 60;
-matlabbatch{1}.spm.spatial.preproc.channel.write = [0 0];
+matlabbatch{1}.spm.spatial.preproc.channel(1).vols = '<UNDEFINED>';
+matlabbatch{1}.spm.spatial.preproc.channel(1).biasreg = 0.001;
+matlabbatch{1}.spm.spatial.preproc.channel(1).biasfwhm = 60;
+matlabbatch{1}.spm.spatial.preproc.channel(1).write = [0 0];
+matlabbatch{1}.spm.spatial.preproc.channel(2).vols = '<UNDEFINED>';
+matlabbatch{1}.spm.spatial.preproc.channel(2).biasreg = 0.001;
+matlabbatch{1}.spm.spatial.preproc.channel(2).biasfwhm = 60;
+matlabbatch{1}.spm.spatial.preproc.channel(2).write = [0 0];
 matlabbatch{1}.spm.spatial.preproc.tissue(1).tpm = {'/imaging/local/software/spm_cbu_svn/releases/spm12_latest/tpm/TPM.nii,1'};
 matlabbatch{1}.spm.spatial.preproc.tissue(1).ngaus = 1;
 matlabbatch{1}.spm.spatial.preproc.tissue(1).native = [1 0];
@@ -29,7 +33,7 @@ matlabbatch{1}.spm.spatial.preproc.tissue(5).native = [1 0];
 matlabbatch{1}.spm.spatial.preproc.tissue(5).warped = [0 0];
 matlabbatch{1}.spm.spatial.preproc.tissue(6).tpm = {'/imaging/local/software/spm_cbu_svn/releases/spm12_latest/tpm/TPM.nii,6'};
 matlabbatch{1}.spm.spatial.preproc.tissue(6).ngaus = 2;
-matlabbatch{1}.spm.spatial.preproc.tissue(6).native = [1 0];
+matlabbatch{1}.spm.spatial.preproc.tissue(6).native = [0 0];
 matlabbatch{1}.spm.spatial.preproc.tissue(6).warped = [0 0];
 matlabbatch{1}.spm.spatial.preproc.warp.mrf = 1;
 matlabbatch{1}.spm.spatial.preproc.warp.cleanup = 1;

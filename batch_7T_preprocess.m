@@ -3,12 +3,16 @@
 
 %% Setup environment
 rmpath(genpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/'))
-addpath /imaging/local/software/spm_cbu_svn/releases/spm12_fil_r6906
+%addpath /imaging/local/software/spm_cbu_svn/releases/spm12_fil_r6906
+addpath /group/language/data/thomascope/spm12_fil_r6906/
 spm fmri
 scriptdir = '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/';
 
 %% Define parameters
 pilot_7T_subjects_parameters
+
+%% Options to skip steps
+applytopup = 0;
 
 %% Open a worker pool
 if size(subjects,2) > 96
@@ -79,19 +83,20 @@ end
 %% Skullstrip structural
 nrun = size(subjects,2); % enter the number of runs here
 %jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
-jobfile = {[scriptdir 'module_skullstrip_job.m']};
+jobfile = {[scriptdir 'module_skullstrip_INV2_job.m']};
 inputs = cell(2, nrun);
 
 for crun = 1:nrun
     inputs{1, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))} ',1']);
-    inputs{2, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
-    inputs{3, crun} = 'structural';
-    inputs{4, crun} = cellstr([preprocessedpathstem subjects{crun} '/']);
-    if ~exist(inputs{4, crun}{1})
-        mkdir(inputs{4, crun}{1});
+    inputs{2, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'INV2'))} '/' blocksin{crun}{find(strcmp(blocksout{crun},'INV2'))}]);
+    inputs{3, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+    inputs{4, crun} = 'structural';
+    inputs{5, crun} = cellstr([preprocessedpathstem subjects{crun} '/']);
+    if ~exist(inputs{5, crun}{1})
+        mkdir(inputs{5, crun}{1});
     end
-    inputs{5, crun} = 'structural_csf';
-    inputs{6, crun} = cellstr([preprocessedpathstem subjects{crun} '/']);
+    inputs{6, crun} = 'structural_csf';
+    inputs{7, crun} = cellstr([preprocessedpathstem subjects{crun} '/']);
 end
 
 skullstripworkedcorrectly = zeros(1,nrun);
@@ -110,26 +115,27 @@ end
 
 %% Now apply topup to distortion correct the EPI
 
-topupworkedcorrectly = zeros(1,nrun);
-parfor crun = 1:nrun
-    base_image_path = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'Pos_topup'))} '/' blocksin{crun}{find(strcmp(blocksout{crun},'Pos_topup'))}];
-    reversed_image_path = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'Neg_topup'))} '/' blocksin{crun}{find(strcmp(blocksout{crun},'Neg_topup'))}];
-    outpath = [preprocessedpathstem subjects{crun} '/'];
-    theseepis = find(strncmp(blocksout{crun},'Run',3));
-    filestocorrect = cell(1,length(theseepis));
-    for i = 1:length(theseepis)
-        filestocorrect{i} = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{theseepis(i)} '/' blocksin{crun}{theseepis(i)}];
+if applytopup == 1
+    topupworkedcorrectly = zeros(1,nrun);
+    parfor crun = 1:nrun
+        base_image_path = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'Pos_topup'))} '/' blocksin{crun}{find(strcmp(blocksout{crun},'Pos_topup'))}];
+        reversed_image_path = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'Neg_topup'))} '/' blocksin{crun}{find(strcmp(blocksout{crun},'Neg_topup'))}];
+        outpath = [preprocessedpathstem subjects{crun} '/'];
+        theseepis = find(strncmp(blocksout{crun},'Run',3));
+        filestocorrect = cell(1,length(theseepis));
+        for i = 1:length(theseepis)
+            filestocorrect{i} = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{theseepis(i)} '/' blocksin{crun}{theseepis(i)}];
+        end
+        
+        try
+            module_topup_job(base_image_path, reversed_image_path, outpath, minvols(crun), filestocorrect)
+            topupworkedcorrectly(crun) = 1;
+        catch
+            topupworkedcorrectly(crun) = 0;
+        end
+        
     end
-    
-    try
-        module_topup_job(base_image_path, reversed_image_path, outpath, minvols(crun), filestocorrect)
-        topupworkedcorrectly(crun) = 1;
-    catch
-        topupworkedcorrectly(crun) = 0;
-    end
-    
 end
-
 %% Now realign the EPIs
 
 realignworkedcorrectly = zeros(1,nrun);
@@ -209,6 +215,31 @@ parfor crun = 1:nrun
     end
 end
 
+%% Now do cat12 normalisation of the structural to create deformation fields (works better than SPM segment deformation fields, which sometimes produce too-small brains)
+
+nrun = size(subjects,2); % enter the number of runs here
+jobfile = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/module_cat12_normalise_job.m'};
+inputs = cell(1, nrun);
+for crun = 1:nrun
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    inputs{1, crun} = cellstr([outpath 'structural_csf.nii']);
+end
+
+cat12workedcorrectly = zeros(1,nrun);
+jobs = repmat(jobfile, 1, 1);
+
+parfor crun = 1:nrun
+    spm('defaults', 'fMRI');
+    spm_jobman('initcfg')
+    try
+        spm_jobman('run', jobs, inputs{:,crun});
+        cat12workedcorrectly(crun) = 1;
+    catch
+        cat12workedcorrectly(crun) = 0;
+    end
+end
+
+
 %% Now normalise write for visualisation and smooth at 3 and 8
 nrun = size(subjects,2); % enter the number of runs here
 %jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
@@ -216,10 +247,14 @@ jobfile = {[scriptdir 'module_normalise_smooth_job.m']};
 inputs = cell(2, nrun);
 
 for crun = 1:nrun
-    inputs{1, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    
+    % % First is for SPM segment, second for CAT12
+    %inputs{1, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+    inputs{1, crun} = cellstr([outpath 'mri/y_structural_csf.nii']);
+    
     
     theseepis = find(strncmp(blocksout{crun},'Run',3));
-    outpath = [preprocessedpathstem subjects{crun} '/'];
     filestonormalise = cell(1,length(theseepis));
     filestonormalise_list = [];
     for i = 1:length(theseepis)
@@ -227,9 +262,13 @@ for crun = 1:nrun
         filestonormalise_list = [filestonormalise_list; filestonormalise{i}];
     end
     inputs{2, crun} = cellstr(filestonormalise_list);
-    inputs{3, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+    % % First is for SPM segment, second for CAT12
+    %inputs{3, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+    inputs{3, crun} = cellstr([outpath 'mri/y_structural_csf.nii']);
     inputs{4, crun} = cellstr([outpath 'structural.nii,1']);
-    inputs{5, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+    % % First is for SPM segment, second for CAT12
+    %inputs{5, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+    inputs{5, crun} = cellstr([outpath 'mri/y_structural_csf.nii']);
     inputs{6, crun} = cellstr([outpath 'structural.nii,1']);
 end
 
@@ -261,7 +300,7 @@ for crun = 1:nrun
     
     tempDesign = module_get_event_times(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats_8']);
+    inputs{1, crun} = cellstr([outpath 'stats2_8']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(8*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -305,7 +344,7 @@ for crun = 1:nrun
     
     tempDesign = module_get_complex_event_times(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats_multi_3']);
+    inputs{1, crun} = cellstr([outpath 'stats2_multi_3']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -348,7 +387,7 @@ for crun = 1:nrun
     
     tempDesign = module_get_complex_event_times(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats_multi_8']);
+    inputs{1, crun} = cellstr([outpath 'stats2_multi_8']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -389,9 +428,9 @@ smoothing_kernels = [3, 8];
 
 for smoo = smoothing_kernels
     for crun = 1:nrun
-        spmpath = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(smoo) '/'];
+        spmpath = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(smoo) '/'];
         outpath = [preprocessedpathstem subjects{crun} '/'];
-        this_spm = load([spmpath 'SPM.mat']);
+        thisSPM = load([spmpath 'SPM.mat']);
         writtenindex = structfind(thisSPM.SPM.xCon,'name','Normal<Written - All Sessions');
         if numel(writtenindex) ~= 1
             error('Something went wrong with finding the written mask condition')
@@ -425,7 +464,7 @@ for crun = 1:nrun
     for i = 1:size(xA.labels,2)
         all_labels{i} = xA.labels(i).name;
     end
-
+    
     S = cell(1,length(search_labels));
     for i = 1:length(search_labels)
         S{i} = find(strncmp(all_labels,search_labels{i},size(search_labels{i},2)));
@@ -477,9 +516,10 @@ parfor crun = 1:nrun
         P = char(job.ref{:},job.source{:},job.other{:});
         %inflate the ROIs a bit to account for smaller brains than template
         for thisone=3:size(P,1)
-            spm_imcalc(P(thisone,:), P(thisone,:), 'i1*10');
-            spm_smooth(P(thisone,:),P(thisone,:),10);
-            spm_imcalc(P(thisone,:),P(thisone,:),'i1>1');
+            dilate_image_spm(P(thisone,:),5)
+%             spm_imcalc(P(thisone,:), P(thisone,:), 'i1*10');
+%             spm_smooth(P(thisone,:),P(thisone,:),10);
+%             spm_imcalc(P(thisone,:),P(thisone,:),'i1>1');
         end
         flags=struct;
         flags.interp = 0;
@@ -504,7 +544,7 @@ stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
 
 for crun = 1:nrun
     
-    data_path = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(data_smoo) '/'];
+    data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
     
     for mask_cond_num = 1:length(mask_cond)
         mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
@@ -527,7 +567,7 @@ stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
 
 for crun = 1:nrun
     
-    data_path = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(data_smoo) '/'];
+    data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
     
     for mask_cond_num = 1:length(mask_cond)
         mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
@@ -551,7 +591,7 @@ stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
 
 for crun = 1:nrun
     
-    data_path = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(data_smoo) '/'];
+    data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
     
     for mask_cond_num = 1:length(mask_cond)
         mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
@@ -573,7 +613,7 @@ stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
 
 for crun = 1:nrun
     
-    data_path = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(data_smoo) '/'];
+    data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
     
     for mask_cond_num = 1:length(mask_cond)
         mask_path = [preprocessedpathstem subjects{crun} '/' mask_cond{mask_cond_num}];
@@ -599,7 +639,7 @@ parfor thisone = 1:size(all_combs,1)
     
 end
 
-for crun = 1:nrun  
+for crun = 1:nrun
     for mask_cond_num = 1:length(mask_cond)
         for cond_num = 1:length(conditions)
             mask_name = mask_cond{mask_cond_num};
