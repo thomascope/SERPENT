@@ -689,105 +689,105 @@ parfor crun = 1:nrun
     end
 end
 
-%% Now begin the MVPA proper! RSA within the mask first
-nrun = size(subjects,2); % enter the number of runs here
-data_smoo = 3; %Smoothing on MVPA data
-mask_smoo = 3; %Smoothing on MVPA mask
-mask_cond = {'sound' 'written'};
-% 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov
-
-avgRDM = cell(size(subjects,2),length(mask_cond),length(conditions));
-stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
-
-for crun = 1:nrun
-    
-    data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
-    
-    for mask_cond_num = 1:length(mask_cond)
-        mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
-        for cond_num = 1:length(conditions)
-            tpattern_numbers = 9+[1:16]+(16*(cond_num-1));
-            [avgRDM{crun,mask_cond_num,cond_num}, stats_p_r{crun,mask_cond_num,cond_num}] = module_rsa_job(tpattern_numbers,mask_path,data_path,cond_num,conditions{cond_num});
-        end
-    end
-end
-all_avgRDM{1} = avgRDM;
-all_stats{1} = stats_p_r;
-
-data_smoo = 3; %Smoothing on MVPA data
-mask_smoo = 8; %Smoothing on MVPA mask
-mask_cond = {'sound' 'written'};
-% 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov
-
-avgRDM = cell(size(subjects,2),length(mask_cond),length(conditions));
-stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
-
-for crun = 1:nrun
-    
-    data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
-    
-    for mask_cond_num = 1:length(mask_cond)
-        mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
-        for cond_num = 1:length(conditions)
-            tpattern_numbers = 9+[1:16]+(16*(cond_num-1));
-            [avgRDM{crun,mask_cond_num,cond_num}, stats_p_r{crun,mask_cond_num,cond_num}] = module_rsa_job(tpattern_numbers,mask_path,data_path,cond_num,conditions{cond_num});
-        end
-    end
-end
-all_avgRDM{2} = avgRDM;
-all_stats{2} = stats_p_r;
-
-
-data_smoo = 8; %Smoothing on MVPA data
-mask_smoo = 8; %Smoothing on MVPA mask
-mask_cond = {'sound' 'written'};
-% 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov
-
-avgRDM = cell(size(subjects,2),length(mask_cond),length(conditions));
-stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
-
-for crun = 1:nrun
-    
-    data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
-    
-    for mask_cond_num = 1:length(mask_cond)
-        mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
-        for cond_num = 1:length(conditions)
-            tpattern_numbers = 9+[1:16]+(16*(cond_num-1));
-            [avgRDM{crun,mask_cond_num,cond_num}, stats_p_r{crun,mask_cond_num,cond_num}] = module_rsa_job(tpattern_numbers,mask_path,data_path,cond_num,conditions{cond_num});
-        end
-    end
-end
-all_avgRDM{3} = avgRDM;
-all_stats{3} = stats_p_r;
-
-data_smoo = 3; %Smoothing on MVPA data
-%mask_cond = {'rLeft_STG.nii' 'rLeft_PrG.nii' 'rLeft_FO.nii'};
-mask_cond = {'rLeft_Superior_Temporal_Gyrus.nii'
-    'rLeft_Angular_Gyrus.nii'
-    'rLeft_Precentral_Gyrus.nii'
-    'rLeft_Frontal_Operculum.nii'
-    'rLeft_Inferior_Frontal_Angular_Gyrus.nii'
-    };
-% 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov
-
-avgRDM = cell(size(subjects,2),length(mask_cond),length(conditions));
-stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
-
-for crun = 1:nrun
-    
-    data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
-    
-    for mask_cond_num = 1:length(mask_cond)
-        mask_path = [preprocessedpathstem subjects{crun} '/' mask_cond{mask_cond_num}];
-        for cond_num = 1:length(conditions)
-            tpattern_numbers = 9+[1:16]+(16*(cond_num-1));
-            [avgRDM{crun,mask_cond_num,cond_num}, stats_p_r{crun,mask_cond_num,cond_num}] = module_rsa_job(tpattern_numbers,mask_path,data_path,cond_num,conditions{cond_num});
-        end
-    end
-end
-all_avgRDM{4} = avgRDM;
-all_stats{4} = stats_p_r;
+% %% Now begin the MVPA proper! RSA within the mask first
+% nrun = size(subjects,2); % enter the number of runs here
+% data_smoo = 3; %Smoothing on MVPA data
+% mask_smoo = 3; %Smoothing on MVPA mask
+% mask_cond = {'sound' 'written'};
+% % 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov
+% 
+% avgRDM = cell(size(subjects,2),length(mask_cond),length(conditions));
+% stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
+% 
+% for crun = 1:nrun
+%     
+%     data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
+%     
+%     for mask_cond_num = 1:length(mask_cond)
+%         mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
+%         for cond_num = 1:length(conditions)
+%             tpattern_numbers = 9+[1:16]+(16*(cond_num-1));
+%             [avgRDM{crun,mask_cond_num,cond_num}, stats_p_r{crun,mask_cond_num,cond_num}] = module_rsa_job(tpattern_numbers,mask_path,data_path,cond_num,conditions{cond_num});
+%         end
+%     end
+% end
+% all_avgRDM{1} = avgRDM;
+% all_stats{1} = stats_p_r;
+% 
+% data_smoo = 3; %Smoothing on MVPA data
+% mask_smoo = 8; %Smoothing on MVPA mask
+% mask_cond = {'sound' 'written'};
+% % 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov
+% 
+% avgRDM = cell(size(subjects,2),length(mask_cond),length(conditions));
+% stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
+% 
+% for crun = 1:nrun
+%     
+%     data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
+%     
+%     for mask_cond_num = 1:length(mask_cond)
+%         mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
+%         for cond_num = 1:length(conditions)
+%             tpattern_numbers = 9+[1:16]+(16*(cond_num-1));
+%             [avgRDM{crun,mask_cond_num,cond_num}, stats_p_r{crun,mask_cond_num,cond_num}] = module_rsa_job(tpattern_numbers,mask_path,data_path,cond_num,conditions{cond_num});
+%         end
+%     end
+% end
+% all_avgRDM{2} = avgRDM;
+% all_stats{2} = stats_p_r;
+% 
+% 
+% data_smoo = 8; %Smoothing on MVPA data
+% mask_smoo = 8; %Smoothing on MVPA mask
+% mask_cond = {'sound' 'written'};
+% % 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov
+% 
+% avgRDM = cell(size(subjects,2),length(mask_cond),length(conditions));
+% stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
+% 
+% for crun = 1:nrun
+%     
+%     data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
+%     
+%     for mask_cond_num = 1:length(mask_cond)
+%         mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
+%         for cond_num = 1:length(conditions)
+%             tpattern_numbers = 9+[1:16]+(16*(cond_num-1));
+%             [avgRDM{crun,mask_cond_num,cond_num}, stats_p_r{crun,mask_cond_num,cond_num}] = module_rsa_job(tpattern_numbers,mask_path,data_path,cond_num,conditions{cond_num});
+%         end
+%     end
+% end
+% all_avgRDM{3} = avgRDM;
+% all_stats{3} = stats_p_r;
+% 
+% data_smoo = 3; %Smoothing on MVPA data
+% %mask_cond = {'rLeft_STG.nii' 'rLeft_PrG.nii' 'rLeft_FO.nii'};
+% mask_cond = {'rLeft_Superior_Temporal_Gyrus.nii'
+%     'rLeft_Angular_Gyrus.nii'
+%     'rLeft_Precentral_Gyrus.nii'
+%     'rLeft_Frontal_Operculum.nii'
+%     'rLeft_Inferior_Frontal_Angular_Gyrus.nii'
+%     };
+% % 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov
+% 
+% avgRDM = cell(size(subjects,2),length(mask_cond),length(conditions));
+% stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
+% 
+% for crun = 1:nrun
+%     
+%     data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
+%     
+%     for mask_cond_num = 1:length(mask_cond)
+%         mask_path = [preprocessedpathstem subjects{crun} '/' mask_cond{mask_cond_num}];
+%         for cond_num = 1:length(conditions)
+%             tpattern_numbers = 9+[1:16]+(16*(cond_num-1));
+%             [avgRDM{crun,mask_cond_num,cond_num}, stats_p_r{crun,mask_cond_num,cond_num}] = module_rsa_job(tpattern_numbers,mask_path,data_path,cond_num,conditions{cond_num});
+%         end
+%     end
+% end
+% all_avgRDM{4} = avgRDM;
+% all_stats{4} = stats_p_r;
 
 %% Try again with parallelisation of different AR model orders
 
