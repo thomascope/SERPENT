@@ -1,0 +1,12 @@
+%A short script for opening fslview and looking at an image file
+
+function module_fslmaths_job(imagefile, command, outfname)
+
+fsldir = '/imaging/local/software/fsl/fsl64/fsl-5.0.3/fsl';
+
+setenv('FSLDIR',fsldir);  % this to tell where FSL folder is
+setenv('FSLOUTPUTTYPE', 'NIFTI'); % this to tell what the output type
+
+cmd = [fsldir '/bin/fslmaths ' imagefile ' ' command ' ' outfname];
+
+system(cmd)
