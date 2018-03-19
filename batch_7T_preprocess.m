@@ -38,7 +38,7 @@ try
     try
         matlabpool(workerpool)
     catch
-        parpool(workerpool)
+        parpool(workerpool,workerpool.NumWorkers)
     end
     cd(currentdr)
 catch
@@ -54,7 +54,7 @@ catch
         try
             matlabpool(workerpool)
         catch
-            parpool(workerpool)
+            parpool(workerpool,workerpool.NumWorkers)
         end
         cd(currentdr)
     catch
@@ -64,7 +64,7 @@ catch
             try
                 matlabpool(workerpool)
             catch
-                parpool(workerpool)
+                parpool(workerpool,workerpool.NumWorkers)
             end
             cd(currentdr)
         catch
@@ -426,10 +426,10 @@ end
 jobfile = {};
 jobfile{3} = {[scriptdir 'module_univariate_3runs_complex_AR_job.m']};
 jobfile{4} = {[scriptdir 'module_univariate_4runs_complex_AR_job.m']};
-inputs = cell(0, nrun);
 
 all_aros = [1 3 6 12]; %Autoregressive model order
 nrun = size(subjects,2)*length(all_aros); % enter the number of runs here
+inputs = cell(0, size(subjects,2),length(all_aros));
 for this_aro = 1:length(all_aros);
 for crun = 1:size(subjects,2)
     aro = all_aros(this_aro);
@@ -440,7 +440,7 @@ for crun = 1:size(subjects,2)
     
     tempDesign = module_get_complex_event_times(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun, this_aro} = cellstr([outpath 'stats2_multi_AR' num2str(aro)]);
+    inputs{1, crun, this_aro} = cellstr([outpath 'stats3_multi_AR' num2str(aro)]);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(100*(sess-1))+2, crun, this_aro} = cellstr(filestoanalyse{sess});
@@ -465,9 +465,26 @@ for crun = 1:size(subjects,2)
 end
 end
 
+
+try
+    matlabpool 'close'
+catch
+    delete(gcp)
+end
+
+
+workersrequested = 24;
+workerpool = cbupool(workersrequested);
+workerpool.ResourceTemplate=['-l nodes=^N^,mem=768GB,walltime=168:00:00'];
+try
+    matlabpool(workerpool)
+catch
+    parpool(workerpool,workerpool.NumWorkers)
+end
+        
 all_combs = combvec(1:size(subjects,2),1:length(all_aros))';
 SPMworkedcorrectly = zeros(1,size(all_combs,1));
-parfor thisone = 1:size(all_combs,1)
+for thisone = 1:size(all_combs,1)
     crun = all_combs(thisone,1);
     this_aro = all_combs(thisone,2);
     spm('defaults', 'fMRI');
