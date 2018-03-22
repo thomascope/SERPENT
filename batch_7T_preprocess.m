@@ -1038,7 +1038,7 @@ parfor thisone = 1:size(all_combs,1)
     smo = all_smos(all_combs(thisone,4));
     switch type
         case 't-pat'
-            module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo) % Run based on the t-patterns
+            c(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo) % Run based on the t-patterns
         case 'beta'
             module_run_rsa_beta(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo) %Run based on the beta patterns
     end
