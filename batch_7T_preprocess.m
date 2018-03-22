@@ -497,6 +497,53 @@ for thisone = 1:size(all_combs,1)
     end
 end
 
+%% Now create a ReML SPM without modelling the written word separately for future multivariate analysis (currently only implemented for 3 or 4 runs)
+nrun = size(subjects,2); % enter the number of runs here
+jobfile = {};
+jobfile{3} = {[scriptdir 'module_univariate_3runs_complex_job.m']};
+jobfile{4} = {[scriptdir 'module_univariate_4runs_complex_job.m']};
+inputs = cell(0, nrun);
+
+for crun = 1:nrun
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    filestoanalyse = cell(1,length(theseepis));
+    
+    tempDesign = module_get_complex_event_times_nowritten(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+    
+    inputs{1, crun} = cellstr([outpath 'stats_multi_3_nowritten2']);
+    for sess = 1:length(theseepis)
+        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+        inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+        for cond_num = 1:80
+            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
+        end
+        for cond_num = 81:96 %Response trials
+            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
+        end
+        for cond_num = 97 %Button press
+            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
+        end
+        for cond_num = 98 %Absent sound (written only)
+            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{129})';
+        end
+        inputs{(100*(sess-1))+101, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+    end
+    jobs{crun} = jobfile{length(theseepis)};
+    
+end
+
+SPMworkedcorrectly = zeros(1,nrun);
+parfor crun = 1:nrun
+    spm('defaults', 'fMRI');
+    spm_jobman('initcfg')
+    try
+        spm_jobman('run', jobs{crun}, inputs{:,crun});
+        SPMworkedcorrectly(crun) = 1;
+    catch
+        SPMworkedcorrectly(crun) = 0;
+    end
+end
 
 
 %% Now create univariate masks for later MVPA
@@ -928,6 +975,131 @@ for crun = 1:size(subjects,2)
 userOptions.figureIndex = [base_figureindex+10*crun+aro, base_figureindex+200+10*crun+aro];
         
 subj_stats_p_r{crun,aro}=compareRefRDM2candRDMs(judgmentRDM, avgRDM(crun,:,:,aro), userOptions);
+
+
+    end
+end
+
+%% Analyse by condition and brain region
+addpath(genpath('/imaging/tc02/toolboxes')); %Where is the RSA toolbox?
+
+all_smos = 3; %Smoothing on MVPA data
+
+mask_cond = {'rLeft_Superior_Temporal_Gyrus.nii'
+    'rLeft_Angular_Gyrus.nii'
+    'rLeft_Precentral_Gyrus.nii'
+    'rLeft_Frontal_Operculum.nii'
+    'rLeft_Inferior_Frontal_Angular_Gyrus.nii'
+    'rRight_Superior_Temporal_Gyrus.nii'
+    'rRight_Angular_Gyrus.nii'
+    'rRight_Precentral_Gyrus.nii'
+    'rRight_Frontal_Operculum.nii'
+    'rRight_Inferior_Frontal_Angular_Gyrus.nii'
+    'rLeft_Cerebellar_Lobule_Cerebellar_Vermal_Lobules_VI-VII.nii'
+    'rRight_Cerebellar_Lobule_Cerebellar_Vermal_Lobules_VI-VII.nii'
+    };
+mask_short_cond = {'lSTG'
+    'lAG'
+    'lPrG'
+    'lFO'
+    'lIFG'
+    'rSTG'
+    'rAG'
+    'rPrG'
+    'rFO'
+    'rIFG'
+    'lXXX'
+    'rXXX'};
+all_combs = combvec(1:size(subjects,2),1:length(mask_cond),1:length(conditions),1:length(all_smos))';
+pat_smo_combs = combvec(1:size(subjects,2),1:length(all_smos))';
+
+type = 't-pat'; % Run based on the t-patterns
+%type = 'beta'; % Run based on the beta-patterns
+
+switch type
+    case 'beta'
+%First denan the beta images
+for thisone = 1:size(pat_smo_combs,1)
+    crun = pat_smo_combs(thisone,1);
+smo = all_smos(pat_smo_combs(thisone,2));
+data_path = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(smo) '_nowritten/'];
+beta_files = dir([data_path '/Cbeta_0*']);
+
+parfor i = 1:size(beta_files,1)
+module_fslmaths_job([data_path 'Cbeta_' sprintf('%04d',i) '.nii'],'-nan',[data_path 'Cbeta_denan_' sprintf('%04d',i) '.nii']); %Account for the fact that spm_read_vols crashes with nan
+end
+end
+end
+
+parfor thisone = 1:size(all_combs,1)
+    crun = all_combs(thisone,1);
+    mask_cond_num = all_combs(thisone,2);
+    cond_num = all_combs(thisone,3);
+    smo = all_smos(all_combs(thisone,4));
+    switch type
+        case 't-pat'
+            module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo) % Run based on the t-patterns
+        case 'beta'
+            module_run_rsa_beta(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo) %Run based on the beta patterns
+    end
+    %module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},data_smoo)
+    %module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},['Subj_' num2str(crun) '_mask_' mask_cond{mask_cond_num} '_cond_' conditions{cond_num} '_smo_' num2str(data_smoo)],data_smoo)
+    
+end
+
+for crun = 1:size(subjects,2)
+    for mask_cond_num = 1:length(mask_cond)
+        for cond_num = 1:length(conditions)
+            for smo = 1:length(all_smos)
+                mask_name = mask_cond{mask_cond_num};
+                mask_short_name = mask_short_cond{mask_cond_num};
+                switch type
+                    case 't-pat'
+                        thesedata = load(['./RSA_results/RSA_results_nowritten2_subj' num2str(crun) '_' conditions{cond_num} '_mask_' mask_name(1:end-4) '_smooth_' num2str(all_smos(smo))],'avgRDM','stats_p_r');
+                    case 'beta'
+                        thesedata = load(['./RSA_results/RSA_results_beta_nowritten2_subj' num2str(crun) '_' conditions{cond_num} '_mask_' mask_name(1:end-4) '_smooth_' num2str(all_smos(smo))],'avgRDM','stats_p_r');
+                end
+                %thesedata = load(['./RSA_results/RSA_results_subj' num2str(crun) '_' 'Subj_' num2str(crun) '_mask_' mask_cond{mask_cond_num} '_cond_' conditions{cond_num} '_smo_' num2str(data_smoo) '_mask_' mask_name(1:end-4) '_smooth_' num2str(data_smoo)],'avgRDM','stats_p_r');
+                avgRDM{crun,mask_cond_num,cond_num,smo} = thesedata.avgRDM;
+                this_cond_name = strrep(avgRDM{crun,mask_cond_num,cond_num,smo}.name,'Mismatch ','MM');
+                this_cond_name = strrep(this_cond_name,'Match ','M');
+                this_cond_name = strrep(this_cond_name,'RDM across sessions | condition ','');
+                avgRDM{crun,mask_cond_num,cond_num,smo}.name = ['S' num2str(crun) this_cond_name '_' mask_short_name '_sm' num2str(all_smos(smo))];
+                stats_p_r{crun,mask_cond_num,cond_num,smo} = thesedata.stats_p_r;
+            end
+        end
+    end
+end
+
+userOptions.candRDMdifferencesTest='conditionRFXbootstrap';
+userOptions.nBootstrap=100; % XXX CHange to 10000 when code finalised
+
+judgmentRDM.RDM = zeros(16,16);
+judgmentRDM.RDM(1:17:end) = 1;
+judgmentRDM.RDM(2:68:end) = 1/3;
+judgmentRDM.RDM(3:68:end) = 1/3;
+judgmentRDM.RDM(4:68:end) = 1/3;
+judgmentRDM.RDM(17:68:end) = 1/3;
+judgmentRDM.RDM(19:68:end) = 1/3;
+judgmentRDM.RDM(20:68:end) = 1/3;
+judgmentRDM.RDM(33:68:end) = 1/3;
+judgmentRDM.RDM(34:68:end) = 1/3;
+judgmentRDM.RDM(36:68:end) = 1/3;
+judgmentRDM.RDM(49:68:end) = 1/3;
+judgmentRDM.RDM(50:68:end) = 1/3;
+judgmentRDM.RDM(51:68:end) = 1/3;
+
+judgmentRDM.RDM = 1-judgmentRDM.RDM;
+judgmentRDM.name = 'vowels only';
+
+base_figureindex = 250;
+userOptions.figureIndex = [260, 360];
+
+for crun = 1:size(subjects,2)
+    for smo = 1:length(all_smos)
+userOptions.figureIndex = [base_figureindex+10*crun+smo, base_figureindex+200+10*crun+smo];
+        
+subj_stats_p_r{crun,smo}=compareRefRDM2candRDMs(judgmentRDM, avgRDM(crun,:,:,smo), userOptions);
 
 
     end
