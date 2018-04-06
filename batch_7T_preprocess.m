@@ -12,7 +12,7 @@ scriptdir = '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scr
 pilot_7T_subjects_parameters
 
 %% Options to skip steps
-applytopup = 0;
+applytopup = 1;
 
 %% Open a worker pool
 if size(subjects,2) > 96
