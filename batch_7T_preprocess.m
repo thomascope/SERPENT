@@ -298,7 +298,7 @@ for crun = 1:nrun
     outpath = [preprocessedpathstem subjects{crun} '/'];
     filestoanalyse = cell(1,length(theseepis));
     
-    tempDesign = module_get_event_times(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+    tempDesign = module_get_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
     inputs{1, crun} = cellstr([outpath 'stats2_8']);
     for sess = 1:length(theseepis)
@@ -342,7 +342,7 @@ for crun = 1:nrun
     outpath = [preprocessedpathstem subjects{crun} '/'];
     filestoanalyse = cell(1,length(theseepis));
     
-    tempDesign = module_get_complex_event_times(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+    tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
     inputs{1, crun} = cellstr([outpath 'stats2_multi_3']);
     for sess = 1:length(theseepis)
@@ -385,7 +385,7 @@ for crun = 1:nrun
     outpath = [preprocessedpathstem subjects{crun} '/'];
     filestoanalyse = cell(1,length(theseepis));
     
-    tempDesign = module_get_complex_event_times(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+    tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
     inputs{1, crun} = cellstr([outpath 'stats2_multi_8']);
     for sess = 1:length(theseepis)
