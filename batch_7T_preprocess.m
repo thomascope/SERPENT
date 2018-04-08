@@ -13,6 +13,7 @@ pilot_7T_subjects_parameters
 
 %% Options to skip steps
 applytopup = 1;
+opennewanalysispool = 1;
 
 %% Open a worker pool
 if size(subjects,2) > 96
@@ -983,22 +984,24 @@ end
 %% Analyse by condition and brain region
 addpath(genpath('/imaging/tc02/toolboxes')); %Where is the RSA toolbox?
 
-%Re-open Parpool with larger worker pool
-
-cd('/group/language/data/thomascope/')
-try
-    matlabpool 'close'
-catch
-    delete(gcp)
+if opennewanalysispool == 1
+    %Re-open Parpool with larger worker pool
+    
+    cd('/group/language/data/thomascope/')
+    try
+        matlabpool 'close'
+    catch
+        delete(gcp)
+    end
+    workerpool = cbupool(24);
+    workerpool.ResourceTemplate=['-l nodes=^N^,mem=192GB,walltime=168:00:00'];
+    try
+        matlabpool(workerpool)
+    catch
+        parpool(workerpool,workerpool.NumWorkers)
+    end
+    cd(currentdr)
 end
-workerpool = cbupool(24);
-workerpool.ResourceTemplate=['-l nodes=^N^,mem=192GB,walltime=168:00:00'];
-try
-    matlabpool(workerpool)
-catch
-    parpool(workerpool,workerpool.NumWorkers)
-end
-cd(currentdr)
 
 all_smos = 3; %Smoothing on MVPA data
 
@@ -1055,7 +1058,7 @@ parfor thisone = 1:size(all_combs,1)
     smo = all_smos(all_combs(thisone,4));
     switch type
         case 't-pat'
-            c(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo) % Run based on the t-patterns
+            module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo) % Run based on the t-patterns
         case 'beta'
             module_run_rsa_beta(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo) %Run based on the beta patterns
     end
