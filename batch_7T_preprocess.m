@@ -501,8 +501,8 @@ end
 %% Now create a ReML SPM without modelling the written word separately for future multivariate analysis (currently only implemented for 3 or 4 runs)
 nrun = size(subjects,2); % enter the number of runs here
 jobfile = {};
-jobfile{3} = {[scriptdir 'module_univariate_3runs_complex_job.m']};
-jobfile{4} = {[scriptdir 'module_univariate_4runs_complex_job.m']};
+jobfile{3} = {[scriptdir 'module_univariate_3runs_noabsent_job.m']};
+jobfile{4} = {[scriptdir 'module_univariate_4runs_noabsent_job.m']};
 inputs = cell(0, nrun);
 
 for crun = 1:nrun
@@ -515,20 +515,17 @@ for crun = 1:nrun
     inputs{1, crun} = cellstr([outpath 'stats_multi_3_nowritten2']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
-        inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+        inputs{(99*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
         for cond_num = 1:80
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
+            inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
         end
         for cond_num = 81:96 %Response trials
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
+            inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
         end
         for cond_num = 97 %Button press
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
+            inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
         end
-        for cond_num = 98 %Absent sound (written only)
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{129})';
-        end
-        inputs{(100*(sess-1))+101, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+        inputs{(99*(sess-1))+100, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
     end
     jobs{crun} = jobfile{length(theseepis)};
     

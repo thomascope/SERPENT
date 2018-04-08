@@ -17,7 +17,7 @@ preprocessedpathstem = '/imaging/tc02/7T_pilot_preprocessed/';
 
 % % define conditions
 % 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov
-conditions = {'Match 4' 'Match 12' 'Mismatch 4' 'Mismatch 12' 'Written'};
+conditions = {'Match 3' 'Match 16' 'Mismatch 3' 'Mismatch 16' 'Written'};
 % 
 % contrast_labels = {'Sum all conditions';'Match-MisMatch'; 'Clear minus Unclear'; 'Gradient difference M-MM'};
 % contrast_weights = [1, 1, 1, 1, 1, 1; -1, 1, -1, 1, -1, 1; -1, -1, 0, 0, 1, 1; -1, 1, 0, 0, 1, -1];    
