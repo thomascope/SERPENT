@@ -79,5 +79,13 @@ fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{7}.tcon.sessrep = ''bothsc
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{8}.tcon.name = ''Right Button'';\n']);
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{8}.tcon.weights = [zeros(1,61),1] ;\n']);
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{8}.tcon.sessrep = ''bothsc'';\n']);
+
+%Now create condition contrasts for later RSA
+for this_cond = 1:size(stim_type_labels{runI},1)
+    fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{' num2str(8+this_cond) '}.tcon.name= ''Condition ' num2str(this_cond) ''';\n']);
+    fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{' num2str(8+this_cond) '}.tcon.weights = [' num2str([zeros(1,this_cond-1) 1 zeros(1,size(stim_type_labels{runI},1)-this_cond)]) '];\n']);
+    fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{' num2str(8+this_cond) '}.tcon.sessrep = ''replsc'';\n']);
+end
+
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.delete = 0;\n']);
 

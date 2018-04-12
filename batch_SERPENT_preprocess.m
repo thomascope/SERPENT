@@ -301,7 +301,7 @@ for crun = 1:nrun
     
     [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats_u_8']);
+    inputs{1, crun} = cellstr([outpath 'stats_u_8_multi']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -337,7 +337,7 @@ for crun = 1:nrun
     
     [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats_u_3']);
+    inputs{1, crun} = cellstr([outpath 'stats_u_3_multi']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
