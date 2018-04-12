@@ -6,7 +6,7 @@ these_parts = strsplit(char(inputs{1}),'stats');
 jobfile = ['./SD_SPM_jobfiles/SPM_' subject '_' num2str(date) these_parts{2} '_job.m'];
 fileID = fopen(jobfile,'w');
 %Preamble section
-fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.dir = ''' char(inputs{1}) ''';\nmatlabbatch{1}.spm.stats.fmri_spec.timing.units = ''secs'';\nmatlabbatch{1}.spm.stats.fmri_spec.timing.RT = 1.5;\nmatlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t = 16;\nmatlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t0 = 6;\n']);
+fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.dir = {''' char(inputs{1}) '''};\nmatlabbatch{1}.spm.stats.fmri_spec.timing.units = ''secs'';\nmatlabbatch{1}.spm.stats.fmri_spec.timing.RT = 1.5;\nmatlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t = 16;\nmatlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t0 = 6;\n']);
 
 %Now define the conditions for each run
 stim_duration = '1.0';
@@ -44,9 +44,9 @@ for runI = 1:size(starttime,2)
     
     
     fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').multi = {''''};\n']);
-    fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.regress = struct(''name'', {}, ''val'', {});\n']);
-    fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.multi_reg = ''' char(inputs{(2*(runI-1))+3}) ''';\n']);
-    fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.hpf = 128;\n']);
+    fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').regress = struct(''name'', {}, ''val'', {});\n']);
+    fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').multi_reg = {''' char(inputs{(2*(runI-1))+3}) '''};\n']);
+    fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').hpf = 128;\n']);
     
 end
 
@@ -54,6 +54,7 @@ end
 fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.fact = struct(''name'', {}, ''levels'', {});\nmatlabbatch{1}.spm.stats.fmri_spec.bases.hrf.derivs = [0 0];\nmatlabbatch{1}.spm.stats.fmri_spec.volt = 1;\nmatlabbatch{1}.spm.stats.fmri_spec.global = ''None'';\nmatlabbatch{1}.spm.stats.fmri_spec.mthresh = 0.8;\nmatlabbatch{1}.spm.stats.fmri_spec.mask = {''''};\nmatlabbatch{1}.spm.stats.fmri_spec.cvi = ''AR(1)'';\nmatlabbatch{2}.spm.stats.fmri_est.spmmat(1) = cfg_dep(''fMRI model specification: SPM.mat File'', substruct(''.'',''val'', ''{}'',{1}, ''.'',''val'', ''{}'',{1}, ''.'',''val'', ''{}'',{1}), substruct(''.'',''spmmat''));\nmatlabbatch{2}.spm.stats.fmri_est.write_residuals = 0;\nmatlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;\n']);
 
 % Now create contrasts
+fprintf(fileID,['matlabbatch{3}.spm.stats.con.spmmat(1) = cfg_dep(''Model estimation: SPM.mat File'', substruct(''.'',''val'', ''{}'',{2}, ''.'',''val'', ''{}'',{1}, ''.'',''val'', ''{}'',{1}), substruct(''.'',''spmmat''));\n']);
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{1}.tcon.name = ''Photos > Line'';\n']);
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{1}.tcon.weights = kron([1,-1],ones(1,30)) ;\n']);
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{1}.tcon.sessrep = ''bothsc'';\n']);
@@ -79,3 +80,4 @@ fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{8}.tcon.name = ''Right But
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{8}.tcon.weights = [zeros(1,61),1] ;\n']);
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{8}.tcon.sessrep = ''bothsc'';\n']);
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.delete = 0;\n']);
+

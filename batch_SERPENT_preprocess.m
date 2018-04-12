@@ -287,7 +287,7 @@ parfor crun = 1:nrun
     end
 end
 
-%% Now do a univariate SPM analysis (currently only implemented for 3 or 4 runs)
+%% Now do a univariate SPM analysis at 8mm
 nrun = size(subjects,2); % enter the number of runs here
 inputs = cell(0, nrun);
 
@@ -304,6 +304,42 @@ for crun = 1:nrun
     inputs{1, crun} = cellstr([outpath 'stats_u_8']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+        inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+        inputs{(2*(sess-1))+3, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+    end
+     
+end
+
+SPMworkedcorrectly = zeros(1,nrun);
+parfor crun = 1:nrun
+    jobfile = create_SD_SPM_Job(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun));
+    spm('defaults', 'fMRI');
+    spm_jobman('initcfg')
+    try
+        spm_jobman('run', jobfile);
+        SPMworkedcorrectly(crun) = 1;
+    catch
+        SPMworkedcorrectly(crun) = 0;
+    end
+end
+
+%% Now repeat univariate SPM analysis at 3mm
+nrun = size(subjects,2); % enter the number of runs here
+inputs = cell(0, nrun);
+
+starttime={};
+stimType={};
+stim_type_labels={};
+for crun = 1:nrun
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    filestoanalyse = cell(1,length(theseepis));
+    
+    [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+    
+    inputs{1, crun} = cellstr([outpath 'stats_u_3']);
+    for sess = 1:length(theseepis)
+        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
         inputs{(2*(sess-1))+3, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
     end
