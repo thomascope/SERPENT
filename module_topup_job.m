@@ -23,6 +23,8 @@ dlmwrite([outpath 'epi_acq_param.txt'],epi_params,'delimiter',' ')
 
 %Then calculate topup (can take a longish time)
 cmd = [fsldir '/bin/topup --imain=' outpath 'both_directions_fortopup --datain=' outpath 'epi_acq_param.txt --config=b02b0.cnf --out=' outpath 'epi_topup_results'];
+% %If error due to odd number of lines
+% cmd = [fsldir '/bin/topup --imain=' outpath 'both_directions_fortopup --datain=' outpath 'epi_acq_param.txt --config=/group/language/data/thomascope/7T_SERPENT_pilot_analysis/b02b0_nosubsamp.cnf --out=' outpath 'epi_topup_results'];
 disp('Calculating topup, this can take some time')
 system(cmd)
 
