@@ -289,42 +289,34 @@ end
 
 %% Now do a univariate SPM analysis (currently only implemented for 3 or 4 runs)
 nrun = size(subjects,2); % enter the number of runs here
-jobfile = {};
-jobfile{3} = {[scriptdir 'module_univariate_3runs_noneutral_job.m']};
-jobfile{4} = {[scriptdir 'module_univariate_4runs_noneutral_job.m']};
 inputs = cell(0, nrun);
 
+starttime={};
+stimType={};
+stim_type_labels={};
 for crun = 1:nrun
     theseepis = find(strncmp(blocksout{crun},'Run',3));
     outpath = [preprocessedpathstem subjects{crun} '/'];
     filestoanalyse = cell(1,length(theseepis));
     
-    tempDesign = module_get_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+    [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats2_8']);
+    inputs{1, crun} = cellstr([outpath 'stats_u_8']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
-        inputs{(8*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
-        inputs{(8*(sess-1))+3, crun} = cat(2, tempDesign{sess}{1:16})';
-        inputs{(8*(sess-1))+4, crun} = cat(2, tempDesign{sess}{17:32})';
-        inputs{(8*(sess-1))+5, crun} = cat(2, tempDesign{sess}{33:48})';
-        inputs{(8*(sess-1))+6, crun} = cat(2, tempDesign{sess}{49:64})';
-        %         inputs{(8*(sess-1))+7, crun} = cat(2, tempDesign{sess}{65:80})';
-        %         inputs{(8*(sess-1))+8, crun} = cat(2, tempDesign{sess}{81:96})';
-        inputs{(8*(sess-1))+7, crun} = cat(2, tempDesign{sess}{[97:112, 129]})';
-        inputs{(8*(sess-1))+8, crun} = cat(2, tempDesign{sess}{[113:128, 130]})';
-        inputs{(8*(sess-1))+9, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+        inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+        inputs{(2*(sess-1))+3, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
     end
-    jobs{crun} = jobfile{length(theseepis)};
-    
+     
 end
 
 SPMworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
+    jobfile = create_SD_SPM_Job(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun));
     spm('defaults', 'fMRI');
     spm_jobman('initcfg')
     try
-        spm_jobman('run', jobs{crun}, inputs{:,crun});
+        spm_jobman('run', jobfile);
         SPMworkedcorrectly(crun) = 1;
     catch
         SPMworkedcorrectly(crun) = 0;
