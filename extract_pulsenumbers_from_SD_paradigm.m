@@ -59,4 +59,14 @@ end
 
 stim_type_labels = allcomb(styledir, frequency_labels, direction_labels, category_labels);
 
+if exist('imputed_pulse_numbers_at_null_trialstart','var')
+    startpulses = [startpulses imputed_pulse_numbers_at_null_trialstart];
+    stimType = [stimType repmat(max(stimType)+1,size(imputed_pulse_numbers_at_null_trialstart,1),size(imputed_pulse_numbers_at_null_trialstart,2))];
+    null_type_labels = {'null','null','null','null'};
+    %null_type_labels = repmat(null_type_labels,size(imputed_pulse_numbers_at_null_trialstart,2),1);
+    stim_type_labels = [stim_type_labels;null_type_labels];
+end
+     
+    
+
 end

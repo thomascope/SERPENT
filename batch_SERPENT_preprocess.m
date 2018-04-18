@@ -177,6 +177,30 @@ parfor crun = 1:nrun
     end
 end
 
+%% Now do cat12 normalisation of the structural to create deformation fields (works better than SPM segment deformation fields, which sometimes produce too-small brains)
+
+nrun = size(subjects,2); % enter the number of runs here
+jobfile = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/module_cat12_normalise_job.m'};
+inputs = cell(1, nrun);
+for crun = 1:nrun
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    inputs{1, crun} = cellstr([outpath 'structural_csf.nii']);
+end
+
+cat12workedcorrectly = zeros(1,nrun);
+jobs = repmat(jobfile, 1, 1);
+
+parfor crun = 1:nrun
+    spm('defaults', 'fMRI');
+    spm_jobman('initcfg')
+    try
+        spm_jobman('run', jobs, inputs{:,crun});
+        cat12workedcorrectly(crun) = 1;
+    catch
+        cat12workedcorrectly(crun) = 0;
+    end
+end
+
 %% Now co-register estimate, using structural as reference, mean as source and epi as others, then reslice only the mean
 
 coregisterworkedcorrectly = zeros(1,nrun);
@@ -189,7 +213,7 @@ parfor crun = 1:nrun
     job.eoptions.fwhm = [7 7];
     
     outpath = [preprocessedpathstem subjects{crun} '/'];
-    job.ref = {[outpath 'structural.nii,1']};
+    job.ref = {[outpath 'structural_csf.nii,1']};
     theseepis = find(strncmp(blocksout{crun},'Run',3));
     job.source = {[outpath 'meantopup_' blocksin{crun}{theseepis(1)} ',1']};
     
@@ -216,31 +240,6 @@ parfor crun = 1:nrun
     end
 end
 
-%% Now do cat12 normalisation of the structural to create deformation fields (works better than SPM segment deformation fields, which sometimes produce too-small brains)
-
-nrun = size(subjects,2); % enter the number of runs here
-jobfile = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/module_cat12_normalise_job.m'};
-inputs = cell(1, nrun);
-for crun = 1:nrun
-    outpath = [preprocessedpathstem subjects{crun} '/'];
-    inputs{1, crun} = cellstr([outpath 'structural_csf.nii']);
-end
-
-cat12workedcorrectly = zeros(1,nrun);
-jobs = repmat(jobfile, 1, 1);
-
-parfor crun = 1:nrun
-    spm('defaults', 'fMRI');
-    spm_jobman('initcfg')
-    try
-        spm_jobman('run', jobs, inputs{:,crun});
-        cat12workedcorrectly(crun) = 1;
-    catch
-        cat12workedcorrectly(crun) = 0;
-    end
-end
-
-
 %% Now normalise write for visualisation and smooth at 3 and 8
 nrun = size(subjects,2); % enter the number of runs here
 %jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
@@ -266,11 +265,11 @@ for crun = 1:nrun
     % % First is for SPM segment, second for CAT12
     %inputs{3, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
     inputs{3, crun} = cellstr([outpath 'mri/y_structural_csf.nii']);
-    inputs{4, crun} = cellstr([outpath 'structural.nii,1']);
+    inputs{4, crun} = cellstr([outpath 'structural_csf.nii,1']);
     % % First is for SPM segment, second for CAT12
     %inputs{5, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
     inputs{5, crun} = cellstr([outpath 'mri/y_structural_csf.nii']);
-    inputs{6, crun} = cellstr([outpath 'structural.nii,1']);
+    inputs{6, crun} = cellstr([outpath 'structural_csf.nii,1']);
 end
 
 normalisesmoothworkedcorrectly = zeros(1,nrun);
@@ -299,7 +298,7 @@ for crun = 1:nrun
     outpath = [preprocessedpathstem subjects{crun} '/'];
     filestoanalyse = cell(1,length(theseepis));
     
-    [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+    [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
     inputs{1, crun} = cellstr([outpath 'stats_u_8_multi']);
     for sess = 1:length(theseepis)
@@ -312,7 +311,7 @@ end
 
 SPMworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
-    jobfile = create_SD_SPM_Job(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun));
+    jobfile = create_SD_SPM_Job(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun),run_params{crun});
     spm('defaults', 'fMRI');
     spm_jobman('initcfg')
     try
@@ -335,7 +334,7 @@ for crun = 1:nrun
     outpath = [preprocessedpathstem subjects{crun} '/'];
     filestoanalyse = cell(1,length(theseepis));
     
-    [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+    [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
     inputs{1, crun} = cellstr([outpath 'stats_u_3_multi']);
     for sess = 1:length(theseepis)
@@ -348,7 +347,7 @@ end
 
 SPMworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
-    jobfile = create_SD_SPM_Job(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun));
+    jobfile = create_SD_SPM_Job(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun),run_params{crun});
     spm('defaults', 'fMRI');
     spm_jobman('initcfg')
     try
@@ -359,212 +358,72 @@ parfor crun = 1:nrun
     end
 end
 
-%% Now create a more complex SPM for future multivariate analysis (currently only implemented for 3 or 4 runs)
+%% Now do another univariate SPM analysis at 8mm without the button press
 nrun = size(subjects,2); % enter the number of runs here
-jobfile = {};
-jobfile{3} = {[scriptdir 'module_univariate_3runs_complex_job.m']};
-jobfile{4} = {[scriptdir 'module_univariate_4runs_complex_job.m']};
 inputs = cell(0, nrun);
 
+starttime={};
+stimType={};
+stim_type_labels={};
 for crun = 1:nrun
     theseepis = find(strncmp(blocksout{crun},'Run',3));
     outpath = [preprocessedpathstem subjects{crun} '/'];
     filestoanalyse = cell(1,length(theseepis));
     
-    tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+    [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats2_multi_3']);
-    for sess = 1:length(theseepis)
-        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
-        inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
-        for cond_num = 1:80
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
-        end
-        for cond_num = 81:96 %Response trials
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
-        end
-        for cond_num = 97 %Button press
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
-        end
-        for cond_num = 98 %Absent sound (written only)
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{129})';
-        end
-        inputs{(100*(sess-1))+101, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
-    end
-    jobs{crun} = jobfile{length(theseepis)};
-    
-end
-
-SPMworkedcorrectly = zeros(1,nrun);
-parfor crun = 1:nrun
-    spm('defaults', 'fMRI');
-    spm_jobman('initcfg')
-    try
-        spm_jobman('run', jobs{crun}, inputs{:,crun});
-        SPMworkedcorrectly(crun) = 1;
-    catch
-        SPMworkedcorrectly(crun) = 0;
-    end
-end
-
-%Now repeat with 8mm smoothing
-
-for crun = 1:nrun
-    theseepis = find(strncmp(blocksout{crun},'Run',3));
-    outpath = [preprocessedpathstem subjects{crun} '/'];
-    filestoanalyse = cell(1,length(theseepis));
-    
-    tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-    
-    inputs{1, crun} = cellstr([outpath 'stats2_multi_8']);
+    inputs{1, crun} = cellstr([outpath 'stats_u_8_nobutton_multi']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
-        inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
-        for cond_num = 1:80
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
-        end
-        for cond_num = 81:96 %Response trials
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
-        end
-        for cond_num = 97 %Button press
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
-        end
-        for cond_num = 98 %Absent sound (written only)
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{129})';
-        end
-        inputs{(100*(sess-1))+101, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+        inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+        inputs{(2*(sess-1))+3, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
     end
-    jobs{crun} = jobfile{length(theseepis)};
-    
+     
 end
 
 SPMworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
+    jobfile = create_SD_SPM_Job_nobutton(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun),run_params{crun});
     spm('defaults', 'fMRI');
     spm_jobman('initcfg')
     try
-        spm_jobman('run', jobs{crun}, inputs{:,crun});
+        spm_jobman('run', jobfile);
         SPMworkedcorrectly(crun) = 1;
     catch
         SPMworkedcorrectly(crun) = 0;
     end
 end
 
-% %% Now create a more complex SPM with variable levels of AR whitening, with word omissions specified
-% 
-% jobfile = {};
-% jobfile{3} = {[scriptdir 'module_univariate_3runs_complex_AR_job.m']};
-% jobfile{4} = {[scriptdir 'module_univariate_4runs_complex_AR_job.m']};
-% 
-% all_aros = [1 3 6 12]; %Autoregressive model order
-% nrun = size(subjects,2)*length(all_aros); % enter the number of runs here
-% inputs = cell(0, size(subjects,2),length(all_aros));
-% for this_aro = 1:length(all_aros);
-% for crun = 1:size(subjects,2)
-%     aro = all_aros(this_aro);
-%     
-%     theseepis = find(strncmp(blocksout{crun},'Run',3));
-%     outpath = [preprocessedpathstem subjects{crun} '/'];
-%     filestoanalyse = cell(1,length(theseepis));
-%     
-%     tempDesign = module_get_complex_event_times(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-%     
-%     inputs{1, crun, this_aro} = cellstr([outpath 'stats3_multi_AR' num2str(aro)]);
-%     for sess = 1:length(theseepis)
-%         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
-%         inputs{(100*(sess-1))+2, crun, this_aro} = cellstr(filestoanalyse{sess});
-%         for cond_num = 1:80
-%             inputs{(100*(sess-1))+2+cond_num, crun, this_aro} = cat(2, tempDesign{sess}{cond_num})';
-%         end
-%         for cond_num = 81:96 %Response trials
-%             inputs{(100*(sess-1))+2+cond_num, crun, this_aro} = cat(2, tempDesign{sess}{cond_num+32})';
-%         end
-%         for cond_num = 97 %Button press
-%             inputs{(100*(sess-1))+2+cond_num, crun, this_aro} = cat(2, tempDesign{sess}{81})';
-%         end
-%         for cond_num = 98 %Absent sound (written only)
-%             inputs{(100*(sess-1))+2+cond_num, crun, this_aro} = cat(2, tempDesign{sess}{129})';
-%         end
-%         inputs{(100*(sess-1))+101, crun, this_aro} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
-%     end
-%     %inputs{(100*(sess-1))+102, crun, this_aro} = 'AR(1)';
-%     inputs{(100*(sess-1))+102, crun, this_aro} = aro;
-%     jobs{crun} = jobfile{length(theseepis)};
-%     
-% end
-% end
-% 
-% 
-% try
-%     matlabpool 'close'
-% catch
-%     delete(gcp)
-% end
-% 
-% 
-% workersrequested = 24;
-% workerpool = cbupool(workersrequested);
-% workerpool.ResourceTemplate=['-l nodes=^N^,mem=768GB,walltime=168:00:00'];
-% try
-%     matlabpool(workerpool)
-% catch
-%     parpool(workerpool,workerpool.NumWorkers)
-% end
-%         
-% all_combs = combvec(1:size(subjects,2),1:length(all_aros))';
-% SPMworkedcorrectly = zeros(1,size(all_combs,1));
-% for thisone = 1:size(all_combs,1)
-%     crun = all_combs(thisone,1);
-%     this_aro = all_combs(thisone,2);
-%     spm('defaults', 'fMRI');
-%     spm_jobman('initcfg')
-%     try
-%         spm_jobman('run', jobs{crun}, inputs{:,crun, this_aro});
-%         SPMworkedcorrectly(thisone) = 1;
-%     catch
-%         SPMworkedcorrectly(thisone) = 0;
-%     end
-% end
-
-%% Now create a ReML SPM without modelling the written word separately for future multivariate analysis (currently only implemented for 3 or 4 runs)
+%% Now repeat univariate SPM analysis at 3mm without the button press
 nrun = size(subjects,2); % enter the number of runs here
-jobfile = {};
-jobfile{3} = {[scriptdir 'module_univariate_3runs_noabsent_job.m']};
-jobfile{4} = {[scriptdir 'module_univariate_4runs_noabsent_job.m']};
 inputs = cell(0, nrun);
 
+starttime={};
+stimType={};
+stim_type_labels={};
 for crun = 1:nrun
     theseepis = find(strncmp(blocksout{crun},'Run',3));
     outpath = [preprocessedpathstem subjects{crun} '/'];
     filestoanalyse = cell(1,length(theseepis));
     
-    tempDesign = module_get_complex_event_times_nowritten_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+    [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats_multi_3_nowritten2']);
+    inputs{1, crun} = cellstr([outpath 'stats_u_3_nobutton_multi']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
-        inputs{(99*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
-        for cond_num = 1:80
-            inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
-        end
-        for cond_num = 81:96 %Response trials
-            inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
-        end
-        for cond_num = 97 %Button press
-            inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
-        end
-        inputs{(99*(sess-1))+100, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+        inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+        inputs{(2*(sess-1))+3, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
     end
-    jobs{crun} = jobfile{length(theseepis)};
-    
+     
 end
 
 SPMworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
+    jobfile = create_SD_SPM_Job_nobutton(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun),run_params{crun});
     spm('defaults', 'fMRI');
     spm_jobman('initcfg')
     try
-        spm_jobman('run', jobs{crun}, inputs{:,crun});
+        spm_jobman('run', jobfile);
         SPMworkedcorrectly(crun) = 1;
     catch
         SPMworkedcorrectly(crun) = 0;
@@ -647,7 +506,7 @@ parfor crun = 1:nrun
     job.eoptions.fwhm = [7 7];
     
     outpath = [preprocessedpathstem subjects{crun} '/'];
-    job.ref = {[outpath 'wstructural.nii']};
+    job.ref = {[outpath 'wstructural_csf.nii']};
     theseepis = find(strncmp(blocksout{crun},'Run',3));
     job.source = {[outpath 'atlas_all.nii']};
     
@@ -745,7 +604,7 @@ parfor crun = 1:nrun
     job.eoptions.fwhm = [7 7];
     
     outpath = [preprocessedpathstem subjects{crun} '/'];
-    job.ref = {[outpath 'wstructural.nii']};
+    job.ref = {[outpath 'wstructural_csf.nii']};
     theseepis = find(strncmp(blocksout{crun},'Run',3));
     job.source = {[outpath 'atlas_all.nii']};
     

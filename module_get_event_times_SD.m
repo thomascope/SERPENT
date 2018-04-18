@@ -1,4 +1,4 @@
-function [starttime,stimType,stim_type_labels,buttonpressed,buttonpresstime] = module_get_event_times_SD(subj_initials,testing_date,nRuns,nVolumes)
+function [starttime,stimType,stim_type_labels,buttonpressed,buttonpresstime,run_params] = module_get_event_times_SD(subj_initials,testing_date,nRuns,nVolumes)
 
 
 %clear all
@@ -29,7 +29,11 @@ for runI=1:nRuns
     [startpulses{runI},stimType{runI},stim_type_labels{runI}] = extract_pulsenumbers_from_SD_paradigm([behaviour_folder '/' fileName],runI);
     
     starttime{runI} = ((startpulses{runI}-1) * tr) + stimdelay; % Remember first pulse occurs at time zero
-    buttonpressed{runI} = run_params.resp;
-    buttonpresstime{runI} = ((startpulses{runI}-1) * tr) + stimdelay + (run_params.all_rts/1000);
-
+    if isfield(run_params,'null_resp')
+        buttonpressed{runI} = [run_params.resp run_params.null_resp];
+        buttonpresstime{runI} = ((startpulses{runI}-1) * tr) + stimdelay + ([run_params.all_rts run_params.all_null_rts]/1000);
+    else
+        buttonpressed{runI} = run_params.resp;
+        buttonpresstime{runI} = ((startpulses{runI}-1) * tr) + stimdelay + (run_params.all_rts/1000);
+    end
 end
