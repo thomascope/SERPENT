@@ -9,7 +9,7 @@ spm fmri
 scriptdir = '/group/language/data/thomascope/7T_SERPENT_pilot_analysis/';
 
 %% Define parameters
-SERPENT_pilot_subjects_parameters
+SERPENT_subjects_parameters
 
 %% Options to skip steps
 applytopup = 1;
@@ -300,7 +300,7 @@ for crun = 1:nrun
     
     [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats_u_8_multi']);
+    inputs{1, crun} = cellstr([outpath 'stats_mask0.4_8_multi']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -336,7 +336,7 @@ for crun = 1:nrun
     
     [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats_u_3_multi']);
+    inputs{1, crun} = cellstr([outpath 'stats_mask0.4_3_multi']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -372,7 +372,7 @@ for crun = 1:nrun
     
     [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats_u_8_nobutton_multi']);
+    inputs{1, crun} = cellstr([outpath 'stats_mask0.4_8_nobutton_multi']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -408,7 +408,7 @@ for crun = 1:nrun
     
     [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats_u_3_nobutton_multi']);
+    inputs{1, crun} = cellstr([outpath 'stats_mask0.4_3_nobutton_multi']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -438,7 +438,7 @@ smoothing_kernels = [3, 8];
 
 for smoo = smoothing_kernels
     for crun = 1:nrun
-        spmpath = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(smoo) '/'];
+        spmpath = [preprocessedpathstem subjects{crun} '/stats_u_' num2str(smoo) '_multi/'];
         outpath = [preprocessedpathstem subjects{crun} '/'];
         thisSPM = load([spmpath 'SPM.mat']);
         writtenindex = structfind(thisSPM.SPM.xCon,'name','Normal<Written - All Sessions');

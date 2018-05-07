@@ -1,6 +1,6 @@
 matlabbatch{1}.spm.stats.fmri_spec.dir = {'/imaging/tc02/SERPENT_pilot_preprocessed/WAC/stats_u_8_nobutton_multi'};
 matlabbatch{1}.spm.stats.fmri_spec.timing.units = 'secs';
-matlabbatch{1}.spm.stats.fmri_spec.timing.RT = 1.5;
+matlabbatch{1}.spm.stats.fmri_spec.timing.RT = 1.75;
 matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t = 16;
 matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t0 = 6;
 matlabbatch{1}.spm.stats.fmri_spec.sess(1).scans = {

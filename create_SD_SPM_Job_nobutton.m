@@ -51,7 +51,7 @@ for runI = 1:size(starttime,2)
 end
 
 %Postamble and model estimation
-fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.fact = struct(''name'', {}, ''levels'', {});\nmatlabbatch{1}.spm.stats.fmri_spec.bases.hrf.derivs = [0 0];\nmatlabbatch{1}.spm.stats.fmri_spec.volt = 1;\nmatlabbatch{1}.spm.stats.fmri_spec.global = ''None'';\nmatlabbatch{1}.spm.stats.fmri_spec.mthresh = 0.8;\nmatlabbatch{1}.spm.stats.fmri_spec.mask = {''''};\nmatlabbatch{1}.spm.stats.fmri_spec.cvi = ''AR(1)'';\nmatlabbatch{2}.spm.stats.fmri_est.spmmat(1) = cfg_dep(''fMRI model specification: SPM.mat File'', substruct(''.'',''val'', ''{}'',{1}, ''.'',''val'', ''{}'',{1}, ''.'',''val'', ''{}'',{1}), substruct(''.'',''spmmat''));\nmatlabbatch{2}.spm.stats.fmri_est.write_residuals = 0;\nmatlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;\n']);
+fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.fact = struct(''name'', {}, ''levels'', {});\nmatlabbatch{1}.spm.stats.fmri_spec.bases.hrf.derivs = [0 0];\nmatlabbatch{1}.spm.stats.fmri_spec.volt = 1;\nmatlabbatch{1}.spm.stats.fmri_spec.global = ''None'';\nmatlabbatch{1}.spm.stats.fmri_spec.mthresh = 0.4;\nmatlabbatch{1}.spm.stats.fmri_spec.mask = {''''};\nmatlabbatch{1}.spm.stats.fmri_spec.cvi = ''AR(1)'';\nmatlabbatch{2}.spm.stats.fmri_est.spmmat(1) = cfg_dep(''fMRI model specification: SPM.mat File'', substruct(''.'',''val'', ''{}'',{1}, ''.'',''val'', ''{}'',{1}, ''.'',''val'', ''{}'',{1}), substruct(''.'',''spmmat''));\nmatlabbatch{2}.spm.stats.fmri_est.write_residuals = 0;\nmatlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;\n']);
 
 % Now create contrasts
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.spmmat(1) = cfg_dep(''Model estimation: SPM.mat File'', substruct(''.'',''val'', ''{}'',{2}, ''.'',''val'', ''{}'',{1}, ''.'',''val'', ''{}'',{1}), substruct(''.'',''spmmat''));\n']);
@@ -79,12 +79,18 @@ fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{7}.tcon.sessrep = ''bothsc
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{8}.tcon.name = ''Dummy Contrast'';\n']);
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{8}.tcon.weights = [zeros(1,10),1] ;\n']);
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{8}.tcon.sessrep = ''bothsc'';\n']);
+fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{9}.tcon.name = ''All Pictures'';\n']);
+fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{9}.tcon.weights = repmat(kron([1,1,1],ones(1,10)),1,2) ;\n']);
+fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{9}.tcon.sessrep = ''bothsc'';\n']);
+fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{10}.tcon.name = ''Negative All Pictures'';\n']);
+fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{10}.tcon.weights = repmat(kron([-1,-1,-1],ones(1,10)),1,2) ;\n']);
+fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{10}.tcon.sessrep = ''bothsc'';\n']);
 
 %Now create condition contrasts for later RSA
 for this_cond = 1:size(stim_type_labels{runI},1)
-    fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{' num2str(8+this_cond) '}.tcon.name= ''Condition ' num2str(this_cond) ''';\n']);
-    fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{' num2str(8+this_cond) '}.tcon.weights = [' num2str([zeros(1,this_cond-1) 1 zeros(1,size(stim_type_labels{runI},1)-this_cond)]) '];\n']);
-    fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{' num2str(8+this_cond) '}.tcon.sessrep = ''replsc'';\n']);
+    fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{' num2str(10+this_cond) '}.tcon.name= ''Condition ' num2str(this_cond) ''';\n']);
+    fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{' num2str(10+this_cond) '}.tcon.weights = [' num2str([zeros(1,this_cond-1) 1 zeros(1,size(stim_type_labels{runI},1)-this_cond)]) '];\n']);
+    fprintf(fileID,['matlabbatch{3}.spm.stats.con.consess{' num2str(10+this_cond) '}.tcon.sessrep = ''replsc'';\n']);
 end
 
 fprintf(fileID,['matlabbatch{3}.spm.stats.con.delete = 0;\n']);
