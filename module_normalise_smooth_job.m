@@ -23,13 +23,13 @@ matlabbatch{4}.spm.spatial.normalise.write.subj.def = '<UNDEFINED>';
 matlabbatch{4}.spm.spatial.normalise.write.subj.resample = '<UNDEFINED>';
 matlabbatch{4}.spm.spatial.normalise.write.woptions.bb = [-78 -112 -70
                                                           78 76 85];
-matlabbatch{4}.spm.spatial.normalise.write.woptions.vox = [1.4 1.4 1.4];
+matlabbatch{4}.spm.spatial.normalise.write.woptions.vox = [1.5 1.5 1.5];
 matlabbatch{4}.spm.spatial.normalise.write.woptions.interp = 4;
 matlabbatch{4}.spm.spatial.normalise.write.woptions.prefix = 'w';
 matlabbatch{5}.spm.spatial.normalise.write.subj.def = '<UNDEFINED>';
 matlabbatch{5}.spm.spatial.normalise.write.subj.resample = '<UNDEFINED>';
 matlabbatch{5}.spm.spatial.normalise.write.woptions.bb = [-78 -112 -70
                                                           78 76 85];
-matlabbatch{5}.spm.spatial.normalise.write.woptions.vox = [1.4 1.4 1.4];
+matlabbatch{5}.spm.spatial.normalise.write.woptions.vox = [1.5 1.5 1.5];
 matlabbatch{5}.spm.spatial.normalise.write.woptions.interp = 0;
 matlabbatch{5}.spm.spatial.normalise.write.woptions.prefix = 'mask_';

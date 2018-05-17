@@ -358,78 +358,117 @@ parfor crun = 1:nrun
     end
 end
 
-%% Now do another univariate SPM analysis at 8mm without the button press
-nrun = size(subjects,2); % enter the number of runs here
-inputs = cell(0, nrun);
+% %% Now do another univariate SPM analysis at 8mm without the button press
+% nrun = size(subjects,2); % enter the number of runs here
+% inputs = cell(0, nrun);
+% 
+% starttime={};
+% stimType={};
+% stim_type_labels={};
+% for crun = 1:nrun
+%     theseepis = find(strncmp(blocksout{crun},'Run',3));
+%     outpath = [preprocessedpathstem subjects{crun} '/'];
+%     filestoanalyse = cell(1,length(theseepis));
+%     
+%     [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+%     
+%     inputs{1, crun} = cellstr([outpath 'stats_mask0.4_8_nobutton_multi']);
+%     for sess = 1:length(theseepis)
+%         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+%         inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+%         inputs{(2*(sess-1))+3, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+%     end
+%      
+% end
+% 
+% SPMworkedcorrectly = zeros(1,nrun);
+% parfor crun = 1:nrun
+%     jobfile = create_SD_SPM_Job_nobutton(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun),run_params{crun});
+%     spm('defaults', 'fMRI');
+%     spm_jobman('initcfg')
+%     try
+%         spm_jobman('run', jobfile);
+%         SPMworkedcorrectly(crun) = 1;
+%     catch
+%         SPMworkedcorrectly(crun) = 0;
+%     end
+% end
+% 
+% %% Now repeat univariate SPM analysis at 3mm without the button press
+% nrun = size(subjects,2); % enter the number of runs here
+% inputs = cell(0, nrun);
+% 
+% starttime={};
+% stimType={};
+% stim_type_labels={};
+% for crun = 1:nrun
+%     theseepis = find(strncmp(blocksout{crun},'Run',3));
+%     outpath = [preprocessedpathstem subjects{crun} '/'];
+%     filestoanalyse = cell(1,length(theseepis));
+%     
+%     [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+%     
+%     inputs{1, crun} = cellstr([outpath 'stats_mask0.4_3_nobutton_multi']);
+%     for sess = 1:length(theseepis)
+%         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+%         inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+%         inputs{(2*(sess-1))+3, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+%     end
+%      
+% end
+% 
+% SPMworkedcorrectly = zeros(1,nrun);
+% parfor crun = 1:nrun
+%     jobfile = create_SD_SPM_Job_nobutton(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun),run_params{crun});
+%     spm('defaults', 'fMRI');
+%     spm_jobman('initcfg')
+%     try
+%         spm_jobman('run', jobfile);
+%         SPMworkedcorrectly(crun) = 1;
+%     catch
+%         SPMworkedcorrectly(crun) = 0;
+%     end
+% end
 
-starttime={};
-stimType={};
-stim_type_labels={};
-for crun = 1:nrun
-    theseepis = find(strncmp(blocksout{crun},'Run',3));
-    outpath = [preprocessedpathstem subjects{crun} '/'];
-    filestoanalyse = cell(1,length(theseepis));
-    
-    [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-    
-    inputs{1, crun} = cellstr([outpath 'stats_mask0.4_8_nobutton_multi']);
-    for sess = 1:length(theseepis)
-        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
-        inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
-        inputs{(2*(sess-1))+3, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
-    end
-     
-end
-
-SPMworkedcorrectly = zeros(1,nrun);
-parfor crun = 1:nrun
-    jobfile = create_SD_SPM_Job_nobutton(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun),run_params{crun});
-    spm('defaults', 'fMRI');
-    spm_jobman('initcfg')
+%% Now do whole brain searchlight analysis with a larger parpool
+if opennewanalysispool == 1
+    %Re-open Parpool with larger worker pool
+    currentdr = pwd;
+    cd('/group/language/data/thomascope/')
     try
-        spm_jobman('run', jobfile);
-        SPMworkedcorrectly(crun) = 1;
+        matlabpool 'close'
     catch
-        SPMworkedcorrectly(crun) = 0;
+        delete(gcp)
     end
-end
-
-%% Now repeat univariate SPM analysis at 3mm without the button press
-nrun = size(subjects,2); % enter the number of runs here
-inputs = cell(0, nrun);
-
-starttime={};
-stimType={};
-stim_type_labels={};
-for crun = 1:nrun
-    theseepis = find(strncmp(blocksout{crun},'Run',3));
-    outpath = [preprocessedpathstem subjects{crun} '/'];
-    filestoanalyse = cell(1,length(theseepis));
-    
-    [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-    
-    inputs{1, crun} = cellstr([outpath 'stats_mask0.4_3_nobutton_multi']);
-    for sess = 1:length(theseepis)
-        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
-        inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
-        inputs{(2*(sess-1))+3, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
-    end
-     
-end
-
-SPMworkedcorrectly = zeros(1,nrun);
-parfor crun = 1:nrun
-    jobfile = create_SD_SPM_Job_nobutton(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun),run_params{crun});
-    spm('defaults', 'fMRI');
-    spm_jobman('initcfg')
+    workerpool = cbupool(42);
+    workerpool.ResourceTemplate=['-l nodes=^N^,mem=192GB,walltime=168:00:00'];
     try
-        spm_jobman('run', jobfile);
-        SPMworkedcorrectly(crun) = 1;
+        matlabpool(workerpool)
     catch
-        SPMworkedcorrectly(crun) = 0;
+        parpool(workerpool,workerpool.NumWorkers)
     end
+    cd(currentdr)
 end
 
+nrun = size(subjects,2);
+
+for crun = 1:nrun % Don't paralellise here as it is more efficient to do so by voxel
+    this_subject = subjects{crun};
+    outpath = [preprocessedpathstem this_subject];
+    spmpath = [outpath '/stats_mask0.4_3_multi'];
+
+    [all_disvols{crun} all_testRDMs{crun}] = module_compare_behaviour_brain(this_subject,spmpath,outpath);
+end
+
+% %Set up test RDMs - XXX WORK IN PROGRESS
+% test_rdm_1 = [thisRDM,thisRDM,thisRDM,thisRDM;thisRDM,thisRDM,thisRDM,thisRDM;thisRDM,thisRDM,thisRDM,thisRDM;thisRDM,thisRDM,thisRDM,thisRDM];
+% onerdm = ones(size(thisRDM));
+% test_rdm_2 = [thisRDM,onerdm,onerdm,onerdm;onerdm,thisRDM,onerdm,onerdm;onerdm,onerdm,thisRDM,onerdm;onerdm,onerdm,onerdm,thisRDM];
+% 
+% predictors(1).name = 'Tiled judgments';
+% predictors(1).RDM = test_rdm_1;
+% predictors(2).name = 'Isolated judgments';
+% predictors(2).RDM = test_rdm_2;
 
 %% Now create univariate masks for later MVPA
 
@@ -877,7 +916,7 @@ if opennewanalysispool == 1
     catch
         delete(gcp)
     end
-    workerpool = cbupool(24);
+    workerpool = cbupool(42);
     workerpool.ResourceTemplate=['-l nodes=^N^,mem=192GB,walltime=168:00:00'];
     try
         matlabpool(workerpool)
