@@ -438,7 +438,7 @@ smoothing_kernels = [3, 8];
 
 for smoo = smoothing_kernels
     for crun = 1:nrun
-        spmpath = [preprocessedpathstem subjects{crun} '/stats_u_' num2str(smoo) '_multi/'];
+        spmpath = [preprocessedpathstem subjects{crun} '/stats_mask0.4_' num2str(smoo) '_multi/'];
         outpath = [preprocessedpathstem subjects{crun} '/'];
         thisSPM = load([spmpath 'SPM.mat']);
         writtenindex = structfind(thisSPM.SPM.xCon,'name','Normal<Written - All Sessions');

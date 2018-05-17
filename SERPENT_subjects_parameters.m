@@ -37,7 +37,7 @@ group(cnt) = 1;
 
 cnt = cnt + 1;
 subjects{cnt} = 'S7P01';
-dates{cnt} = '20180501';
+dates{cnt} = '20180502';
 fullid{cnt} = '25602/20180502_U-ID40642';
 basedir{cnt} = 'SERPENT';
 blocksin_folders{cnt} = {'Series_020_mp2rage_sag_p3_0.75mm_UNI_Images','Series_021_mp2rage_sag_p3_0.75mm_INV2','Series_010_cmrr_mbep2d_3x2_1.5iso_340vols','Series_012_cmrr_mbep2d_3x2_1.5iso_340vols','Series_016_cmrr_mbep2d_3x2_1.5iso_340vols','Series_018_cmrr_mbep2d_3x2_1.5iso_340vols','Series_011_cmrr_mbep2d_3x2_1.5iso_340vols_SBRef','Series_013_cmrr_mbep2d_3x2_1.5iso_invPE_SBRef'};
