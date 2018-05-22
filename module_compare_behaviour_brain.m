@@ -1,4 +1,4 @@
-function [disvol, thisRDM] = module_compare_behaviour_brain(subject,spmdir,outdir)
+function [disvol, searchlight_locations, thisRDM] = module_compare_behaviour_brain(subject,spmdir,outdir,subsamp_fac)
 %A function to extract the dissimilarity matrix from the behavioural data
 %and compare it to brain data
 %TEC May2018
@@ -40,36 +40,34 @@ else
 save([outdir '/ldc_data/searchroisdata.mat'],'searchrois','diagnostic','-v7.3');
 end
 
-% %Now subsample the mask space by a factor of 3 (from 1.5mm voxels to 4.5mm searchlight spacing)
-% these_locs = ~logical(mod(fullrois.xyz(1,:),3))&~logical(mod(fullrois.xyz(2,:),3))&~logical(mod(fullrois.xyz(3,:),3));
-% searchrois = fullrois;
-% searchrois.linind = searchrois.linind(1,these_locs);
-% searchrois.xyz = searchrois.xyz(:,these_locs);
-% searchrois.data = searchrois.data(these_locs,these_locs);
-% searchrois.nsamples = sum(these_locs);
-% searchrois.nfeatures = sum(these_locs);
-% searchrois.meta.samples.order = 1:sum(these_locs);
+%Now subsample the mask space by a factor of n (i.e. if n = 2 from 1.5mm voxels to 3mm searchlight spacing)
+these_locs = ~logical(mod(searchrois.xyz(1,:),subsamp_fac))&~logical(mod(searchrois.xyz(2,:),subsamp_fac))&~logical(mod(searchrois.xyz(3,:),subsamp_fac));
+searchrois.data = searchrois.data(these_locs,:);
+searchrois.nsamples = sum(these_locs);
 
 if exist([outdir '/ldc_data/disvol.mat'],'file')
     disp('Loading previous disvol')
     load([outdir '/ldc_data/disvol.mat'])
 else
+%disvol = module_ldc_subsamp(searchrois,filtereddesignvol,filtereddatavol);
 disvol = roidata2rdmvol_lindisc_batch(searchrois,filtereddesignvol,filtereddatavol);
 
 save([outdir '/ldc_data/disvol.mat'],'disvol','-v7.3');
 end
 
-function visualiseepidata(epivol)
-    
-figure
-imagesc(makeimagestack(data2mat(epivol,epivol.data(1,:))));
-% pedantic styling below
-axis('off');
-set(gca,'dataaspectratio',[epivol.voxsize(1:2) 1])
-chandle = colorbar;
-set(chandle,'position',get(chandle,'position') .* [1.1 1 .5 .5])
+searchlight_locations =  searchrois.xyz(:,these_locs);
 
-end
+% function visualiseepidata(epivol)
+%     
+% figure
+% imagesc(makeimagestack(data2mat(epivol,epivol.data(1,:))));
+% % pedantic styling below
+% axis('off');
+% set(gca,'dataaspectratio',[epivol.voxsize(1:2) 1])
+% chandle = colorbar;
+% set(chandle,'position',get(chandle,'position') .* [1.1 1 .5 .5])
+% 
+% end
 
 
 

@@ -456,19 +456,70 @@ for crun = 1:nrun % Don't paralellise here as it is more efficient to do so by v
     this_subject = subjects{crun};
     outpath = [preprocessedpathstem this_subject];
     spmpath = [outpath '/stats_mask0.4_3_multi'];
+    subsamp_fac = 3;
 
-    [all_disvols{crun} all_testRDMs{crun}] = module_compare_behaviour_brain(this_subject,spmpath,outpath);
+    [all_disvols{crun} searchlight_locations{crun} all_testRDMs{crun}] = module_compare_behaviour_brain(this_subject,spmpath,outpath,subsamp_fac);
+    vol_data{crun} = spm_vol(fullfile(outpath,'wstructural_csf.nii'));
 end
 
-% %Set up test RDMs - XXX WORK IN PROGRESS
-% test_rdm_1 = [thisRDM,thisRDM,thisRDM,thisRDM;thisRDM,thisRDM,thisRDM,thisRDM;thisRDM,thisRDM,thisRDM,thisRDM;thisRDM,thisRDM,thisRDM,thisRDM];
-% onerdm = ones(size(thisRDM));
-% test_rdm_2 = [thisRDM,onerdm,onerdm,onerdm;onerdm,thisRDM,onerdm,onerdm;onerdm,onerdm,thisRDM,onerdm;onerdm,onerdm,onerdm,thisRDM];
-% 
-% predictors(1).name = 'Tiled judgments';
-% predictors(1).RDM = test_rdm_1;
-% predictors(2).name = 'Isolated judgments';
-% predictors(2).RDM = test_rdm_2;
+%Set up test RDMs - XXX WORK IN PROGRESS
+for crun = 1:nrun
+    thisRDM = all_testRDMs{crun};
+    test_rdm_1 = repmat(thisRDM,4,4);
+    onerdm = ones(size(thisRDM));
+    test_rdm_2 = [thisRDM,onerdm,onerdm,onerdm;onerdm,thisRDM,onerdm,onerdm;onerdm,onerdm,thisRDM,onerdm;onerdm,onerdm,onerdm,thisRDM];
+    triplet = ones(3,3);
+    triplet = triplet-eye(3);
+    triplet = triplet / 2;
+    categoryRDM = [triplet, ones(3), ones(3), ones(3), ones(3); ones(3), triplet, ones(3), ones(3), ones(3); ones(3), ones(3), triplet, ones(3), ones(3); ones(3), ones(3), ones(3), triplet, ones(3); ones(3), ones(3), ones(3), ones(3), triplet,];
+    test_rdm_3 = repmat(categoryRDM,4,4);
+    test_rdm_4 = [categoryRDM,onerdm,onerdm,onerdm;onerdm,categoryRDM,onerdm,onerdm;onerdm,onerdm,categoryRDM,onerdm;onerdm,onerdm,onerdm,categoryRDM];
+    
+    predictors(1).name = 'Tiled judgments';
+    predictors(1).RDM = test_rdm_1;
+    predictors(2).name = 'Isolated judgments';
+    predictors(2).RDM = test_rdm_2;
+    predictors(3).name = 'Category differentiation';
+    predictors(3).RDM = test_rdm_3;
+    predictors(4).name = 'Category within modality';
+    predictors(4).RDM = test_rdm_4;
+    
+    [res{crun}] = roidata_rsa(all_disvols{crun},predictors);
+    
+%     figure
+%     scatter3(searchlight_locations{crun}(1,:), searchlight_locations{crun}(2,:), searchlight_locations{crun}(3,:),res{crun}.r(1,:));
+%     
+end
+
+% Now write volumes of searchlight similarities
+sfactor = 1000;
+for crun = 1:nrun
+    this_vol_data = struct;
+    this_vol_data.dim = vol_data{crun}.dim;
+    this_vol_data.dt = vol_data{crun}.dt;
+    this_vol_data.pinfo = vol_data{crun}.pinfo;
+    this_vol_data.pinfo(1)=1;
+    this_vol_data.mat = vol_data{crun}.mat;
+    this_vol_data.mat(1:3,1:3) = this_vol_data.mat(1:3,1:3)*subsamp_fac;
+    this_vol_data.dim = floor(vol_data{crun}.dim/subsamp_fac);
+    these_locs = searchlight_locations{crun}/subsamp_fac;
+    
+    this_subject = subjects{crun};
+    outpath = [preprocessedpathstem this_subject];
+    
+    nans_data = nan(this_vol_data.dim);
+    zeros_data = zeros(this_vol_data.dim);
+    
+    for i = 1:length(predictors)
+        this_vol_data.fname = [outpath '/' predictors(i).name '.nii'];
+        this_data = nans_data;
+        for j = 1:size(these_locs,2)
+            this_data(these_locs(1,j),these_locs(2,j),these_locs(3,j)) = res{crun}.r(i,j);
+        end
+        spm_write_vol(this_vol_data,this_data*sfactor)
+    end
+    
+end
 
 %% Now create univariate masks for later MVPA
 
