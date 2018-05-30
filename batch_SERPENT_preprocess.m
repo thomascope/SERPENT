@@ -2,6 +2,7 @@
 % Written by TEC Feb 2018
 
 %% Setup environment
+clear all
 rmpath(genpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/'))
 %addpath /imaging/local/software/spm_cbu_svn/releases/spm12_fil_r6906
 addpath /group/language/data/thomascope/spm12_fil_r6906/
@@ -13,43 +14,28 @@ SERPENT_subjects_parameters
 
 %% Options to skip steps
 applytopup = 1;
-opennewanalysispool = 1;
+opennewanalysispool = 0;
 
 %% Open a worker pool
-if size(subjects,2) > 96
-    workersrequested = 96;
-    fprintf([ '\n\nUnable to ask for a worker per run; asking for 96 instead\n\n' ]);
-else
-    workersrequested = size(subjects,2);
-end
-
-memoryperworker = 16;
-if memoryperworker*workersrequested >= 768 %I think you can't ask for more than this - it doesn't seem to work at time of testing anyway
-    memoryrequired = '768'; %NB: This must be a string, not an int!!!
-    fprintf([ '\n\nUnable to ask for as much RAM per worker as specified due to cluster limits, asking for 192Gb in total instead\n\n' ]);
-else
-    memoryrequired = num2str(memoryperworker*workersrequested);
-end
-
-try
-    currentdr = pwd;
-    cd('/group/language/data/thomascope/')
-    workerpool = cbupool(workersrequested);
-    workerpool.ResourceTemplate=['-l nodes=^N^,mem=' memoryrequired 'GB,walltime=168:00:00'];
-    try
-        matlabpool(workerpool)
-    catch
-        parpool(workerpool,workerpool.NumWorkers)
+if opennewanalysispool == 1
+    if size(subjects,2) > 96
+        workersrequested = 96;
+        fprintf([ '\n\nUnable to ask for a worker per run; asking for 96 instead\n\n' ]);
+    else
+        workersrequested = size(subjects,2);
     end
-    cd(currentdr)
-catch
+    
+    memoryperworker = 16;
+    if memoryperworker*workersrequested >= 768 %I think you can't ask for more than this - it doesn't seem to work at time of testing anyway
+        memoryrequired = '768'; %NB: This must be a string, not an int!!!
+        fprintf([ '\n\nUnable to ask for as much RAM per worker as specified due to cluster limits, asking for 192Gb in total instead\n\n' ]);
+    else
+        memoryrequired = num2str(memoryperworker*workersrequested);
+    end
+    
     try
+        currentdr = pwd;
         cd('/group/language/data/thomascope/')
-        try
-            matlabpool 'close'
-        catch
-            delete(gcp)
-        end
         workerpool = cbupool(workersrequested);
         workerpool.ResourceTemplate=['-l nodes=^N^,mem=' memoryrequired 'GB,walltime=168:00:00'];
         try
@@ -61,7 +47,13 @@ catch
     catch
         try
             cd('/group/language/data/thomascope/')
+            try
+                matlabpool 'close'
+            catch
+                delete(gcp)
+            end
             workerpool = cbupool(workersrequested);
+            workerpool.ResourceTemplate=['-l nodes=^N^,mem=' memoryrequired 'GB,walltime=168:00:00'];
             try
                 matlabpool(workerpool)
             catch
@@ -69,21 +61,31 @@ catch
             end
             cd(currentdr)
         catch
-            cd(currentdr)
-            fprintf([ '\n\nUnable to open up a cluster worker pool - opening a local cluster instead' ]);
             try
-                matlabpool(12)
+                cd('/group/language/data/thomascope/')
+                workerpool = cbupool(workersrequested);
+                try
+                    matlabpool(workerpool)
+                catch
+                    parpool(workerpool,workerpool.NumWorkers)
+                end
+                cd(currentdr)
             catch
-                parpool(12)
+                cd(currentdr)
+                fprintf([ '\n\nUnable to open up a cluster worker pool - opening a local cluster instead' ]);
+                try
+                    matlabpool(12)
+                catch
+                    parpool(12)
+                end
             end
         end
     end
 end
 
-
 %% Skullstrip structural
 nrun = size(subjects,2); % enter the number of runs here
-%jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
+
 jobfile = {[scriptdir 'module_skullstrip_INV2_job.m']};
 inputs = cell(2, nrun);
 
