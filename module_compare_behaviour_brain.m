@@ -1,4 +1,4 @@
-function [disvol, searchlight_locations, thisRDM] = module_compare_behaviour_brain(subject,spmdir,outdir,subsamp_fac)
+function [disvol, searchlight_locations, thisRDM, disvol_cross] = module_compare_behaviour_brain(subject,spmdir,outdir,subsamp_fac,crosscon)
 %A function to extract the dissimilarity matrix from the behavioural data
 %and compare it to brain data
 %TEC May2018
@@ -10,9 +10,10 @@ line_draw_data = dir(['./7T_JudgementData/' subject '_line_drawings*']);
 load(['./7T_JudgementData/' line_draw_data.name],'estimate_dissimMat_ltv_MA')
 thisRDM = rank_transform_RDM(estimate_dissimMat_ltv_MA);
 
-if exist([outdir '/ldc_data/filtereddata.mat'],'file')
+if exist([outdir '/ldc_data/filtereddata.mat'],'file') && exist([outdir '/ldc_data/designs.mat'],'file')
     disp('Loading previous filtered data')
     load([outdir '/ldc_data/filtereddata.mat'])
+    load([outdir '/ldc_data/designs.mat'])
 else
     %First load in the epi from the relevant SPM, masked to the warped structural
     [epivol,designvol] = spm2vol(fullfile(spmdir,'SPM.mat'),'mask',fullfile(outdir,'wstructural_csf.nii'));
@@ -24,8 +25,8 @@ else
         mkdir([outdir '/ldc_data'])
     end
     save([outdir '/ldc_data/filtereddata.mat'],'filtereddatavol','filtereddesignvol','-v7.3');
+    save([outdir '/ldc_data/designs.mat'],'designvol','filtereddesignvol','-v7.3');
     clear epivol %For memory
-    clear designvol
 end
 
 %Then determine 800voxel ROIs (roughly 9mm radius) (parallelised)
@@ -42,17 +43,41 @@ end
 
 %Now subsample the mask space by a factor of n (i.e. if n = 2 from 1.5mm voxels to 3mm searchlight spacing)
 these_locs = ~logical(mod(searchrois.xyz(1,:),subsamp_fac))&~logical(mod(searchrois.xyz(2,:),subsamp_fac))&~logical(mod(searchrois.xyz(3,:),subsamp_fac));
-searchrois.data = searchrois.data(these_locs,:);
-searchrois.nsamples = sum(these_locs);
+searchrois = searchrois(these_locs,:);
+% searchrois.data = searchrois.data(these_locs,:);
+% searchrois.nsamples = sum(these_locs);
 
-if exist([outdir '/ldc_data/disvol.mat'],'file')
+
+load('example_file.mat','category_labels','direction_labels','all_drawstyles','frequency_labels')
+mapper = struct('name',{'drawstyle','frequency','direction','category'},'levels',{all_drawstyles, frequency_labels, direction_labels, category_labels});
+newdesign = collapsedesign(designvol, mapper(2).levels);
+
+[~,filtereddesignvol_test] = preprocessvols([],newdesign,'ignorelabels',{'Left Button Press','Right Button Press','null_null_null_null'});
+
+if exist([outdir '/ldc_data/disvol_' num2str(subsamp_fac) '.mat'],'file')
     disp('Loading previous disvol')
-    load([outdir '/ldc_data/disvol.mat'])
+    load([outdir '/ldc_data/disvol_' num2str(subsamp_fac) '.mat'])
 else
 %disvol = module_ldc_subsamp(searchrois,filtereddesignvol,filtereddatavol);
 disvol = roidata2rdmvol_lindisc_batch(searchrois,filtereddesignvol,filtereddatavol);
 
-save([outdir '/ldc_data/disvol.mat'],'disvol','-v7.3');
+save([outdir '/ldc_data/disvol_' num2str(subsamp_fac) '.mat'],'disvol','-v7.3');
+end
+
+
+if ~isempty(crosscon)
+    if exist([outdir '/ldc_data/disvol_cross_' num2str(subsamp_fac) '.mat'],'file')
+        load([outdir '/ldc_data/disvol_cross_' num2str(subsamp_fac) '.mat'],'file')
+    else
+        disvol_cross = cell(1,numel(crosscon));
+        for i = 1:numel(crosscon)
+            disvol_cross{i} = roidata2rdmvol_lindisc_batch(searchrois,filtereddesignvol,filtereddatavol,'crosscon',crosscon{i});
+                 
+        end
+        save([outdir '/ldc_data/disvol_cross_' num2str(subsamp_fac) '.mat'],'disvol_cross','-v7.3');    
+    end
+else
+    disvol_cross = {};
 end
 
 searchlight_locations =  searchrois.xyz(:,these_locs);
