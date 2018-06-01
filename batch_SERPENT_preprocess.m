@@ -465,7 +465,7 @@ for crun = 1:nrun % Don't paralellise here as it is more efficient to do so by v
     half_one = [1:5, 11:15, 21:25, 31:35, 41:45, 51:55]; % Left facing vs right facing
     crosscon{2} = {half_one, setdiff(1:60,half_one)};
     
-    [all_disvols{crun} searchlight_locations{crun} all_testRDMs{crun} all_disvols_cross{crun}] = module_compare_behaviour_brain(this_subject,spmpath,outpath,subsamp_fac,crosscon);
+    [all_disvols{crun} searchlight_locations{crun} all_testRDMs{crun} all_disvols_cross{crun} all_disvols_collapsed{crun}] = module_compare_behaviour_brain(this_subject,spmpath,outpath,subsamp_fac,crosscon);
     vol_data{crun} = spm_vol(fullfile(outpath,'wstructural_csf.nii'));
 end
 
