@@ -54,7 +54,7 @@ mapper = struct('name',{'drawstyle','frequency','direction','category'},'levels'
 
 collapsed_design{1} = collapsedesign(designvol, mapper(1).levels); %Collapse on drawstyle
 collapsed_design{2} = collapsedesign(designvol, mapper(3).levels); %Collapse on direction
-collapsed_design{3} = collapsedesign(drawstyle_collapsed, mapper(3).levels); %Collapse both
+collapsed_design{3} = collapsedesign(collapsed_design{1}, mapper(3).levels); %Collapse both
 
 for i = 1:numel(collapsed_design)
 [~,filtered_collapsed_design{i}] = preprocessvols([],collapsed_design{i},'ignorelabels',{'Left Button Press','Right Button Press','null_null_null_null'});
@@ -86,7 +86,8 @@ end
 %Now do cross training/testing on full volume
 if ~isempty(crosscon)
     if exist([outdir '/ldc_data/disvol_cross_' num2str(subsamp_fac) '.mat'],'file')
-        load([outdir '/ldc_data/disvol_cross_' num2str(subsamp_fac) '.mat'],'file')
+        disp('Loading previous crosstrained disvol')
+        load([outdir '/ldc_data/disvol_cross_' num2str(subsamp_fac) '.mat'])
     else
         disvol_cross = cell(1,numel(crosscon));
         for i = 1:numel(crosscon)
@@ -102,11 +103,12 @@ end
 %Now do cross training on collapsed volume
 if ~isempty(crosscon_collapsed)
     if exist([outdir '/ldc_data/disvol_cross_collapsed' num2str(subsamp_fac) '.mat'],'file')
-        load([outdir '/ldc_data/disvol_cross_collapsed' num2str(subsamp_fac) '.mat'],'file')
+        disp('Loading previous collapsed crosstrained disvol')
+        load([outdir '/ldc_data/disvol_cross_collapsed' num2str(subsamp_fac) '.mat'])
     else
         disvol_cross_collapsed = cell(1,numel(crosscon_collapsed));
         for i = 1:numel(crosscon_collapsed)
-            disvol_cross_collapsed{i} = roidata2rdmvol_lindisc_batch(searchrois,filtereddesignvol,filtereddatavol,'crosscon',crosscon_collapsed{i});
+            disvol_cross_collapsed{i} = roidata2rdmvol_lindisc_batch(searchrois,filtered_collapsed_design{end},filtereddatavol,'crosscon',crosscon_collapsed{i});
                  
         end
         save([outdir '/ldc_data/disvol_cross_collapsed' num2str(subsamp_fac) '.mat'],'disvol_cross_collapsed','-v7.3');    

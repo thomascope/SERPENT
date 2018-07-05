@@ -16,6 +16,7 @@ eval(setup_file)
 %% Options to skip steps
 applytopup = 1;
 opennewanalysispool = 0;
+secondlevel = 0;
 
 %% Open a worker pool
 if opennewanalysispool == 1
@@ -117,6 +118,10 @@ parfor crun = 1:nrun
     end
 end
 
+if ~all(skullstripworkedcorrectly)
+    error('failed at skullstrip');
+end
+
 %% Now apply topup to distortion correct the EPI
 
 if applytopup == 1
@@ -140,6 +145,10 @@ if applytopup == 1
         
     end
 end
+
+if ~all(topupworkedcorrectly)
+    error('failed at topup');
+end
 %% Now realign the EPIs
 
 realignworkedcorrectly = zeros(1,nrun);
@@ -160,6 +169,10 @@ parfor crun = 1:nrun
     end
 end
 
+if ~all(realignworkedcorrectly)
+    error('failed at realign');
+end
+
 %% Now reslice the mean image
 
 resliceworkedcorrectly = zeros(1,nrun);
@@ -178,6 +191,10 @@ parfor crun = 1:nrun
     catch
         resliceworkedcorrectly(crun) = 0;
     end
+end
+
+if ~all(resliceworkedcorrectly)
+    error('failed at reslice');
 end
 
 %% Now do cat12 normalisation of the structural to create deformation fields (works better than SPM segment deformation fields, which sometimes produce too-small brains)
@@ -202,6 +219,10 @@ parfor crun = 1:nrun
     catch
         cat12workedcorrectly(crun) = 0;
     end
+end
+
+if ~all(cat12workedcorrectly)
+    error('failed at cat12');
 end
 
 %% Now co-register estimate, using structural as reference, mean as source and epi as others, then reslice only the mean
@@ -241,6 +262,10 @@ parfor crun = 1:nrun
     catch
         coregisterworkedcorrectly(crun) = 0;
     end
+end
+
+if ~all(coregisterworkedcorrectly)
+    error('failed at coregister');
 end
 
 %% Now normalise write for visualisation and smooth at 3 and 8
@@ -289,6 +314,11 @@ parfor crun = 1:nrun
     end
 end
 
+if ~all(normalisesmoothworkedcorrectly)
+    error('failed at normalise and smooth');
+end
+
+
 %% Now do a univariate SPM analysis at 8mm
 nrun = size(subjects,2); % enter the number of runs here
 inputs = cell(0, nrun);
@@ -325,6 +355,10 @@ parfor crun = 1:nrun
     end
 end
 
+if ~all(SPMworkedcorrectly)
+    error('failed at SPM 8mm');
+end
+
 %% Now repeat univariate SPM analysis at 3mm
 nrun = size(subjects,2); % enter the number of runs here
 inputs = cell(0, nrun);
@@ -359,6 +393,10 @@ parfor crun = 1:nrun
     catch
         SPMworkedcorrectly(crun) = 0;
     end
+end
+
+if ~all(SPMworkedcorrectly)
+    error('failed at SPM 3mm');
 end
 
 % %% Now do another univariate SPM analysis at 8mm without the button press
@@ -459,17 +497,20 @@ for crun = 1:nrun % Don't paralellise here as it is more efficient to do so by v
     this_subject = subjects{crun};
     outpath = [preprocessedpathstem this_subject];
     spmpath = [outpath '/stats_mask0.4_3_multi'];
-    subsamp_fac = 20;
+    subsamp_fac = 3; % Set a subsampling factor here - less than 3 will crash the workers with a full 7T volume due to memory
     half_one = [1:30]; % Photos vs line drawings
     crosscon{1} = {half_one, setdiff(1:60,half_one)};
     half_one = [1:5, 11:15, 21:25, 31:35, 41:45, 51:55]; % Left facing vs right facing
     crosscon{2} = {half_one, setdiff(1:60,half_one)};
     
-    [all_disvols{crun} searchlight_locations{crun} all_testRDMs{crun} all_disvols_cross{crun} all_disvols_collapsed{crun}] = module_compare_behaviour_brain(this_subject,spmpath,outpath,subsamp_fac,crosscon);
+    crosscon_collapsed{1} = {[1:3:15], [3:3:15]}; % Train on rare animals, test on common and vice-versa.
+    
+    [all_disvols{crun} searchlight_locations{crun} all_testRDMs{crun} all_disvols_cross{crun} all_disvols_collapsed{crun} all_disvols_cross_collapsed{crun}] = module_compare_behaviour_brain(this_subject,spmpath,outpath,subsamp_fac,crosscon,crosscon_collapsed);
     vol_data{crun} = spm_vol(fullfile(outpath,'wstructural_csf.nii'));
 end
 
-%Set up test RDMs - XXX WORK IN PROGRESS
+%% Set up test RDMs - XXX WORK IN PROGRESS
+res = {};
 for crun = 1:nrun
     thisRDM = all_testRDMs{crun};
     test_rdm_1 = repmat(thisRDM,4,4);
@@ -482,28 +523,26 @@ for crun = 1:nrun
     test_rdm_3 = repmat(categoryRDM,4,4);
     test_rdm_4 = [categoryRDM,onerdm,onerdm,onerdm;onerdm,categoryRDM,onerdm,onerdm;onerdm,onerdm,categoryRDM,onerdm;onerdm,onerdm,onerdm,categoryRDM];
     
-    predictors(1).name = 'Tiled judgments';
+    predictors(1).name = 'Tiled_judgments';
     predictors(1).RDM = test_rdm_1;
-    predictors(2).name = 'Isolated judgments';
+    predictors(2).name = 'Isolated_judgments';
     predictors(2).RDM = test_rdm_2;
-    predictors(3).name = 'Category differentiation';
+    predictors(3).name = 'Category_differentiation';
     predictors(3).RDM = test_rdm_3;
-    predictors(4).name = 'Category within modality';
+    predictors(4).name = 'Category_within_modality';
     predictors(4).RDM = test_rdm_4;
     
     [res{crun}] = roidata_rsa(all_disvols{crun},predictors);
-    
-%     figure
-%     scatter3(searchlight_locations{crun}(1,:), searchlight_locations{crun}(2,:), searchlight_locations{crun}(3,:),res{crun}.r(1,:));
-%     
+       
 end
 
 % Now write volumes of searchlight similarities
-sfactor = 1000;
+%sfactor = 1000;
 for crun = 1:nrun
     this_vol_data = struct;
     this_vol_data.dim = vol_data{crun}.dim;
     this_vol_data.dt = vol_data{crun}.dt;
+    this_vol_data.dt(1) = spm_type('float32');
     this_vol_data.pinfo = vol_data{crun}.pinfo;
     this_vol_data.pinfo(1)=1;
     this_vol_data.mat = vol_data{crun}.mat;
@@ -512,29 +551,307 @@ for crun = 1:nrun
     these_locs = searchlight_locations{crun}/subsamp_fac;
     
     this_subject = subjects{crun};
-    outpath = [preprocessedpathstem this_subject];
+    search_outpath = [preprocessedpathstem this_subject '/searchvolumes'];
+    if ~exist(search_outpath,'dir')
+        mkdir(search_outpath)
+    end
     
     nans_data = nan(this_vol_data.dim);
     zeros_data = zeros(this_vol_data.dim);
     
     for i = 1:length(predictors)
-        this_vol_data.fname = [outpath '/' predictors(i).name '.nii'];
+        this_vol_data.fname = [search_outpath '/' predictors(i).name '_subsamp' num2str(subsamp_fac) '.nii'];
         this_data = nans_data;
         for j = 1:size(these_locs,2)
             this_data(these_locs(1,j),these_locs(2,j),these_locs(3,j)) = res{crun}.r(i,j);
         end
-        spm_write_vol(this_vol_data,this_data*sfactor)
+        header = spm_create_vol(this_vol_data);
+        spm_write_vol(header,this_data)
     end
     
 end
 
+%Set up test RDMs for crosscon data - XXX WORK IN PROGRESS
+res = {};
+for crun = 1:nrun
+    for this_cross = 1:numel(crosscon)
+    thisRDM = all_testRDMs{crun};
+    test_rdm_1 = repmat(thisRDM,2,2);
+    onerdm = ones(size(thisRDM));
+    test_rdm_2 = [thisRDM,onerdm;onerdm,thisRDM];
+    triplet = ones(3,3);
+    triplet = triplet-eye(3);
+    triplet = triplet / 2;
+    categoryRDM = [triplet, ones(3), ones(3), ones(3), ones(3); ones(3), triplet, ones(3), ones(3), ones(3); ones(3), ones(3), triplet, ones(3), ones(3); ones(3), ones(3), ones(3), triplet, ones(3); ones(3), ones(3), ones(3), ones(3), triplet,];
+    test_rdm_3 = repmat(categoryRDM,2,2);
+    test_rdm_4 = [categoryRDM,onerdm;onerdm,categoryRDM];
+    
+    predictors(1).name = 'Tiled_judgments';
+    predictors(1).RDM = test_rdm_1;
+    predictors(2).name = 'Isolated_judgments';
+    predictors(2).RDM = test_rdm_2;
+    predictors(3).name = 'Category_differentiation';
+    predictors(3).RDM = test_rdm_3;
+    predictors(4).name = 'Category_within_modality';
+    predictors(4).RDM = test_rdm_4;
+    
+    [res{crun}{this_cross}] = roidata_rsa(all_disvols_cross{crun}{this_cross},predictors);
+
+    end
+end
 
 
+% Now write volumes of searchlight similarities on crosscon data
+%sfactor = 1000;
+for crun = 1:nrun
+    for this_cross = 1:numel(crosscon)
+        this_vol_data = struct;
+        this_vol_data.dim = vol_data{crun}.dim;
+        this_vol_data.dt = vol_data{crun}.dt;
+        this_vol_data.dt(1) = spm_type('float32');
+        this_vol_data.pinfo = vol_data{crun}.pinfo;
+        this_vol_data.pinfo(1)=1;
+        this_vol_data.mat = vol_data{crun}.mat;
+        this_vol_data.mat(1:3,1:3) = this_vol_data.mat(1:3,1:3)*subsamp_fac;
+        this_vol_data.dim = floor(vol_data{crun}.dim/subsamp_fac);
+        these_locs = searchlight_locations{crun}/subsamp_fac;
+        
+        this_subject = subjects{crun};
+        search_outpath = [preprocessedpathstem this_subject '/searchvolumes'];
+        
+        nans_data = nan(this_vol_data.dim);
+        zeros_data = zeros(this_vol_data.dim);
+        
+        for i = 1:length(predictors)
+            this_vol_data.fname = [search_outpath '/' predictors(i).name '_cross' num2str(this_cross) '_subsamp' num2str(subsamp_fac) '.nii'];
+            this_data = nans_data;
+            for j = 1:size(these_locs,2)
+                this_data(these_locs(1,j),these_locs(2,j),these_locs(3,j)) = res{crun}{this_cross}.r(i,j);
+            end
+            header = spm_create_vol(this_vol_data);
+            spm_write_vol(header,this_data)
+        end
+    end
+end
+
+%Set up test RDMs for collapsed data - XXX WORK IN PROGRESS
+res = {};
+for crun = 1:nrun
+    for this_collapse = 1:numel(all_disvols_collapsed{1})
+        if this_collapse == 3 %The case where both are collapsed and we have a 15 element matrix
+            thisRDM = all_testRDMs{crun};
+            test_rdm_1 = repmat(thisRDM,1,1);
+            onerdm = ones(size(thisRDM));
+            test_rdm_2 = thisRDM; %NB: This is the same as test_rdm_1 but keep it here for consistency with other collapses
+            triplet = ones(3,3);
+            triplet = triplet-eye(3);
+            triplet = triplet / 2;
+            categoryRDM = [triplet, ones(3), ones(3), ones(3), ones(3); ones(3), triplet, ones(3), ones(3), ones(3); ones(3), ones(3), triplet, ones(3), ones(3); ones(3), ones(3), ones(3), triplet, ones(3); ones(3), ones(3), ones(3), ones(3), triplet,];
+            test_rdm_3 = repmat(categoryRDM,1,1);
+            test_rdm_4 = [categoryRDM]; %again only included for consistent numbering
+            
+            predictors(1).name = 'Tiled_judgments';
+            predictors(1).RDM = test_rdm_1;
+            predictors(2).name = 'Isolated_judgments';
+            predictors(2).RDM = test_rdm_2;
+            predictors(3).name = 'Category_differentiation';
+            predictors(3).RDM = test_rdm_3;
+            predictors(4).name = 'Category_within_modality';
+            predictors(4).RDM = test_rdm_4;
+            
+            [res{crun}{this_collapse}] = roidata_rsa(all_disvols_collapsed{crun}{this_collapse},predictors);
+        else %The case where one is collapsed and we have a 30 element matrix
+            
+            thisRDM = all_testRDMs{crun};
+            test_rdm_1 = repmat(thisRDM,2,2);
+            onerdm = ones(size(thisRDM));
+            test_rdm_2 = [thisRDM,onerdm;onerdm,thisRDM];
+            triplet = ones(3,3);
+            triplet = triplet-eye(3);
+            triplet = triplet / 2;
+            categoryRDM = [triplet, ones(3), ones(3), ones(3), ones(3); ones(3), triplet, ones(3), ones(3), ones(3); ones(3), ones(3), triplet, ones(3), ones(3); ones(3), ones(3), ones(3), triplet, ones(3); ones(3), ones(3), ones(3), ones(3), triplet,];
+            test_rdm_3 = repmat(categoryRDM,2,2);
+            test_rdm_4 = [categoryRDM,onerdm;onerdm,categoryRDM];
+            
+            predictors(1).name = 'Tiled_judgments';
+            predictors(1).RDM = test_rdm_1;
+            predictors(2).name = 'Isolated_judgments';
+            predictors(2).RDM = test_rdm_2;
+            predictors(3).name = 'Category_differentiation';
+            predictors(3).RDM = test_rdm_3;
+            predictors(4).name = 'Category_within_modality';
+            predictors(4).RDM = test_rdm_4;
+            
+            [res{crun}{this_collapse}] = roidata_rsa(all_disvols_collapsed{crun}{this_collapse},predictors);
+        end
+    end
+end
 
 
+% Now write volumes of searchlight similarities on collapsed data
+%sfactor = 1000;
+for crun = 1:nrun
+    for this_collapse = 1:numel(all_disvols_collapsed{1})
+        this_vol_data = struct;
+        this_vol_data.dim = vol_data{crun}.dim;
+        this_vol_data.dt = vol_data{crun}.dt;
+        this_vol_data.dt(1) = spm_type('float32');
+        this_vol_data.pinfo = vol_data{crun}.pinfo;
+        this_vol_data.pinfo(1)=1;
+        this_vol_data.mat = vol_data{crun}.mat;
+        this_vol_data.mat(1:3,1:3) = this_vol_data.mat(1:3,1:3)*subsamp_fac;
+        this_vol_data.dim = floor(vol_data{crun}.dim/subsamp_fac);
+        these_locs = searchlight_locations{crun}/subsamp_fac;
+        
+        this_subject = subjects{crun};
+        search_outpath = [preprocessedpathstem this_subject '/searchvolumes'];
+        
+        nans_data = nan(this_vol_data.dim);
+        zeros_data = zeros(this_vol_data.dim);
+        
+        for i = 1:length(predictors)
+            this_vol_data.fname = [search_outpath '/' predictors(i).name '_collapse' num2str(this_collapse) '_subsamp' num2str(subsamp_fac) '.nii'];
+            this_data = nans_data;
+            for j = 1:size(these_locs,2)
+                this_data(these_locs(1,j),these_locs(2,j),these_locs(3,j)) = res{crun}{this_collapse}.r(i,j);
+            end
+            header = spm_create_vol(this_vol_data);
+            spm_write_vol(header,this_data)
+        end
+    end
+end
 
+%% Now do second level analysis
+if secondlevel == 1
+    % First whole data anlysis
+    secondlevelworkedcorrectly = zeros(1,length(predictors));
+    parfor crun = 1:length(predictors)
+        conditionname = [predictors(crun).name '_subsamp' num2str(subsamp_fac)];
+        jobfile = create_SD_secondlevel_Job(preprocessedpathstem, conditionname, subjects, group)
+        spm('defaults', 'fMRI');
+        spm_jobman('initcfg')
+        try
+            spm_jobman('run', jobfile);
+            secondlevelworkedcorrectly(crun) = 1;
+        catch
+            secondlevelworkedcorrectly(crun) = 0;
+        end
+        
+    end
+    
+    if ~all(secondlevelworkedcorrectly)
+        error('failed at whole data secondlevel');
+    end
+    
+    % Then do crosscon analysis
+    all_combs = combvec(1:numel(crosscon), 1:length(predictors));
+    secondlevelworkedcorrectly = zeros(1,size(all_combs,2));
+    parfor this_comb = 1:size(all_combs,2)
+        this_cross = all_combs(1,this_comb)
+        crun = all_combs(2,this_comb)
+        conditionname = [predictors(crun).name '_cross' num2str(this_cross) '_subsamp' num2str(subsamp_fac)];
+        jobfile = create_SD_secondlevel_Job(preprocessedpathstem, conditionname, subjects, group)
+        spm('defaults', 'fMRI');
+        spm_jobman('initcfg')
+        try
+            spm_jobman('run', jobfile);
+            secondlevelworkedcorrectly(this_comb) = 1;
+        catch
+            secondlevelworkedcorrectly(this_comb) = 0;
+        end
+    end
+    
+    if ~all(secondlevelworkedcorrectly)
+        error('failed at crosscon secondlevel');
+    end
+    
+    % Then do collapsed analysis
+    all_combs = combvec(1:numel(all_disvols_collapsed{1}), 1:length(predictors));
+    secondlevelworkedcorrectly = zeros(1,size(all_combs,2));
+    parfor this_comb = 1:size(all_combs,2)
+        this_collapse = all_combs(1,this_comb)
+        crun = all_combs(2,this_comb)
+        conditionname = [predictors(crun).name '_collapse' num2str(this_collapse) '_subsamp' num2str(subsamp_fac)];
+        jobfile = create_SD_secondlevel_Job(preprocessedpathstem, conditionname, subjects, group)
+        spm('defaults', 'fMRI');
+        spm_jobman('initcfg')
+        try
+            spm_jobman('run', jobfile);
+            secondlevelworkedcorrectly(this_comb) = 1;
+        catch
+            secondlevelworkedcorrectly(this_comb) = 0;
+        end
+    end
+    
+    if ~all(secondlevelworkedcorrectly)
+        error('failed at collapsed secondlevel');
+    end
+    
+        
+end
 
-
+% 
+% %Finally check the collapsed crosstrained data for identity decoding. XXX
+% %NEED TO DISCUSS THIS WITH JOHAN TO FIND OUT BEST METHOD
+% res = {};
+% for crun = 1:nrun
+%               
+%             thisRDM = ones(5,5) - eye(5);
+%             test_rdm_1 = repmat(thisRDM,2,2);
+%             onerdm = ones(size(thisRDM));
+%             test_rdm_2 = [thisRDM,onerdm;onerdm,thisRDM];
+%             triplet = ones(3,3);
+%             triplet = triplet-eye(3);
+%             triplet = triplet / 2;
+%             categoryRDM = [triplet, ones(3), ones(3), ones(3), ones(3); ones(3), triplet, ones(3), ones(3), ones(3); ones(3), ones(3), triplet, ones(3), ones(3); ones(3), ones(3), ones(3), triplet, ones(3); ones(3), ones(3), ones(3), ones(3), triplet,];
+%             test_rdm_3 = repmat(categoryRDM,2,2);
+%             test_rdm_4 = [categoryRDM,onerdm;onerdm,categoryRDM];
+%             
+%             predictors(1).name = 'Tiled_judgments';
+%             predictors(1).RDM = test_rdm_1;
+%             predictors(2).name = 'Isolated_judgments';
+%             predictors(2).RDM = test_rdm_2;
+%             predictors(3).name = 'Category_differentiation';
+%             predictors(3).RDM = test_rdm_3;
+%             predictors(4).name = 'Category_within_modality';
+%             predictors(4).RDM = test_rdm_4;
+%             
+%             [res{crun}{this_collapse}] = roidata_rsa(all_disvols_collapsed{crun}{this_collapse},predictors);
+%         end
+%     end
+% end
+% 
+% 
+% % Now write volumes of searchlight similarities on collapsed data
+% sfactor = 1000;
+% for crun = 1:nrun
+%     for this_collapse = 1:numel(crosscon)
+%         this_vol_data = struct;
+%         this_vol_data.dim = vol_data{crun}.dim;
+%         this_vol_data.dt = vol_data{crun}.dt;
+%         this_vol_data.pinfo = vol_data{crun}.pinfo;
+%         this_vol_data.pinfo(1)=1;
+%         this_vol_data.mat = vol_data{crun}.mat;
+%         this_vol_data.mat(1:3,1:3) = this_vol_data.mat(1:3,1:3)*subsamp_fac;
+%         this_vol_data.dim = floor(vol_data{crun}.dim/subsamp_fac);
+%         these_locs = searchlight_locations{crun}/subsamp_fac;
+%         
+%         this_subject = subjects{crun};
+%         search_outpath = [preprocessedpathstem this_subject '/searchvolumes'];
+%         
+%         nans_data = nan(this_vol_data.dim);
+%         zeros_data = zeros(this_vol_data.dim);
+%         
+%         for i = 1:length(predictors)
+%             this_vol_data.fname = [search_outpath '/' predictors(i).name '_collapse' num2str(this_collapse) '_subsamp' num2str(subsamp_fac) '.nii'];
+%             this_data = nans_data;
+%             for j = 1:size(these_locs,2)
+%                 this_data(these_locs(1,j),these_locs(2,j),these_locs(3,j)) = res{crun}{this_collapse}.r(i,j);
+%             end
+%             spm_write_vol(this_vol_data,this_data*sfactor)
+%         end
+%     end
+% end
 
 
 
@@ -1115,3 +1432,10 @@ end
 % 
 %     end
 % end
+
+%% End of script - be a good citizen
+try
+    matlabpool 'close'
+catch
+    delete(gcp)
+end
