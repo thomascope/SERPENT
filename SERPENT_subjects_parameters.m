@@ -112,13 +112,59 @@ cnt = 0;
 % minvols(cnt) = 340;
 % group(cnt) = 2;
 
+% cnt = cnt + 1;
+% subjects{cnt} = 'S7C05';
+% dates{cnt} = '20180703';
+% fullid{cnt} = '26799/20180703_U-ID40969';
+% basedir{cnt} = 'SERPENT';
+% blocksin_folders{cnt} = {'Series_020_mp2rage_sag_p3_0.75mm_UNI_Images','Series_021_mp2rage_sag_p3_0.75mm_INV2','Series_010_cmrr_mbep2d_3x2_1.5iso_340vols','Series_012_cmrr_mbep2d_3x2_1.5iso_340vols','Series_016_cmrr_mbep2d_3x2_1.5iso_340vols','Series_018_cmrr_mbep2d_3x2_1.5iso_340vols','Series_011_cmrr_mbep2d_3x2_1.5iso_340vols_SBRef','Series_013_cmrr_mbep2d_3x2_1.5iso_invPE_SBRef'};
+% blocksin{cnt} = {'DATA_0020.nii', 'DATA_0021.nii', 'DATA_0010.nii', 'DATA_0012.nii', 'DATA_0016.nii', 'DATA_0018.nii', 'DATA_0011.nii','DATA_0013.nii'};
+% blocksout{cnt} = {'structural', 'INV2', 'Run_1','Run_2','Run_3','Run_4','Pos_topup','Neg_topup'};
+% minvols(cnt) = 340;
+% group(cnt) = 1;
+
+% cnt = cnt + 1;
+% subjects{cnt} = 'S7C06';
+% dates{cnt} = '20180718';
+% fullid{cnt} = '27261/20180717_U-ID41405';
+% basedir{cnt} = 'SERPENT';
+% blocksin_folders{cnt} = {'Series_020_mp2rage_sag_p3_0.75mm_UNI_Images','Series_021_mp2rage_sag_p3_0.75mm_INV2','Series_010_cmrr_mbep2d_3x2_1.5iso_340vols','Series_012_cmrr_mbep2d_3x2_1.5iso_340vols','Series_016_cmrr_mbep2d_3x2_1.5iso_340vols','Series_018_cmrr_mbep2d_3x2_1.5iso_340vols','Series_011_cmrr_mbep2d_3x2_1.5iso_340vols_SBRef','Series_013_cmrr_mbep2d_3x2_1.5iso_invPE_SBRef'};
+% blocksin{cnt} = {'DATA_0020.nii', 'DATA_0021.nii', 'DATA_0010.nii', 'DATA_0012.nii', 'DATA_0016.nii', 'DATA_0018.nii', 'DATA_0011.nii','DATA_0013.nii'};
+% blocksout{cnt} = {'structural', 'INV2', 'Run_1','Run_2','Run_3','Run_4','Pos_topup','Neg_topup'};
+% minvols(cnt) = 340;
+% group(cnt) = 1;
+
 cnt = cnt + 1;
-subjects{cnt} = 'S7C05';
-dates{cnt} = '20180703';
-fullid{cnt} = '26799/20180703_U-ID40969';
+subjects{cnt} = 'S7P05';
+dates{cnt} = '20180724';
+fullid{cnt} = '26495/20180724_U-ID40646';
 basedir{cnt} = 'SERPENT';
 blocksin_folders{cnt} = {'Series_020_mp2rage_sag_p3_0.75mm_UNI_Images','Series_021_mp2rage_sag_p3_0.75mm_INV2','Series_010_cmrr_mbep2d_3x2_1.5iso_340vols','Series_012_cmrr_mbep2d_3x2_1.5iso_340vols','Series_016_cmrr_mbep2d_3x2_1.5iso_340vols','Series_018_cmrr_mbep2d_3x2_1.5iso_340vols','Series_011_cmrr_mbep2d_3x2_1.5iso_340vols_SBRef','Series_013_cmrr_mbep2d_3x2_1.5iso_invPE_SBRef'};
 blocksin{cnt} = {'DATA_0020.nii', 'DATA_0021.nii', 'DATA_0010.nii', 'DATA_0012.nii', 'DATA_0016.nii', 'DATA_0018.nii', 'DATA_0011.nii','DATA_0013.nii'};
 blocksout{cnt} = {'structural', 'INV2', 'Run_1','Run_2','Run_3','Run_4','Pos_topup','Neg_topup'};
 minvols(cnt) = 340;
-group(cnt) = 1;
+group(cnt) = 2;
+
+cnt = cnt + 1;
+subjects{cnt} = 'S7P06';
+dates{cnt} = '20180725';
+fullid{cnt} = '25785/20180725_U-ID41224';
+basedir{cnt} = 'SERPENT';
+% NB: Major movement on first run 2 and invPE, so repeat of run 2 done
+% last, accounting for odd ordering.
+blocksin_folders{cnt} = {'Series_028_mp2rage_sag_p3_0.75mm_UNI_Images','Series_029_mp2rage_sag_p3_0.75mm_INV2','Series_010_cmrr_mbep2d_3x2_1.5iso_340vols','Series_026_cmrr_mbep2d_3x2_1.5iso_340vols','Series_020_cmrr_mbep2d_3x2_1.5iso_340vols','Series_024_cmrr_mbep2d_3x2_1.5iso_340vols','Series_019_cmrr_mbep2d_3x2_1.5iso_340vols_SBRef','Series_021_cmrr_mbep2d_3x2_1.5iso_invPE_SBRef'};
+blocksin{cnt} = {'DATA_0028.nii', 'DATA_0029.nii', 'DATA_0010.nii', 'DATA_0026.nii', 'DATA_0020.nii', 'DATA_0024.nii', 'DATA_0019.nii','DATA_0021.nii'};
+blocksout{cnt} = {'structural', 'INV2', 'Run_1','Run_2','Run_3','Run_4','Pos_topup','Neg_topup'};
+minvols(cnt) = 340;
+group(cnt) = 2;
+
+cnt = cnt + 1;
+subjects{cnt} = 'S7P07';
+dates{cnt} = '20180726';
+fullid{cnt} = '25162/20180726_U-ID41509';
+basedir{cnt} = 'SERPENT';
+blocksin_folders{cnt} = {'Series_020_mp2rage_sag_p3_0.75mm_UNI_Images','Series_021_mp2rage_sag_p3_0.75mm_INV2','Series_010_cmrr_mbep2d_3x2_1.5iso_340vols','Series_012_cmrr_mbep2d_3x2_1.5iso_340vols','Series_016_cmrr_mbep2d_3x2_1.5iso_340vols','Series_018_cmrr_mbep2d_3x2_1.5iso_340vols','Series_011_cmrr_mbep2d_3x2_1.5iso_340vols_SBRef','Series_013_cmrr_mbep2d_3x2_1.5iso_invPE_SBRef'};
+blocksin{cnt} = {'DATA_0020.nii', 'DATA_0021.nii', 'DATA_0010.nii', 'DATA_0012.nii', 'DATA_0016.nii', 'DATA_0018.nii', 'DATA_0011.nii','DATA_0013.nii'};
+blocksout{cnt} = {'structural', 'INV2', 'Run_1','Run_2','Run_3','Run_4','Pos_topup','Neg_topup'};
+minvols(cnt) = 340;
+group(cnt) = 2;
