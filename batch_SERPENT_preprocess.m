@@ -144,11 +144,12 @@ if applytopup == 1
         end
         
     end
+    if ~all(topupworkedcorrectly)
+        error('failed at topup');
+    end
 end
 
-if ~all(topupworkedcorrectly)
-    error('failed at topup');
-end
+
 %% Now realign the EPIs
 
 realignworkedcorrectly = zeros(1,nrun);
