@@ -1,4 +1,4 @@
-function Preprocessing_mainfunction_7T(step,prevStep,p,preprocessedpathstem,rawpathstem,subjects,subjcnt,fullid,basedir,blocksin,blocksin_folders,blocksout,minvols,group)
+function Preprocessing_mainfunction_7T(step,prevStep,clusterid,preprocessedpathstem,rawpathstem,subjects,subjcnt,fullid,basedir,blocksin,blocksin_folders,blocksout,minvols,group)
 % A mainfunction for preprocessing 7T MRI data
 % Designed to run in a modular fashion and in parallel - i.e. pass this
 % function a single step and single subject
@@ -34,6 +34,12 @@ switch prevStep
         prevStep = '';
         pathstem = [preprocessedpathstem subjects{subjcnt} '/'];
         
+    case 'realign'
+        prevStep = '';
+        pathstem = [preprocessedpathstem subjects{subjcnt} '/'];
+    case 'skullstrip'
+        prevStep = '';
+        pathstem = [preprocessedpathstem subjects{subjcnt} '/'];
     case 'topup'
         prevStep = 'topup_.*';
         pathstem = [preprocessedpathstem subjects{subjcnt} '/'];
@@ -46,66 +52,11 @@ switch prevStep
         smoothing = 3;
         pathstem = [preprocessedpathstem subjects{subjcnt} '/'];
         
-        
-    case 'maxfilter'
-        prevStep = '*ssst.fif';
-        S.outfilestem = [pathstem subjects];
-        if ~exist(S.outfilestem,'dir')
-            mkdir(S.outfilestem);
-        end
-        pathstem = maxfilteredpathstem;
-    case 'convert'
-        prevStep = 'run*.mat';
-    case 'ICA_artifacts'
-        prevStep = 'Mrun*.mat';
-    case 'ICA_artifacts_copy'
-        prevStep = 'Mrun*.mat';
-    case 'downsample'
-        prevStep = 'd*Mrun*.mat';
-    case 'epoch'
-        prevStep = 'e*Mrun*.mat';
-    case 'merge'
-        prevStep = 'c*Mrun*.mat';
-    case 'subtractevoked'
-        prevStep = 'ev*Mrun*.mat';
-    case 'rereference'
-        prevStep = 'M*Mrun*.mat';
-    case 'TF_power'
-        prevStep = 'tf*Mrun*.mat';
-    case 'TF_phase'
-        prevStep = 'tph*Mrun*.mat';
-    case 'TF_rescale'
-        prevStep = 'r*Mrun*.mat';
-    case 'filter'
-        prevStep = 'fb*Mrun*.mat';
-    case 'secondfilter'
-        prevStep = 'ffb*Mrun*.mat';
-    case 'baseline'
-        prevStep = 'b*Mrun*.mat';
-    case 'average'
-        prevStep = 'm*Mrun*.mat';
-    case 'quickaverage'
-        prevStep = 'quick/m*Mrun*.mat';
-    case 'weight'
-        prevStep = 'w*Mrun*.mat';
-    case 'combineplanar'
-        prevStep = 'p*Mrun*.mat';
-    case 'artefact'
-        prevStep = 'a*Mrun*.mat';
-    case 'blink'
-        prevStep = 'clean*Mrun*.mat';
-    case 'image'
-        prevStep = 'trial*Mrun*.img';
-    case 'smooth'
-        prevStep = 'sm*Mrun*.img';
-    case 'firstlevel'
-        prevStep = 't*Mrun*.img';
-        
 end
 
 %% Set up environment
 global spmpath fsldir toolboxdir
-switch p.clusterid
+switch clusterid
     case 'CBU'
         rawpathstem = '/imaging/tc02/';
         preprocessedpathstem = '/imaging/tc02/SERPENT_preprocessed/';

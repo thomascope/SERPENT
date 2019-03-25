@@ -6,14 +6,14 @@
 %spm('EEG');
 %spm
 
-% add required paths
-addpath(pwd);
-% addpath('/group/language/data/ediz.sohoglu/matlab/utilities/');
-% addpath('/opt/neuromag/meg_pd_1.2/');
-
-% define paths
-rawpathstem = '/imaging/tc02/';
-preprocessedpathstem = '/imaging/tc02/SERPENT_preprocessed/';
+% % add required paths
+% addpath(pwd);
+% % addpath('/group/language/data/ediz.sohoglu/matlab/utilities/');
+% % addpath('/opt/neuromag/meg_pd_1.2/');
+% 
+% % define paths
+% rawpathstem = '/imaging/tc02/';
+% preprocessedpathstem = '/imaging/tc02/SERPENT_preprocessed/';
 
 % % define conditions
 % conditions = {'Mismatch_4' 'Match_4' 'Mismatch_8' 'Match_8' 'Mismatch_16' 'Match_16'};
