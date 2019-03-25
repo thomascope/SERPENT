@@ -6,15 +6,15 @@
 global spmpath
 matlabbatch{1}.spm.tools.cat.estwrite.data = '<UNDEFINED>';
 matlabbatch{1}.spm.tools.cat.estwrite.nproc = 0;
-matlabbatch{1}.spm.tools.cat.estwrite.opts.tpm = {'/group/language/data/thomascope/spm12_fil_r6906/tpm/TPM.nii'};
+matlabbatch{1}.spm.tools.cat.estwrite.opts.tpm = {[spmpath 'tpm/TPM.nii']};
 matlabbatch{1}.spm.tools.cat.estwrite.opts.affreg = 'mni';
 matlabbatch{1}.spm.tools.cat.estwrite.opts.biasstr = 0.5;
 matlabbatch{1}.spm.tools.cat.estwrite.extopts.APP = 1070;
 matlabbatch{1}.spm.tools.cat.estwrite.extopts.LASstr = 0.5;
 matlabbatch{1}.spm.tools.cat.estwrite.extopts.gcutstr = 0.5;
 matlabbatch{1}.spm.tools.cat.estwrite.extopts.cleanupstr = 0.5;
-matlabbatch{1}.spm.tools.cat.estwrite.extopts.registration.darteltpm = {'/group/language/data/thomascope/spm12_fil_r6906/toolbox/cat12/templates_1.50mm/Template_1_IXI555_MNI152.nii'};
-matlabbatch{1}.spm.tools.cat.estwrite.extopts.registration.shootingtpm = {'/group/language/data/thomascope/spm12_fil_r6906/toolbox/cat12/templates_1.50mm/Template_0_IXI555_MNI152_GS.nii'};
+matlabbatch{1}.spm.tools.cat.estwrite.extopts.registration.darteltpm = {[spmpath 'toolbox/cat12/templates_1.50mm/Template_1_IXI555_MNI152.nii']};
+matlabbatch{1}.spm.tools.cat.estwrite.extopts.registration.shootingtpm = {[spmpath 'toolbox/cat12/templates_1.50mm/Template_0_IXI555_MNI152_GS.nii']};
 matlabbatch{1}.spm.tools.cat.estwrite.extopts.registration.regstr = 0;
 matlabbatch{1}.spm.tools.cat.estwrite.extopts.vox = 1.5;
 matlabbatch{1}.spm.tools.cat.estwrite.output.surface = 0;
