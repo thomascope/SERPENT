@@ -16,9 +16,10 @@ step=skullstrip
 count=0
 jobIDs=""
 
+cd slurmoutputs
 for this_subj in ${subjects_to_process[@]}
 do 
-this_job_id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+this_job_id=sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}
 #! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
 jobIDs="$jobIDs $this_job_id"
 done
@@ -35,7 +36,7 @@ step=realign
 
 for this_subj in ${subjects_to_process[@]}
 do 
-this_job_id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+this_job_id=sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}
 #! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
 jobIDs="$jobIDs $this_job_id"
 done
@@ -52,7 +53,7 @@ step=topup
 
 for this_subj in ${subjects_to_process[@]}
 do 
-this_job_id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+this_job_id=sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}
 #! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
 jobIDs="$jobIDs $this_job_id"
 done
@@ -69,7 +70,7 @@ step=topup
 
 for this_subj in ${subjects_to_process[@]}
 do 
-this_job_id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+this_job_id=sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}
 #! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
 jobIDs="$jobIDs $this_job_id"
 done
@@ -86,7 +87,7 @@ step=reslice
 
 for this_subj in ${subjects_to_process[@]}
 do 
-this_job_id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+this_job_id=sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}
 #! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
 jobIDs="$jobIDs $this_job_id"
 done
@@ -103,7 +104,7 @@ step=cat12
 
 for this_subj in ${subjects_to_process[@]}
 do 
-this_job_id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+this_job_id=sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}
 #! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
 jobIDs="$jobIDs $this_job_id"
 done
@@ -120,7 +121,7 @@ step=coregister
 
 for this_subj in ${subjects_to_process[@]}
 do 
-this_job_id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+this_job_id=sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}
 #! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
 jobIDs="$jobIDs $this_job_id"
 done
@@ -137,7 +138,7 @@ step=normalisesmooth
 
 for this_subj in ${subjects_to_process[@]}
 do 
-this_job_id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+this_job_id=sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}
 #! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
 jobIDs="$jobIDs $this_job_id"
 done
@@ -154,7 +155,7 @@ step=SPM_uni
 
 for this_subj in ${subjects_to_process[@]}
 do 
-this_job_id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+this_job_id=sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}
 #! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
 jobIDs="$jobIDs $this_job_id"
 done
@@ -171,7 +172,7 @@ step=SPM_uni
 
 for this_subj in ${subjects_to_process[@]}
 do 
-this_job_id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+this_job_id=sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}
 #! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
 jobIDs="$jobIDs $this_job_id"
 done
@@ -183,5 +184,5 @@ if [[ ! $? -eq 0 ]];
         exit 1;
 fi
 
-
+cd ..
 
