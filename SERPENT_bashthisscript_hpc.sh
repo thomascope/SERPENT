@@ -68,24 +68,6 @@ if [[ ! $? -eq 0 ]];
         exit 1;
 fi
 
-prevstep=realign
-step=topup
-
-for this_subj in ${subjects_to_process[@]}
-do 
-this_job_id=$(sbatch --parsable ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step})
-#! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
-jobIDs="$jobIDs $this_job_id"
-done
-
-echo "submitted job stage" ${step} "polling for output before moving on"
-${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-if [[ ! $? -eq 0 ]];
-    then
-        echo "SLURM submission failed - jobs went into error state"
-        exit 1;
-fi
-
 prevstep=topup
 step=reslice
 
