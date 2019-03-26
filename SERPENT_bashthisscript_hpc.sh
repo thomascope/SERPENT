@@ -24,6 +24,7 @@ this_job_id=$(sbatch --parsable ${submit} ${prepare} ${func} ${subjs_def} ${this
 jobIDs="$jobIDs $this_job_id"
 done
 
+echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
 if [[ ! $? -eq 0 ]];
     then
@@ -41,6 +42,7 @@ this_job_id=$(sbatch --parsable ${submit} ${prepare} ${func} ${subjs_def} ${this
 jobIDs="$jobIDs $this_job_id"
 done
 
+echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
 if [[ ! $? -eq 0 ]];
     then
@@ -58,6 +60,7 @@ this_job_id=$(sbatch --parsable ${submit} ${prepare} ${func} ${subjs_def} ${this
 jobIDs="$jobIDs $this_job_id"
 done
 
+echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
 if [[ ! $? -eq 0 ]];
     then
@@ -75,6 +78,7 @@ this_job_id=$(sbatch --parsable ${submit} ${prepare} ${func} ${subjs_def} ${this
 jobIDs="$jobIDs $this_job_id"
 done
 
+echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
 if [[ ! $? -eq 0 ]];
     then
@@ -92,6 +96,7 @@ this_job_id=$(sbatch --parsable ${submit} ${prepare} ${func} ${subjs_def} ${this
 jobIDs="$jobIDs $this_job_id"
 done
 
+echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
 if [[ ! $? -eq 0 ]];
     then
@@ -109,6 +114,7 @@ this_job_id=$(sbatch --parsable ${submit} ${prepare} ${func} ${subjs_def} ${this
 jobIDs="$jobIDs $this_job_id"
 done
 
+echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
 if [[ ! $? -eq 0 ]];
     then
@@ -126,6 +132,7 @@ this_job_id=$(sbatch --parsable ${submit} ${prepare} ${func} ${subjs_def} ${this
 jobIDs="$jobIDs $this_job_id"
 done
 
+echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
 if [[ ! $? -eq 0 ]];
     then
@@ -143,6 +150,7 @@ this_job_id=$(sbatch --parsable ${submit} ${prepare} ${func} ${subjs_def} ${this
 jobIDs="$jobIDs $this_job_id"
 done
 
+echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
 if [[ ! $? -eq 0 ]];
     then
@@ -160,6 +168,7 @@ this_job_id=$(sbatch --parsable ${submit} ${prepare} ${func} ${subjs_def} ${this
 jobIDs="$jobIDs $this_job_id"
 done
 
+echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
 if [[ ! $? -eq 0 ]];
     then
@@ -177,6 +186,7 @@ this_job_id=$(sbatch --parsable ${submit} ${prepare} ${func} ${subjs_def} ${this
 jobIDs="$jobIDs $this_job_id"
 done
 
+echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
 if [[ ! $? -eq 0 ]];
     then
