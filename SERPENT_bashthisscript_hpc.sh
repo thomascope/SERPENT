@@ -13,7 +13,6 @@ subjects_to_process=($(seq 1 1 2))
 prevstep=raw
 step=skullstrip
 
-count=0
 jobIDs=""
 
 cd slurmoutputs
@@ -26,12 +25,18 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-if [[ ! $? -eq 0 ]];
+for this_job in ${jobIDs[@]}
+do
+this_job_outcome=$(sacct -j this_job --format='State' -n)
+job_state=`echo $this_job_outcome | awk '{print $1}'` 
+if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
 fi
+done
 
+jobIDs=""
 prevstep=skullstrip
 step=realign
 
@@ -44,7 +49,8 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-if [[ ! $? -eq 0 ]];
+job_state=`echo $test | awk '{print $1}'` 
+if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
@@ -62,7 +68,8 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-if [[ ! $? -eq 0 ]];
+job_state=`echo $test | awk '{print $1}'` 
+if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
@@ -80,7 +87,8 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-if [[ ! $? -eq 0 ]];
+job_state=`echo $test | awk '{print $1}'` 
+if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
@@ -98,7 +106,8 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-if [[ ! $? -eq 0 ]];
+job_state=`echo $test | awk '{print $1}'` 
+if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
@@ -116,7 +125,8 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-if [[ ! $? -eq 0 ]];
+job_state=`echo $test | awk '{print $1}'` 
+if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
@@ -134,7 +144,8 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-if [[ ! $? -eq 0 ]];
+job_state=`echo $test | awk '{print $1}'` 
+if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
@@ -152,7 +163,8 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-if [[ ! $? -eq 0 ]];
+job_state=`echo $test | awk '{print $1}'` 
+if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
@@ -170,7 +182,8 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-if [[ ! $? -eq 0 ]];
+job_state=`echo $test | awk '{print $1}'` 
+if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
