@@ -359,7 +359,7 @@ switch step
         end
         
         if ~all(SPMworkedcorrectly)
-            error(['failed at SPM ' num2str(smoothing) 'mm');
+            error(['failed at SPM ' num2str(smoothing) 'mm']);
         end
         
 end
