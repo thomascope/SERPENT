@@ -67,7 +67,7 @@ Step=$7
 pwd; hostname; date
 
 #! Insert additional module load commands after this line if needed:
-if environment == 'HPC'
+if clusterid == 'HPC'
 then
     module load matlab/r2017b
 fi
