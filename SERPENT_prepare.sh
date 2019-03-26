@@ -34,20 +34,23 @@ fi
 addpath(pa);
 disp(['Path is ' pa])
 disp(['Function is ' af])
-disp(['Subject definition function is ${subjs_def}])
+disp(['Subject definition function is ${subjs_def}'])
+disp(['Environment is ${environment}'])
+disp(['Previous step is ${prevStep'}])
+disp(['This step is ${Step}'])
 
 do_definition_func=sprintf('%s(%s)','${subjs_def}')
 addpath(pwd)
 
-if strcmp(${environment},'CBU')
+if strcmp('${environment}','CBU')
     rawpathstem = '/imaging/tc02/';
     preprocessedpathstem = '/imaging/tc02/SERPENT_preprocessed/';
-elseif strcmp(${environment},'HPC')
+elseif strcmp('${environment}','HPC')
     rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
     preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
 end
 
-dofunc=sprintf('%s(%s)',af,'${ref}')
+dofunc=sprintf('%s(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',af,'${Step}','${prevStep}','${environment}',preprocessedpathstem,rawpathstem,subjects,'${ref}',fullid,basedir,blocksin,blocksin_folders,blocksout,minvols,group)
 eval(dofunc)
 ;exit
 EOF

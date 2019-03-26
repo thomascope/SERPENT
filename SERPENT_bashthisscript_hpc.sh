@@ -7,7 +7,8 @@ func=${myscriptdir}/Preprocessing_mainfunction_7T.m
 subjs_def=${myscriptdir}/SERPENT_subjects_parameters.m
 
 #! declare -a steporder=("raw" "skullstrip" "realign" "topup" "cat12")
-subjects_to_process=($(seq 1 1 10))
+#! subjects_to_process=($(seq 1 1 10))
+subjects_to_process=($(seq 1 1 2))
 
 prevstep=raw
 step=skullstrip
@@ -34,7 +35,7 @@ step=realign
 
 for this_subj in ${subjects_to_process[@]}
 do 
-sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}
+id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
 #! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
 done
 
@@ -44,4 +45,134 @@ if [[ ! $? -eq 0 ]];
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
 fi
+
+prevstep=realign
+step=topup
+
+for this_subj in ${subjects_to_process[@]}
+do 
+id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+#! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
+done
+
+${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
+if [[ ! $? -eq 0 ]];
+    then
+        echo "SLURM submission failed - jobs went into error state"
+        exit 1;
+fi
+
+prevstep=realign
+step=topup
+
+for this_subj in ${subjects_to_process[@]}
+do 
+id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+#! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
+done
+
+${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
+if [[ ! $? -eq 0 ]];
+    then
+        echo "SLURM submission failed - jobs went into error state"
+        exit 1;
+fi
+
+prevstep=topup
+step=reslice
+
+for this_subj in ${subjects_to_process[@]}
+do 
+id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+#! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
+done
+
+${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
+if [[ ! $? -eq 0 ]];
+    then
+        echo "SLURM submission failed - jobs went into error state"
+        exit 1;
+fi
+
+prevstep=topup
+step=cat12
+
+for this_subj in ${subjects_to_process[@]}
+do 
+id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+#! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
+done
+
+${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
+if [[ ! $? -eq 0 ]];
+    then
+        echo "SLURM submission failed - jobs went into error state"
+        exit 1;
+fi
+
+prevstep=topup
+step=coregister
+
+for this_subj in ${subjects_to_process[@]}
+do 
+id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+#! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
+done
+
+${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
+if [[ ! $? -eq 0 ]];
+    then
+        echo "SLURM submission failed - jobs went into error state"
+        exit 1;
+fi
+
+prevstep=topup
+step=normalisesmooth
+
+for this_subj in ${subjects_to_process[@]}
+do 
+id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+#! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
+done
+
+${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
+if [[ ! $? -eq 0 ]];
+    then
+        echo "SLURM submission failed - jobs went into error state"
+        exit 1;
+fi
+
+prevstep=smooth8
+step=SPM_uni
+
+for this_subj in ${subjects_to_process[@]}
+do 
+id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+#! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
+done
+
+${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
+if [[ ! $? -eq 0 ]];
+    then
+        echo "SLURM submission failed - jobs went into error state"
+        exit 1;
+fi
+
+prevstep=smooth3
+step=SPM_uni
+
+for this_subj in ${subjects_to_process[@]}
+do 
+id = 'sbatch ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}'
+#! echo ${submit} ${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step} #! for debug this will list all the sbatch submissions, to test, copy one line and paste after "sbatch "
+done
+
+${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
+if [[ ! $? -eq 0 ]];
+    then
+        echo "SLURM submission failed - jobs went into error state"
+        exit 1;
+fi
+
+
 
