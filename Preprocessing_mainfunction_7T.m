@@ -63,8 +63,8 @@ switch clusterid
         rmpath(genpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/'))
         %addpath /imaging/local/software/spm_cbu_svn/releases/spm12_fil_r6906
         spmpath = '/group/language/data/thomascope/spm12_fil_r6906/';
-        fsldir = '/imaging/local/software/fsl/fsl64/fsl-5.0.3/fsl';
-        toolboxdir = '/imaging/tc02/toolboxes'
+        fsldir = '/imaging/local/software/fsl/fsl64/fsl-5.0.3/fsl/';
+        toolboxdir = '/imaging/tc02/toolboxes/';
         addpath(spmpath)
         spm fmri
         scriptdir = '/group/language/data/thomascope/7T_SERPENT_pilot_analysis/';
@@ -72,9 +72,9 @@ switch clusterid
     case 'HPC'
         rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
         preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
-        spmpath = '/home/tec31/spm12_fil_r6906/spm12_fil_r6906';
-        fsldir = '/home/tec31/fsl-5.0.3/fsl';
-        toolboxdir = '/home/tec31/toolboxes';
+        spmpath = '/home/tec31/spm12_fil_r6906/spm12_fil_r6906/';
+        fsldir = '/home/tec31/fsl-5.0.3/fsl/';
+        toolboxdir = '/home/tec31/toolboxes/';
         addpath(spmpath)
         spm fmri
         scriptdir = '/rds/user/tec31/hpc-work/SERPENT/';
