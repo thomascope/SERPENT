@@ -35,6 +35,9 @@ disp(['Previous step is ${prevStep}'])
 disp(['This step is ${Step}'])
 
 do_definition_func=sprintf('%s','${subjs_def}')
+[pa2,af2,~] = fileparts(do_definition_func);
+addpath(pa2)
+eval(af2)
 addpath(pwd)
 
 if strcmp('${clusterid}','CBU')
@@ -45,7 +48,8 @@ elseif strcmp('${clusterid}','HPC')
     preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
 end
 
-dofunc=sprintf('%s(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',af,'${Step}','${prevStep}','${clusterid}',preprocessedpathstem,rawpathstem,subjects,'${ref}',fullid,basedir,blocksin,blocksin_folders,blocksout,minvols,group)
-disp(dofunc)
+dofunc=sprintf('%s(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',af,'''${Step}''','''${prevStep}''','''${clusterid}''','preprocessedpathstem','rawpathstem','subjects','${ref}','fullid','basedir','blocksin','blocksin_folders','blocksout','minvols','group');
+disp(['Submitting the following command: ' dofunc])
+eval(dofunc)
 ;exit
 EOF
