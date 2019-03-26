@@ -59,7 +59,7 @@ prepare=$1
 func=$2
 subjs_def=$3
 this_subj=$4
-environment=$5
+clusterid=$5
 prevStep=$6
 Step=$7
 
@@ -74,7 +74,7 @@ fi
 #!Put application here
 
 indir=$PWD
-application="${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevstep} ${step}"
+application="${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevStep} ${Step}"
 
 #! Put  here
 outfile=output_${this_subj}
