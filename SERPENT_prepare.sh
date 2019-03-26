@@ -14,6 +14,7 @@ prevStep=$5
 Step=$6
 
 echo "working on file ${ref}"
+echo "The workspace going into this is ${func} ${subjs_def} ${ref} ${environment} ${prevStep} ${Step}"
 
 #INCLUDE MATLAB CALL
 
@@ -36,7 +37,7 @@ disp(['Path is ' pa])
 disp(['Function is ' af])
 disp(['Subject definition function is ${subjs_def}'])
 disp(['Environment is ${environment}'])
-disp(['Previous step is ${prevStep'}])
+disp(['Previous step is ${prevStep}'}])
 disp(['This step is ${Step}'])
 
 do_definition_func=sprintf('%s(%s)','${subjs_def}')
