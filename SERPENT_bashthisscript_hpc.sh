@@ -49,13 +49,18 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-job_state=`echo $test | awk '{print $1}'` 
+for this_job in ${jobIDs[@]}
+do
+this_job_outcome=$(sacct -j this_job --format='State' -n)
+job_state=`echo $this_job_outcome | awk '{print $1}'` 
 if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
 fi
+done
 
+jobIDs=""
 prevstep=realign
 step=topup
 
@@ -68,13 +73,18 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-job_state=`echo $test | awk '{print $1}'` 
+for this_job in ${jobIDs[@]}
+do
+this_job_outcome=$(sacct -j this_job --format='State' -n)
+job_state=`echo $this_job_outcome | awk '{print $1}'` 
 if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
 fi
+done
 
+jobIDs=""
 prevstep=topup
 step=reslice
 
@@ -87,13 +97,18 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-job_state=`echo $test | awk '{print $1}'` 
+for this_job in ${jobIDs[@]}
+do
+this_job_outcome=$(sacct -j this_job --format='State' -n)
+job_state=`echo $this_job_outcome | awk '{print $1}'` 
 if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
 fi
+done
 
+jobIDs=""
 prevstep=topup
 step=cat12
 
@@ -106,13 +121,18 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-job_state=`echo $test | awk '{print $1}'` 
+for this_job in ${jobIDs[@]}
+do
+this_job_outcome=$(sacct -j this_job --format='State' -n)
+job_state=`echo $this_job_outcome | awk '{print $1}'` 
 if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
 fi
+done
 
+jobIDs=""
 prevstep=topup
 step=coregister
 
@@ -125,13 +145,18 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-job_state=`echo $test | awk '{print $1}'` 
+for this_job in ${jobIDs[@]}
+do
+this_job_outcome=$(sacct -j this_job --format='State' -n)
+job_state=`echo $this_job_outcome | awk '{print $1}'` 
 if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
 fi
+done
 
+jobIDs=""
 prevstep=topup
 step=normalisesmooth
 
@@ -144,13 +169,18 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-job_state=`echo $test | awk '{print $1}'` 
+for this_job in ${jobIDs[@]}
+do
+this_job_outcome=$(sacct -j this_job --format='State' -n)
+job_state=`echo $this_job_outcome | awk '{print $1}'` 
 if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
 fi
+done
 
+jobIDs=""
 prevstep=smooth8
 step=SPM_uni
 
@@ -163,13 +193,18 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-job_state=`echo $test | awk '{print $1}'` 
+for this_job in ${jobIDs[@]}
+do
+this_job_outcome=$(sacct -j this_job --format='State' -n)
+job_state=`echo $this_job_outcome | awk '{print $1}'` 
 if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
 fi
+done
 
+jobIDs=""
 prevstep=smooth3
 step=SPM_uni
 
@@ -182,12 +217,16 @@ done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
 ${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
-job_state=`echo $test | awk '{print $1}'` 
+for this_job in ${jobIDs[@]}
+do
+this_job_outcome=$(sacct -j this_job --format='State' -n)
+job_state=`echo $this_job_outcome | awk '{print $1}'` 
 if [ "$job_state" == "FAILED" ] 
     then
         echo "SLURM submission failed - jobs went into error state"
         exit 1;
 fi
+done
 
 cd ..
 
