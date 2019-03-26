@@ -27,7 +27,8 @@
 ##SBATCH --no-requeue
 #! For 6GB per CPU, set "-p skylake"; for 12GB per CPU, set "-p skylake-himem": 
 #SBATCH -p skylake-himem
-#SBATCH --mem=95840
+#!SBATCH --mem=95840
+#SBATCH --mem=46920
 
 #! sbatch directives end here (put any additional directives above this line)
 
