@@ -10,7 +10,7 @@
 
 #! sbatch directives begin here ###############################
 #! Name of the job:
-#SBATCH -J first_test
+#SBATCH -J SERPENT_preprocessing
 #! Which project should be charged:
 #SBATCH -A COPE-SL3-CPU
 #! How many whole nodes should be allocated?
