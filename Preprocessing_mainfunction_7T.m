@@ -10,7 +10,7 @@ switch prevStep
     % Here you specify the filenames that you search for after each step.
     case 'raw'
         
-        fprintf([ '\n\nCurrent subject = ' subjects '...\n\n' ]);
+        fprintf([ '\n\nCurrent subject = ' subjects{subjcnt} '...\n\n' ]);
         % make output directory if it doesn't exist
         outputfolderpath = [preprocessedpathstem subjects{subjcnt}];
         if ~exist(outputfolderpath,'dir')
