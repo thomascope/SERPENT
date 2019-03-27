@@ -78,8 +78,8 @@ indir=$PWD
 application="${prepare} ${func} ${subjs_def} ${this_subj} ${clusterid} ${prevStep} ${Step}"
 
 #! Put  here
-outfile=output_${this_subj}
-errfile=error_${this_subj}
+outfile=output_${this_subj}_${Step}_${prevStep}
+errfile=error_${this_subj}_${Step}_${prevStep}
 
 options=" >${outfile} 2>${errfile}"
 
