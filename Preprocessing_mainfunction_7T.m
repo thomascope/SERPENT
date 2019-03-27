@@ -371,4 +371,18 @@ switch step
             error(['failed at SPM ' num2str(smoothing) 'mm']);
         end
         
+    case 'secondlevel_uni'
+        % Do a second level univariate analysis across groups
+        
+    case 'freesurfer_hires'
+        % run a freesurfer on the structural image, with a high resolution flag
+        setenv('RAW_DATA_FOLDER',pathstem);
+        setenv('SUBJECTS_DIR',pathstem);
+        
+        cmd = ['recon-all -all -s freesurfer_output -hires -i ' pathstem blocksout{crun}{find(strcmp(blocksout{subjcnt},'structural'))} '.nii -expert ' scriptdir 'expert_hires.opts'];
+        fprintf(['Submitting the following command: ' cmd]);
+        system(cmd);
+        
+        end
+        
 end
