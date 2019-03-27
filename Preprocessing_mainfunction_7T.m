@@ -80,6 +80,8 @@ switch clusterid
         addpath(spmpath)
         spm fmri
         scriptdir = '/rds/user/tec31/hpc-work/SERPENT/';
+        freesurferpath = '/home/tec31/freesurfer';
+        
 end
 
 %% Now do the requested step
@@ -380,7 +382,11 @@ switch step
         % run a freesurfer on the structural image, with a high resolution flag
         setenv('RAW_DATA_FOLDER',pathstem);
         setenv('SUBJECTS_DIR',pathstem);
-        
+        setenv('FREESURFER_HOME',freesurferpath);
+        setenv('FSF_OUTPUT_FORMAT','nii');
+
+        cmd = ['source $FREESURFER_HOME/SetUpFreeSurfer.sh'];
+        system(cmd)
         cmd = ['recon-all -all -s freesurfer_output -hires -i ' pathstem blocksout{subjcnt}{find(strcmp(blocksout{subjcnt},'structural'))} '.nii -expert ' scriptdir 'expert_hires.opts'];
         fprintf(['Submitting the following command: ' cmd]);
         system(cmd);
