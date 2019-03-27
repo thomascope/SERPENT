@@ -70,6 +70,9 @@ pwd; hostname; date
 if [ "$clusterid" == "HPC" ]
 then
     module load matlab/r2017b
+    export FREESURFER_HOME=/home/tec31/freesurfer
+    source $FREESURFER_HOME/SetUpFreeSurfer.sh
+    export FSF_OUTPUT_FORMAT=nii
 fi
 
 #!Put application here
