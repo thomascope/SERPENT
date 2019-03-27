@@ -2,7 +2,8 @@ function [starttime,stimType,stim_type_labels,buttonpressed,buttonpresstime,run_
 global toolboxdir
 
 %clear all
-[workingdir,~,~] = fileparts(which('module_get_event_times.m'));
+[workingdir,~,~] = fileparts(which('module_get_event_times_SD_cluster.m'));
+fprintf(['Working directory is ' workingdir]);
 behaviour_folder = [workingdir '/behavioural_data'];
 
 addpath(toolboxdir)
@@ -18,6 +19,7 @@ for runI=1:nRuns
     
     cd(behaviour_folder)
     this_file = dir(['SD*' subj_initials '_Run_' num2str(runI) '_' testing_date '.mat']);
+    fprintf(['This file is ' this_file.name]);
     run_params = load(this_file.name);
     tr = run_params.TR;
     
