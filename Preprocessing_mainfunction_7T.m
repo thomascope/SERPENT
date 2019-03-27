@@ -33,7 +33,9 @@ switch prevStep
         
         prevStep = '';
         pathstem = [preprocessedpathstem subjects{subjcnt} '/'];
-        
+    case 'raw_nocopy'
+        prevStep = '';
+        pathstem = [preprocessedpathstem subjects{subjcnt} '/'];   
     case 'realign'
         prevStep = '';
         pathstem = [preprocessedpathstem subjects{subjcnt} '/'];
@@ -379,10 +381,8 @@ switch step
         setenv('RAW_DATA_FOLDER',pathstem);
         setenv('SUBJECTS_DIR',pathstem);
         
-        cmd = ['recon-all -all -s freesurfer_output -hires -i ' pathstem blocksout{crun}{find(strcmp(blocksout{subjcnt},'structural'))} '.nii -expert ' scriptdir 'expert_hires.opts'];
+        cmd = ['recon-all -all -s freesurfer_output -hires -i ' pathstem blocksout{subjcnt}{find(strcmp(blocksout{subjcnt},'structural'))} '.nii -expert ' scriptdir 'expert_hires.opts'];
         fprintf(['Submitting the following command: ' cmd]);
         system(cmd);
-        
-        end
-        
+               
 end
