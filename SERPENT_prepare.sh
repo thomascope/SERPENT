@@ -48,7 +48,7 @@ elseif strcmp('${clusterid}','HPC')
     preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
 end
 
-dofunc=sprintf('%s(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',af,'''${Step}''','''${prevStep}''','''${clusterid}''','preprocessedpathstem','rawpathstem','subjects','${ref}','fullid','basedir','blocksin','blocksin_folders','blocksout','minvols','dates','group');
+dofunc=sprintf('%s(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',af,'''${Step}''','''${prevStep}''','''${clusterid}''','preprocessedpathstem','rawpathstem','subjects','${ref}','fullid','basedir','blocksin','blocksin_folders','blocksout','minvols','dates','group');
 disp(['Submitting the following command: ' dofunc])
 eval(dofunc)
 ;exit
