@@ -1,9 +1,9 @@
 function Preprocessing_mainfunction_7T(step,prevStep,clusterid,preprocessedpathstem,rawpathstem,subjects,subjcnt,fullid,basedir,blocksin,blocksin_folders,blocksout,minvols,dates,group)
 % A mainfunction for preprocessing 7T MRI data
 % Designed to run in a modular fashion and in parallel - i.e. pass this
-% function a single step and single subject
+% function a single step and single subject number
 % for example:
-%
+%  Preprocessing_mainfunction_7T('SPM_uni','smooth8','HPC',preprocessedpathstem,rawpathstem,subjects,6,fullid,basedir,blocksin,blocksin_folders,blocksout,minvols,dates,group)
 
 %% Work out which file we're looking to work on now
 switch prevStep
@@ -84,6 +84,7 @@ end
 switch step
     
     case 'skullstrip'
+        % Skullstrip structural
         nrun = 1; % enter the number of runs here - should be 1 if submitted in parallel, but retain the functionality to bundle subjects
         
         jobfile = {[scriptdir 'module_skullstrip_INV2_job_cluster.m']};
@@ -122,6 +123,7 @@ switch step
         end
         
     case 'topup'
+        % Apply topup to distortion correct the EPI
         nrun = 1; % enter the number of runs here - should be 1 if submitted in parallel, but retain the functionality to bundle subjects
         topupworkedcorrectly = zeros(1,nrun);
         for crun = subjcnt
@@ -149,6 +151,7 @@ switch step
         end
         
     case 'realign'
+        % Now realign the EPIs
         nrun = 1; % enter the number of runs here - should be 1 if submitted in parallel, but retain the functionality to bundle subjects
         realignworkedcorrectly = zeros(1,nrun);
         for crun = subjcnt
@@ -174,6 +177,7 @@ switch step
         end
         
     case 'reslice'
+        % Reslice the mean EPI image
         nrun = 1; % enter the number of runs here - should be 1 if submitted in parallel, but retain the functionality to bundle subjects
         disp('running reslice')
         resliceworkedcorrectly = zeros(1,nrun);
@@ -199,6 +203,7 @@ switch step
         end
         
     case 'cat12'
+        % Do cat12 normalisation of the structural to create deformation fields (works better than SPM segment deformation fields, which sometimes produce too-small brains)
         disp('running cat12 normalisation')
         nrun = 1; % enter the number of runs here - should be 1 if submitted in parallel, but retain the functionality to bundle subjects
         jobfile = {[scriptdir 'module_cat12_normalise_job_cluster.m']};
@@ -227,6 +232,7 @@ switch step
         end
         
     case 'coregister'
+        % co-register estimate, using structural as reference, mean as source and epi as others, then reslice only the mean
         disp('running co-registration')
         nrun = 1; % enter the number of runs here - should be 1 if submitted in parallel, but retain the functionality to bundle subjects
         coregisterworkedcorrectly = zeros(1,nrun);
@@ -271,6 +277,7 @@ switch step
         end
         
     case 'normalisesmooth'
+        % normalise write for visualisation and smooth at 3 and 8
         disp('running normalisation and smoothing')
         nrun = 1; % enter the number of runs here - should be 1 if submitted in parallel, but retain the functionality to bundle subjects
         jobfile = {[scriptdir 'module_normalise_smooth_job.m']};
@@ -321,6 +328,7 @@ switch step
         end
         
     case 'SPM_uni'
+        % Do a univariate SPM analysis at a smoothing level set by the smoothing flag
         disp('SPM univariate analysis')
         nrun = 1; % enter the number of runs here - should be 1 if submitted in parallel, but retain the functionality to bundle subjects
         
