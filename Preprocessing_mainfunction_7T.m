@@ -340,7 +340,8 @@ switch step
             for sess = 1:length(theseepis)
                 filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^' prevStep blocksout{crun}{theseepis(sess)} '.nii'],1:minvols(crun));
                 inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
-                inputs{(2*(sess-1))+3, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+                this_rp_file = dir([outpath 'rp*' blocksout{crun}{theseepis(sess)} '.txt']);
+                inputs{(2*(sess-1))+3, crun} = cellstr(this_rp_file.name);
             end
             
         end
