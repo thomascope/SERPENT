@@ -338,7 +338,7 @@ switch step
             
             inputs{1, crun} = cellstr([outpath 'stats_mask0.4_' num2str(smoothing) '_multi']);
             for sess = 1:length(theseepis)
-                filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^' prevstep blocksout{crun}{theseepis(sess)} '.nii'],1:minvols(crun));
+                filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^' prevStep blocksout{crun}{theseepis(sess)} '.nii'],1:minvols(crun));
                 inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
                 inputs{(2*(sess-1))+3, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
             end
