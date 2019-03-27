@@ -387,7 +387,7 @@ switch step
         cmd = ['source $FREESURFER_HOME/SetUpFreeSurfer.sh'];
         system(cmd)
         setenv('FSF_OUTPUT_FORMAT','nii');
-        cmd = ['recon-all -all -s freesurfer_output -hires -i ' pathstem blocksout{subjcnt}{find(strcmp(blocksout{subjcnt},'structural'))} '.nii -expert ' scriptdir 'expert_hires.opts'];
+        cmd = ['recon-all -all -notal-check -s freesurfer_output -hires -i ' pathstem blocksout{subjcnt}{find(strcmp(blocksout{subjcnt},'structural'))} '.nii -expert ' scriptdir 'expert_hires.opts'];
         fprintf(['Submitting the following command: ' cmd]);
         system(cmd);
                
