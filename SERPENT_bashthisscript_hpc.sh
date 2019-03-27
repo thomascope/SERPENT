@@ -8,7 +8,7 @@ subjs_def=${myscriptdir}/SERPENT_subjects_parameters.m
 
 #! declare -a steporder=("raw" "skullstrip" "realign" "topup" "cat12")
 #! subjects_to_process=($(seq 1 1 10))
-subjects_to_process=($(seq 1 1 13))
+subjects_to_process=($(seq 14 1 25))
 
 prevstep=raw
 step=skullstrip
