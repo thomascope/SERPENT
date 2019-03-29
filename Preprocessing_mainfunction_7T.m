@@ -60,8 +60,8 @@ end
 global spmpath fsldir toolboxdir
 switch clusterid
     case 'CBU'
-        rawpathstem = '/imaging/tc02/';
-        preprocessedpathstem = '/imaging/tc02/SERPENT_preprocessed/';
+%         rawpathstem = '/imaging/tc02/';
+%         preprocessedpathstem = '/imaging/tc02/SERPENT_preprocessed/';
         rmpath(genpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/'))
         %addpath /imaging/local/software/spm_cbu_svn/releases/spm12_fil_r6906
         spmpath = '/group/language/data/thomascope/spm12_fil_r6906/';
@@ -70,10 +70,11 @@ switch clusterid
         addpath(spmpath)
         spm fmri
         scriptdir = '/group/language/data/thomascope/7T_SERPENT_pilot_analysis/';
+        freesurferpath = '/home/tc02/freesurfer';
         
     case 'HPC'
-        rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
-        preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
+%         rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
+%         preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
         spmpath = '/home/tec31/spm12_fil_r6906/spm12_fil_r6906/';
         fsldir = '/home/tec31/fsl-5.0.3/fsl/';
         toolboxdir = '/home/tec31/toolboxes/';
@@ -380,11 +381,17 @@ switch step
         
     case 'freesurfer_hires'
         % run a freesurfer on the structural image, with a high resolution flag
+        setenv('MATLAB_SHELL','/bin/bash');
         setenv('RAW_DATA_FOLDER',pathstem);
         setenv('SUBJECTS_DIR',pathstem);
         setenv('FREESURFER_HOME',freesurferpath);
         
-        cmd = ['source $FREESURFER_HOME/SetUpFreeSurfer.sh'];
+        switch clusterid
+            case 'CBU'
+                cmd = ['source $FREESURFER_HOME/SetUpFreeSurfer.csh'];
+            case 'HPC'
+                cmd = ['source $FREESURFER_HOME/SetUpFreeSurfer.sh'];
+        end
         system(cmd)
         setenv('FSF_OUTPUT_FORMAT','nii');
         cmd = ['recon-all -all -notal-check -bigventricles -s freesurfer_output -hires -i ' pathstem blocksout{subjcnt}{find(strcmp(blocksout{subjcnt},'structural'))} '.nii -expert ' scriptdir 'expert_hires.opts'];

@@ -23,7 +23,14 @@ echo "The workspace going into this is ${func} ${subjs_def} ${ref} ${clusterid} 
 #Some Matlab functions like gzip require java so cannot
 #use -nojvm option
 
+if [ "$clusterid" == "HPC" ]
+then
 matlab -nodesktop -nosplash -nodisplay <<EOF
+fi
+if [ "$clusterid" == "CBU" ]
+then
+matlab_2017a -nodesktop -nosplash -nodisplay <<EOF
+fi
 
 [pa,af,~]=fileparts('${func}');
 addpath(pa);
