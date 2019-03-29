@@ -1,17 +1,23 @@
-myscriptdir=/rds/user/tec31/hpc-work/SERPENT
-clusterid=HPC
+myscriptdir=/group/language/data/thomascope/7T_SERPENT_pilot_analysis
+clusterid=CBU
 
-submit=${myscriptdir}/SERPENT_submit_himemlongtime.sh
+submit=${myscriptdir}/SERPENT_submit_cbu.sh
 prepare=${myscriptdir}/SERPENT_prepare.sh
 func=${myscriptdir}/Preprocessing_mainfunction_7T.m
 subjs_def=${myscriptdir}/SERPENT_subjects_parameters.m
 
 #! declare -a steporder=("raw" "skullstrip" "realign" "topup" "cat12")
 #! subjects_to_process=($(seq 1 1 10))
-subjects_to_process=($(seq 1 1 25))
+subjects_to_process=($(seq 1 1 1))
+
+prevstep=raw
+step=skullstrip
 
 jobIDs=""
-prevstep=raw_nocopy
+
+cd slurmoutputs
+jobIDs=""
+prevstep=raw
 step=freesurfer_hires
 
 for this_subj in ${subjects_to_process[@]}
