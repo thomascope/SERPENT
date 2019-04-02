@@ -109,7 +109,7 @@ switch step
                     split_run_num = strsplit(blocksout{subjcnt}{5},'_');
                     outfilePath = [outputfolderpath '/sub-' subjects{subjcnt} '/sess-' dates{19} '/func/sub-' subjects{subjcnt} '_sess-' dates{19} '_task-SERPENT_acq-cmrr_run-' split_run_num{end} '_bold.nii'];
                 otherwise
-                    sprintf([blocksout{subjcnt}{i} ' not part of BIDS format, moving on']
+                    sprintf([blocksout{subjcnt}{i} ' not part of BIDS format, moving on']);
                     continue
             end
             if ~exist(outfilePath,'file')
