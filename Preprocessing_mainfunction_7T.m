@@ -60,8 +60,8 @@ end
 global spmpath fsldir toolboxdir
 switch clusterid
     case 'CBU'
-        rawpathstem = '/imaging/tc02/';
-        preprocessedpathstem = '/imaging/tc02/SERPENT_preprocessed/';
+%         rawpathstem = '/imaging/tc02/';
+%         preprocessedpathstem = '/imaging/tc02/SERPENT_preprocessed/';
         rmpath(genpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/'))
         %addpath /imaging/local/software/spm_cbu_svn/releases/spm12_fil_r6906
         spmpath = '/group/language/data/thomascope/spm12_fil_r6906/';
@@ -70,10 +70,11 @@ switch clusterid
         addpath(spmpath)
         spm fmri
         scriptdir = '/group/language/data/thomascope/7T_SERPENT_pilot_analysis/';
+        freesurferpath = '/home/tc02/freesurfer';
         
     case 'HPC'
-        rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
-        preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
+%         rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
+%         preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
         spmpath = '/home/tec31/spm12_fil_r6906/spm12_fil_r6906/';
         fsldir = '/home/tec31/fsl-5.0.3/fsl/';
         toolboxdir = '/home/tec31/toolboxes/';
@@ -87,6 +88,39 @@ end
 %% Now do the requested step
 switch step
     
+    case 'make_bids_format'
+        % Copy data to a new folder in BIDS format
+        fprintf([ '\n\nCurrent subject = ' subjects{subjcnt} '...\n\n' ]);
+        % make output directory if it doesn't exist
+        outputfolderpath = [preprocessedpathstem '/bidsformat/'];
+        if ~exist(outputfolderpath,'dir')
+            mkdir(outputfolderpath);
+        end
+        
+        % change to input directory
+        for i = 1:length(blocksin{subjcnt})
+            rawfilePath = [rawpathstem basedir{subjcnt} '/' fullid{subjcnt} '/' blocksin_folders{subjcnt}{i} '/' blocksin{subjcnt}{i}];
+            switch strtok(blocksout{subjcnt}{i}, '_')
+                case 'structural'
+                    outfilePath = [outputfolderpath '/sub-' subjects{subjcnt} '/sess-' dates{19} '/anat/sub-' subjects{subjcnt} '_sess-' dates{19} '_acq-mp2ragesag_out-uni_MP2RAGE.nii'];
+                case 'INV2'
+                    outfilePath = [outputfolderpath '/sub-' subjects{subjcnt} '/sess-' dates{19} '/anat/sub-' subjects{subjcnt} '_sess-' dates{19} '_acq-mp2ragesag_out-inv2_MP2RAGE.nii'];
+                case 'Run'
+                    split_run_num = strsplit(blocksout{subjcnt}{5},'_');
+                    outfilePath = [outputfolderpath '/sub-' subjects{subjcnt} '/sess-' dates{19} '/func/sub-' subjects{subjcnt} '_sess-' dates{19} '_task-SERPENT_acq-cmrr_run-' split_run_num{end} '_bold.nii'];
+                otherwise
+                    sprintf([blocksout{subjcnt}{i} ' not part of BIDS format, moving on']
+                    continue
+            end
+            if ~exist(outfilePath,'file')
+                fprintf([ '\n\nMoving ' blocksin{subjcnt}{i} ' to ' outfilePath '...\n\n' ]);
+                copyfile(rawfilePath,outfilePath);
+            else
+                fprintf([ '\n\n ' outfilePath ' already exists, moving on...\n\n' ]);
+            end % blocks
+        end
+        
+        fprintf('\n\nRaw data copied to preprocessing directory! Now working on it.\n\n');
     case 'skullstrip'
         % Skullstrip structural
         nrun = 1; % enter the number of runs here - should be 1 if submitted in parallel, but retain the functionality to bundle subjects
@@ -380,14 +414,20 @@ switch step
         
     case 'freesurfer_hires'
         % run a freesurfer on the structural image, with a high resolution flag
+        setenv('MATLAB_SHELL','/bin/bash');
         setenv('RAW_DATA_FOLDER',pathstem);
         setenv('SUBJECTS_DIR',pathstem);
         setenv('FREESURFER_HOME',freesurferpath);
         
-        cmd = ['source $FREESURFER_HOME/SetUpFreeSurfer.sh'];
+        switch clusterid
+            case 'CBU'
+                cmd = ['source $FREESURFER_HOME/SetUpFreeSurfer.csh'];
+            case 'HPC'
+                cmd = ['source $FREESURFER_HOME/SetUpFreeSurfer.sh'];
+        end
         system(cmd)
         setenv('FSF_OUTPUT_FORMAT','nii');
-        cmd = ['recon-all -all -notal-check -s freesurfer_output -hires -i ' pathstem blocksout{subjcnt}{find(strcmp(blocksout{subjcnt},'structural'))} '.nii -expert ' scriptdir 'expert_hires.opts'];
+        cmd = ['recon-all -all -notal-check -bigventricles -s freesurfer_output -hires -i ' pathstem blocksout{subjcnt}{find(strcmp(blocksout{subjcnt},'structural'))} '.nii -expert ' scriptdir 'expert_hires.opts'];
         fprintf(['Submitting the following command: ' cmd]);
         system(cmd);
                

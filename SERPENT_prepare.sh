@@ -23,8 +23,9 @@ echo "The workspace going into this is ${func} ${subjs_def} ${ref} ${clusterid} 
 #Some Matlab functions like gzip require java so cannot
 #use -nojvm option
 
+if [ "$clusterid" == "HPC" ]
+then
 matlab -nodesktop -nosplash -nodisplay <<EOF
-
 [pa,af,~]=fileparts('${func}');
 addpath(pa);
 disp(['Path is ' pa])
@@ -53,3 +54,37 @@ disp(['Submitting the following command: ' dofunc])
 eval(dofunc)
 ;exit
 EOF
+fi
+if [ "$clusterid" == "CBU" ]
+then
+matlab_2017a -nodesktop -nosplash -nodisplay <<EOF
+[pa,af,~]=fileparts('${func}');
+addpath(pa);
+disp(['Path is ' pa])
+disp(['Function is ' af])
+disp(['Subject definition function is ${subjs_def}'])
+disp(['Environment is ${clusterid}'])
+disp(['Previous step is ${prevStep}'])
+disp(['This step is ${Step}'])
+
+do_definition_func=sprintf('%s','${subjs_def}')
+[pa2,af2,~] = fileparts(do_definition_func);
+addpath(pa2)
+eval(af2)
+addpath(pwd)
+
+if strcmp('${clusterid}','CBU')
+    rawpathstem = '/imaging/tc02/';
+    preprocessedpathstem = '/imaging/tc02/SERPENT_preprocessed/';
+elseif strcmp('${clusterid}','HPC')
+    rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
+    preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
+end
+
+dofunc=sprintf('%s(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',af,'''${Step}''','''${prevStep}''','''${clusterid}''','preprocessedpathstem','rawpathstem','subjects','${ref}','fullid','basedir','blocksin','blocksin_folders','blocksout','minvols','dates','group');
+disp(['Submitting the following command: ' dofunc])
+eval(dofunc)
+;exit
+EOF
+fi
+
