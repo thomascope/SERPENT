@@ -88,6 +88,39 @@ end
 %% Now do the requested step
 switch step
     
+    case 'make_bids_format'
+        % Copy data to a new folder in BIDS format
+        fprintf([ '\n\nCurrent subject = ' subjects{subjcnt} '...\n\n' ]);
+        % make output directory if it doesn't exist
+        outputfolderpath = [preprocessedpathstem '/bidsformat/'];
+        if ~exist(outputfolderpath,'dir')
+            mkdir(outputfolderpath);
+        end
+        
+        % change to input directory
+        for i = 1:length(blocksin{subjcnt})
+            rawfilePath = [rawpathstem basedir{subjcnt} '/' fullid{subjcnt} '/' blocksin_folders{subjcnt}{i} '/' blocksin{subjcnt}{i}];
+            switch strtok(blocksout{subjcnt}{i}, '_')
+                case 'structural'
+                    outfilePath = [outputfolderpath '/sub-' subjects{subjcnt} '/sess-' dates{19} '/anat/sub-' subjects{subjcnt} '_sess-' dates{19} '_acq-mp2ragesag_out-uni_MP2RAGE.nii'];
+                case 'INV2'
+                    outfilePath = [outputfolderpath '/sub-' subjects{subjcnt} '/sess-' dates{19} '/anat/sub-' subjects{subjcnt} '_sess-' dates{19} '_acq-mp2ragesag_out-inv2_MP2RAGE.nii'];
+                case 'Run'
+                    split_run_num = strsplit(blocksout{subjcnt}{5},'_');
+                    outfilePath = [outputfolderpath '/sub-' subjects{subjcnt} '/sess-' dates{19} '/func/sub-' subjects{subjcnt} '_sess-' dates{19} '_task-SERPENT_acq-cmrr_run-' split_run_num{end} '_bold.nii'];
+                otherwise
+                    sprintf([blocksout{subjcnt}{i} ' not part of BIDS format, moving on']
+                    continue
+            end
+            if ~exist(outfilePath,'file')
+                fprintf([ '\n\nMoving ' blocksin{subjcnt}{i} ' to ' outfilePath '...\n\n' ]);
+                copyfile(rawfilePath,outfilePath);
+            else
+                fprintf([ '\n\n ' outfilePath ' already exists, moving on...\n\n' ]);
+            end % blocks
+        end
+        
+        fprintf('\n\nRaw data copied to preprocessing directory! Now working on it.\n\n');
     case 'skullstrip'
         % Skullstrip structural
         nrun = 1; % enter the number of runs here - should be 1 if submitted in parallel, but retain the functionality to bundle subjects
