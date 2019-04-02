@@ -4,6 +4,7 @@ global fsldir
 
 setenv('FSL_DIR',fsldir);  % this to tell where FSL folder is
 setenv('FSLOUTPUTTYPE', 'NIFTI'); % this to tell what the output type 
+setenv('FSF_OUTPUT_FORMAT', 'nii'); % this to tell what the output type 
 
 tsize=minvols;
 
