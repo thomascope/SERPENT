@@ -2,7 +2,7 @@ function module_topup_job(base_image_path, reversed_image_path, outpath, minvols
 
 fsldir = '/imaging/local/software/fsl/fsl64/fsl-5.0.3/fsl';
 
-setenv('FSLDIR',fsldir);  % this to tell where FSL folder is
+setenv('FSL_DIR',fsldir);  % this to tell where FSL folder is
 setenv('FSLOUTPUTTYPE', 'NIFTI'); % this to tell what the output type 
 
 tsize=minvols;
