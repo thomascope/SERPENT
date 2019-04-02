@@ -114,6 +114,10 @@ switch step
             end
             if ~exist(outfilePath,'file')
                 fprintf([ '\n\nMoving ' blocksin{subjcnt}{i} ' to ' outfilePath '...\n\n' ]);
+                outfile_folder = fileparts(outfilePath);
+                if ~exist(outfile_folder,'dir')
+                    mkdir(outfile_folder);
+                end
                 copyfile(rawfilePath,outfilePath);
             else
                 fprintf([ '\n\n ' outfilePath ' already exists, moving on...\n\n' ]);
