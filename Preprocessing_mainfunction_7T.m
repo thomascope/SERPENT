@@ -118,7 +118,8 @@ switch step
                 if ~exist(outfile_folder,'dir')
                     mkdir(outfile_folder);
                 end
-                copyfile(rawfilePath,outfilePath);
+                module_create_json(rawfilePath,outfilePath) % Create json file from DICOM textheader
+                copyfile(rawfilePath,outfilePath); % Copy niti to BIDS format
             else
                 fprintf([ '\n\n ' outfilePath ' already exists, moving on...\n\n' ]);
             end % blocks
