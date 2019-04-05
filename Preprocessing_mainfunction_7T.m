@@ -120,7 +120,10 @@ switch step
                 end
                 module_create_json(rawfilePath,outfilePath) % Create json file from DICOM textheader
                 copyfile(rawfilePath,outfilePath); % Copy niti to BIDS format
-            else
+            elseif ~exist([outfilePath(1:end-4) '.json'],'file')
+                fprintf([ '\n\n ' outfilePath ' already exists, creating matching json file\n\n' ]);
+                module_create_json(rawfilePath,outfilePath) % Create json file from DICOM textheader
+            else                
                 fprintf([ '\n\n ' outfilePath ' already exists, moving on...\n\n' ]);
             end % blocks
         end
