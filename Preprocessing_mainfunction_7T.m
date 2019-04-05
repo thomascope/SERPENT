@@ -106,7 +106,7 @@ switch step
                 case 'INV2'
                     outfilePath = [outputfolderpath 'sub-' subjects{subjcnt} '/sess-' dates{19} '/anat/sub-' subjects{subjcnt} '_sess-' dates{19} '_acq-mp2ragesag_out-inv2_MP2RAGE.nii'];
                 case 'Run'
-                    split_run_num = strsplit(blocksout{subjcnt}{5},'_');
+                    split_run_num = strsplit(blocksout{subjcnt}{i},'_');
                     outfilePath = [outputfolderpath 'sub-' subjects{subjcnt} '/sess-' dates{19} '/func/sub-' subjects{subjcnt} '_sess-' dates{19} '_task-SERPENT_acq-cmrr_run-' split_run_num{end} '_bold.nii'];
                 otherwise
                     sprintf([blocksout{subjcnt}{i} ' not part of BIDS format, moving on']);
