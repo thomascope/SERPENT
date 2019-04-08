@@ -80,6 +80,7 @@ then
     module unload matlab/matlab2016a    
     module load matlab/matlab2017b
     module load freesurfer/6.0.0
+    module load spm/spm12_6906
     export FREESURFER_HOME=/home/tec31/freesurfer
     source $FREESURFER_HOME/SetUpFreeSurfer.sh
     export FSF_OUTPUT_FORMAT=nii

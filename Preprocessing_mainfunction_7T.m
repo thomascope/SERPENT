@@ -65,12 +65,12 @@ switch clusterid
         rmpath(genpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/'))
         %addpath /imaging/local/software/spm_cbu_svn/releases/spm12_fil_r6906
         spmpath = '/group/language/data/thomascope/spm12_fil_r6906/';
-        fsldir = '/imaging/local/software/fsl/fsl64/fsl-5.0.3/fsl/';
+        fsldir = '/imaging/local/software/fsl/fsl64/fsl-5.0.3/fsl/'; % Needs fixing
         toolboxdir = '/imaging/tc02/toolboxes/';
         addpath(spmpath)
         spm fmri
         scriptdir = '/group/language/data/thomascope/7T_SERPENT_pilot_analysis/';
-        freesurferpath = '/home/tc02/freesurfer';
+        freesurferpath = '/home/tc02/freesurfer/';
         
     case 'HPC'
 %         rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
@@ -81,7 +81,18 @@ switch clusterid
         addpath(spmpath)
         spm fmri
         scriptdir = '/rds/user/tec31/hpc-work/SERPENT/';
-        freesurferpath = '/home/tec31/freesurfer';
+        freesurferpath = '/home/tec31/freesurfer/';
+        
+    case 'HPHI'
+%         rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
+%         preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
+        spmpath = '/applications/spm/spm12_6906/';
+        fsldir = '/applications/fsl/fsl-5.0.10/bin/fsl/';
+        toolboxdir = '/home/tec31/toolboxes/'; % Needs fixing
+        %addpath(spmpath)
+        spm fmri
+        scriptdir = '/lustre/scratch/wbic-beta/tec31/SERPENT_scripts/SERPENT/';
+        freesurferpath = '/applications/freesurfer/freesurfer_6.0.0/';
         
 end
 
