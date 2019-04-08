@@ -221,6 +221,7 @@ try
 end
 try
     all_stimes = dlmread(rawfile_stimes,' ');
+    all_stimes = all_stimes/1000; %Expressed in milliseconds
     fprintf(fileID,['  "SliceTiming": [']);
     for i = 1:length(all_stimes)-1
         fprintf(fileID,['    ' num2str(all_stimes(i)) ',\n']);
