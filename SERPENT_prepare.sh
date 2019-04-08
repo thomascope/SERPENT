@@ -36,7 +36,7 @@ disp(['Subject definition function is ${subjs_def}'])
 disp(['Environment is ${clusterid}'])
 disp(['Previous step is ${prevStep}'])
 disp(['This step is ${Step}'])
-disp(['This subject is ${ref}']
+disp(['This subject is ${ref}'])
 
 do_definition_func=sprintf('%s','${subjs_def}')
 [pa2,af2,~] = fileparts(do_definition_func);
