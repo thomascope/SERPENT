@@ -24,7 +24,7 @@ jobIDs="$jobIDs $this_job_id"
 done
 
 echo "submitted job stage" ${step} "polling for output before moving on"
-${myscriptdir}/waitForSlurmJobs.pl 1 120 $jobIDs
+${myscriptdir}/waitForSlurmJobs.pl 1 10 $jobIDs
 for this_job in ${jobIDs[@]}
 do
 this_job_outcome=$(sacct -j ${this_job} --format='State' -n)
