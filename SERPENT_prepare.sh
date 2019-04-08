@@ -58,7 +58,7 @@ end
 this_subject = subjects{${ref}}
 dofunc=sprintf('!singularity run --cleanenv -B /lustre:/mnt ./fmriprep/fmriprep-1.3.2.simg /mnt/scratch/wbic-beta/tec31/SERPENT_preprocessed/bidsformat/ /mnt/scratch/wbic-beta/tec31/SERPENT_preprocessed/fmriprep/ participant --participant-label %s --fs-license-file /mnt/scratch/wbic-beta/tec31/license.txt',this_subject);
 disp(['Submitting the following command: ' dofunc])
-eval(['!module load singularity/2.6.1; ' dofunc])
+eval(['!module load singularity/2.6.1; && ' dofunc])
 ;exit
 EOF
 
