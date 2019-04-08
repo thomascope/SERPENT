@@ -284,7 +284,7 @@ try
     BidsAcq = get_bids_detail('acq',outfile_json);
     fprintf(fileID,['  "BidsAcq": "' BidsAcq '",\n']);
 end
-fprintf(fileID,['  "BidsDerivedLabel": "",\n']);
+fprintf(fileID,['  "BidsDerivedLabel": ""\n']);
 fprintf(fileID,['}\n']);
 
     function dicom_output = read_this_dicom_line(field_value,TextAsCells)
