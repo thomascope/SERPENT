@@ -216,7 +216,7 @@ try
     fprintf(fileID,['  "DwellTime": ' DwellTime ',\n']);
 end
 try
-    PhaseEncodingDirection = read_this_dicom_line('PhaseEncodingDirectionPositive',TextAsCells);
+    PhaseEncodingDirection = get_phase_encode_direction(TextAsCells);
     fprintf(fileID,['  "PhaseEncodingDirection": "' PhaseEncodingDirection '",\n']);
 end
 try
@@ -237,10 +237,10 @@ try
     fprintf(fileID,['    "' deblank(ImageOrientationPatientDICOM{end}) '"\n']);
     fprintf(fileID,['  ],\n']);
 end
-try
-    InPlanePhaseEncodingDirectionDICOM = get_phase_encode_direction(TextAsCells);
-    fprintf(fileID,['  "InPlanePhaseEncodingDirectionDICOM": "' InPlanePhaseEncodingDirectionDICOM '",\n']);
-end
+% try
+%     InPlanePhaseEncodingDirectionDICOM = get_phase_encode_direction(TextAsCells);
+%     fprintf(fileID,['  "InPlanePhaseEncodingDirectionDICOM": "' InPlanePhaseEncodingDirectionDICOM '",\n']);
+% end
 try
     fprintf(fileID,['  "ConversionSoftware": "Bespoke Matlab Script TEC",\n']);
 end
@@ -279,7 +279,7 @@ elseif strfind(outfile_dir,'dwi')
 end
 try
     BidsTask = get_bids_detail('task',outfile_json);
-    fprintf(fileID,['  "TaskName": "' BidsTask '",\n']);
+    fprintf(fileID,['  "TaskName": "' BidsTask(6:end) '",\n']);
     fprintf(fileID,['  "BidsTask": "' BidsTask '",\n']);
 end
 try

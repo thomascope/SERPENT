@@ -119,7 +119,7 @@ switch step
 %                     outfilePath = [outputfolderpath 'sub-' subjects{subjcnt} '/ses-' dates{19} '/anat/sub-' subjects{subjcnt} '_ses-' dates{19} '_acq-mp2ragesag_out-inv2_MP2RAGE.nii'];
 % BIDS 1.0 FOR NOW
                 case 'structural'
-                    outfilePath = [outputfolderpath 'sub-' subjects{subjcnt} '/ses-' dates{19} '/anat/sub-' subjects{subjcnt} '_ses-' dates{19} '_acq-mp2ragesag_MP2RAGE.nii'];
+                    outfilePath = [outputfolderpath 'sub-' subjects{subjcnt} '/ses-' dates{19} '/anat/sub-' subjects{subjcnt} '_ses-' dates{19} '_acq-mp2ragesag_T1w.nii'];
                 case 'Run'
                     split_run_num = strsplit(blocksout{subjcnt}{i},'_');
                     outfilePath = [outputfolderpath 'sub-' subjects{subjcnt} '/ses-' dates{19} '/func/sub-' subjects{subjcnt} '_ses-' dates{19} '_task-SERPENT_acq-cmrr_run-' split_run_num{end} '_bold.nii'];
@@ -161,7 +161,7 @@ switch step
         if ~exist([outputfolderpath '/dataset_description.json'])
             fileID = fopen([outputfolderpath '/dataset_description.json'],'w');
             fprintf(fileID,'{\n')
-            fprintf(fileID,'	Name": "SERPENT P00420",\n')
+            fprintf(fileID,'	"Name": "SERPENT P00420",\n')
             fprintf(fileID,'	"BIDSVersion": "1.0.2",\n')
         end
         
