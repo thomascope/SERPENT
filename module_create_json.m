@@ -223,9 +223,9 @@ try
     all_stimes = dlmread(rawfile_stimes,' ');
     fprintf(fileID,['  "SliceTiming": [']);
     for i = 1:length(all_stimes)-1
-        fprintf(fileID,['    "' num2str(all_stimes(i)) '",\n']);
+        fprintf(fileID,['    ' num2str(all_stimes(i)) ',\n']);
     end
-    fprintf(fileID,['    "' num2str(all_stimes(end)) '",\n']);
+    fprintf(fileID,['    ' num2str(all_stimes(end)) '\n']);
     fprintf(fileID,['  ],\n']);
 end
 try
