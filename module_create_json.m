@@ -98,8 +98,14 @@ try
     fprintf(fileID,['  "ProtocolName": "' ProtocolName '",\n']);
 end
 try
-    ScanningSequence = read_this_dicom_line('Scanning Sequence',TextAsCells);
-    fprintf(fileID,['  "ScanningSequence": "' ScanningSequence '",\n']);end
+    ScanningSequence = read_this_dicom_slashed_line('Scanning Sequence',TextAsCells);
+    fprintf(fileID,['  "ScanningSequence": [\n']); 
+    for i = 1:length(ScanningSequence)-1
+        fprintf(fileID,['    "' deblank(ScanningSequence{i}) '",\n']);
+    end
+    fprintf(fileID,['    "' deblank(ScanningSequence{end}) '"\n']);
+    fprintf(fileID,['  ],\n']);
+end
 try
     SequenceVariant = read_this_dicom_slashed_line('Sequence Variant',TextAsCells);
     fprintf(fileID,['  "SequenceVariant": [\n']); 
