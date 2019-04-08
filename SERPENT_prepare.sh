@@ -48,7 +48,7 @@ elseif strcmp('${clusterid}','HPC')
     rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
     preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
 elseif strcmp('${clusterid}','HPHI')
-    rawpathstem = '/lustre/scratch/wbic-beta/tec31/7T_SERPENT/';
+    rawpathstem = '/lustre/scratch/wbic-beta/tec31/7T_';
     preprocessedpathstem = '/lustre/scratch/wbic-beta/tec31/SERPENT_preprocessed/';
 end
 
