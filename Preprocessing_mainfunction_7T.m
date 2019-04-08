@@ -89,7 +89,7 @@ switch clusterid
         spmpath = '/applications/spm/spm12_6906/';
         fsldir = '/applications/fsl/fsl-5.0.10/bin/fsl/';
         toolboxdir = '/home/tec31/toolboxes/'; % Needs fixing
-        %addpath(spmpath)
+        addpath(spmpath)
         spm fmri
         scriptdir = '/lustre/scratch/wbic-beta/tec31/SERPENT_scripts/SERPENT/';
         freesurferpath = '/applications/freesurfer/freesurfer_6.0.0/';
