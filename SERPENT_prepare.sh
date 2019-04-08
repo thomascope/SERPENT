@@ -26,6 +26,7 @@ echo "The workspace going into this is ${func} ${subjs_def} ${ref} ${clusterid} 
 if [ "$Step" == "fmriprep" ]
 then
 if [ "$clusterid" == "HPHI" ]
+then
 matlab -nodesktop -nosplash -nodisplay <<EOF
 [pa,af,~]=fileparts('${func}');
 addpath(pa);
