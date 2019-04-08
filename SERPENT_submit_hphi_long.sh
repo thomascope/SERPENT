@@ -78,7 +78,7 @@ fi
 if [ "$clusterid" == "HPHI" ]
 then
     module unload matlab/matlab2016a    
-    module load matlab/r2017b
+    module load matlab/matlab2017b
     module load freesurfer/6.0.0
     export FREESURFER_HOME=/home/tec31/freesurfer
     source $FREESURFER_HOME/SetUpFreeSurfer.sh
