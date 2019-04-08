@@ -162,7 +162,8 @@ switch step
             fileID = fopen([outputfolderpath '/dataset_description.json'],'w');
             fprintf(fileID,'{\n')
             fprintf(fileID,'	"Name": "SERPENT P00420",\n')
-            fprintf(fileID,'	"BIDSVersion": "1.0.2",\n')
+            fprintf(fileID,'	"BIDSVersion": "1.0.2"\n')
+            fprintf(fileID,'}\n')
         end
         
         fprintf('\n\nRaw data copied to preprocessing directory! Now working on it.\n\n');

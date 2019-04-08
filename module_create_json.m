@@ -5,8 +5,8 @@ function module_create_json(rawfilePath,outfilePath)
 %read from here
 rawfile_dcmhdr = strsplit(rawfilePath,'.nii');
 rawfile_dcmhdr = rawfile_dcmhdr{1};
-rawfile_dcmhdr = [rawfile_dcmhdr '.dcmhdr'];
 rawfile_stimes = [rawfile_dcmhdr '.stimes'];
+rawfile_dcmhdr = [rawfile_dcmhdr '.dcmhdr'];
 
 %write to here
 outfile_json = strsplit(outfilePath,'.nii');
@@ -324,14 +324,14 @@ fprintf(fileID,['}\n']);
         this_mask = ~cellfun(@isempty, strfind(TextAsCells, 'PhaseEncodingDirectionPositive'));
         this_split_line = strsplit(TextAsCells{this_mask},' ');
         this_split_line = this_split_line(~cellfun('isempty',deblank(this_split_line)));
-        phase_posneg = logicaldeblank(this_split_line{end});
-        if strcmp(phase_readdirection,'ROW') && logical(str2num(phase_posneg))
+        phase_posneg = logical(deblank(this_split_line{end}));
+        if strcmp(phase_readdirection,'ROW') && phase_posneg
             phase_encode_direction = 'j'
-        elseif strcmp(phase_readdirection,'ROW') && ~logical(str2num(phase_posneg))
+        elseif strcmp(phase_readdirection,'ROW') && phase_posneg
             phase_encode_direction = 'j-'  
-        elseif strcmp(phase_readdirection,'COL') && logical(str2num(phase_posneg))
+        elseif strcmp(phase_readdirection,'COL') && phase_posneg
             phase_encode_direction = 'i'
-        elseif strcmp(phase_readdirection,'COL') && ~logical(str2num(phase_posneg))
+        elseif strcmp(phase_readdirection,'COL') && phase_posneg
             phase_encode_direction = 'i-' 
         end
     end
