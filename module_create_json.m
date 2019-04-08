@@ -163,10 +163,12 @@ try
 end
 try
     EchoTime = read_this_dicom_line('Echo Time',TextAsCells);
+    EchoTime = num2str(str2num(EchoTime)/1000);
     fprintf(fileID,['  "EchoTime": ' EchoTime ',\n']);
 end
 try
     RepetitionTime = read_this_dicom_line('Repetition Time',TextAsCells);
+    RepetitionTime = num2str(str2num(RepetitionTime)/1000);
     fprintf(fileID,['  "RepetitionTime": ' RepetitionTime ',\n']);
 end
 try
@@ -236,7 +238,7 @@ try
     fprintf(fileID,['  ],\n']);
 end
 try
-    InPlanePhaseEncodingDirectionDICOM = read_this_dicom_line('In-plane Phase Encoding Direction',TextAsCells);
+    InPlanePhaseEncodingDirectionDICOM = get_phase_encode_direction(TextAsCells);
     fprintf(fileID,['  "InPlanePhaseEncodingDirectionDICOM": "' InPlanePhaseEncodingDirectionDICOM '",\n']);
 end
 try
@@ -313,5 +315,24 @@ fprintf(fileID,['}\n']);
         this_split_fname = strsplit(outfile_json,'_');
         this_mask = ~cellfun(@isempty, strfind(this_split_fname, field_value));
         bids_label = this_split_fname{this_mask};
+    end
+    function phase_encode_direction = get_phase_encode_direction(TextAsCells)
+        this_mask = ~cellfun(@isempty, strfind(TextAsCells, 'In-plane Phase Encoding Direction'));
+        this_split_line = strsplit(TextAsCells{this_mask},' ');
+        this_split_line = this_split_line(~cellfun('isempty',deblank(this_split_line)));
+        phase_readdirection = deblank(this_split_line{end});
+        this_mask = ~cellfun(@isempty, strfind(TextAsCells, 'PhaseEncodingDirectionPositive'));
+        this_split_line = strsplit(TextAsCells{this_mask},' ');
+        this_split_line = this_split_line(~cellfun('isempty',deblank(this_split_line)));
+        phase_posneg = logicaldeblank(this_split_line{end});
+        if strcmp(phase_readdirection,'ROW') && logical(str2num(phase_posneg))
+            phase_encode_direction = 'j'
+        elseif strcmp(phase_readdirection,'ROW') && ~logical(str2num(phase_posneg))
+            phase_encode_direction = 'j-'  
+        elseif strcmp(phase_readdirection,'COL') && logical(str2num(phase_posneg))
+            phase_encode_direction = 'i'
+        elseif strcmp(phase_readdirection,'COL') && ~logical(str2num(phase_posneg))
+            phase_encode_direction = 'i-' 
+        end
     end
 end
