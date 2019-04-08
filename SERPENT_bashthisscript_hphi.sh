@@ -1,4 +1,4 @@
-myscriptdir=/rds/user/tec31/hpc-work/SERPENT
+myscriptdir=/lustre/scratch/wbic-beta/tec31/SERPENT_scripts/SERPENT
 clusterid=HPHI
 
 submit=${myscriptdir}/SERPENT_submit_hphi_short.sh
