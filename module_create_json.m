@@ -201,10 +201,10 @@ try
     PhaseEncodingSteps = read_this_dicom_line('Number of Phase Encoding Steps',TextAsCells);
     fprintf(fileID,['  "PhaseEncodingSteps": ' PhaseEncodingSteps ',\n']);
 end
-try
-    AcquisitionMatrixPE = read_this_dicom_line('AcquisitionMatrixText',TextAsCells);
-    fprintf(fileID,['  "AcquisitionMatrixPE": ' AcquisitionMatrixPE ',\n']);
-end
+% try
+%     AcquisitionMatrixPE = read_this_dicom_line('AcquisitionMatrixText',TextAsCells);
+%     fprintf(fileID,['  "AcquisitionMatrixPE": ' AcquisitionMatrixPE ',\n']);
+% end
 try
     PixelBandwidth = read_this_dicom_line('Pixel Bandwidth',TextAsCells);
     fprintf(fileID,['  "PixelBandwidth": ' PixelBandwidth ',\n']);
@@ -291,7 +291,7 @@ fprintf(fileID,['}\n']);
         this_mask = ~cellfun(@isempty, strfind(TextAsCells, field_value));
         this_split_line = strsplit(TextAsCells{this_mask},' ');
         this_split_line = this_split_line(~cellfun('isempty',deblank(this_split_line)));
-        dicom_output = this_split_line{end};
+        dicom_output = deblank(this_split_line{end});
     end
     function dicom_multi_output = read_this_dicom_multi_line(field_value,TextAsCells)
         this_mask = ~cellfun(@isempty, strfind(TextAsCells, field_value));
