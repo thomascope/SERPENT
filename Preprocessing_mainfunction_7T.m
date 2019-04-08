@@ -135,6 +135,11 @@ switch step
                 end
                 module_create_json(rawfilePath,outfilePath) % Create json file from DICOM textheader
                 copyfile(rawfilePath,outfilePath); % Copy niti to BIDS format
+                switch strtok(blocksout{subjcnt}{i}, '_')
+                    case {'structural','INV2'} % Stupid hacky way of fixing the error that MP2RAGE is said to have 4 dimensions and this fails the bids validator
+                        struc_vol = spm_vol(outfilePath);
+                        spm_imcalc(struc_vol,struc_vol.fname,'i1'); % Outputs only 3 dimensions
+                end
             elseif ~exist([outfilePath(1:end-4) '.json'],'file')
                 fprintf([ '\n\n ' outfilePath ' already exists, creating matching json file\n\n' ]);
                 module_create_json(rawfilePath,outfilePath) % Create json file from DICOM textheader
