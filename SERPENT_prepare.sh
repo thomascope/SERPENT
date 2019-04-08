@@ -23,6 +23,48 @@ echo "The workspace going into this is ${func} ${subjs_def} ${ref} ${clusterid} 
 #Some Matlab functions like gzip require java so cannot
 #use -nojvm option
 
+if [ "$Step" == "fmriprep" ]
+then
+if [ "$clusterid" == "HPHI" ]
+matlab -nodesktop -nosplash -nodisplay <<EOF
+[pa,af,~]=fileparts('${func}');
+addpath(pa);
+disp(['Path is ' pa])
+disp(['Function is singularity fmriprep'])
+disp(['Subject definition function is ${subjs_def}'])
+disp(['Environment is ${clusterid}'])
+disp(['Previous step is ${prevStep}'])
+disp(['This step is ${Step}'])
+
+do_definition_func=sprintf('%s','${subjs_def}')
+[pa2,af2,~] = fileparts(do_definition_func);
+addpath(pa2)
+eval(af2)
+addpath(pwd)
+
+if strcmp('${clusterid}','CBU')
+    rawpathstem = '/imaging/tc02/';
+    preprocessedpathstem = '/imaging/tc02/SERPENT_preprocessed/';
+elseif strcmp('${clusterid}','HPC')
+    rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
+    preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
+elseif strcmp('${clusterid}','HPHI')
+    rawpathstem = '/lustre/scratch/wbic-beta/tec31/7T_';
+    preprocessedpathstem = '/lustre/scratch/wbic-beta/tec31/SERPENT_preprocessed/';
+end
+
+this_subject = subjects{'${ref}'};
+dofunc=sprintf('!singularity run --cleanenv -B /lustre:/mnt ./fmriprep/fmriprep-1.3.2.simg /mnt/scratch/wbic-beta/tec31/SERPENT_preprocessed/bidsformat/ /mnt/scratch/wbic-beta/tec31/SERPENT_preprocessed/fmriprep/ participant --participant-label %s --fs-license-file /mnt/scratch/wbic-beta/tec31/license.txt',this_subject);
+disp(['Submitting the following command: ' dofunc])
+eval(['!module load singularity/2.6.1'])
+eval(dofunc)
+;exit
+EOF
+
+fi
+
+else
+
 if [ "$clusterid" == "HPC" ] || [ "$clusterid" == "HPHI" ]
 then
 matlab -nodesktop -nosplash -nodisplay <<EOF
@@ -93,4 +135,4 @@ eval(dofunc)
 ;exit
 EOF
 fi
-
+fi
