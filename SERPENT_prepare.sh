@@ -48,8 +48,8 @@ elseif strcmp('${clusterid}','HPC')
     rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
     preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
 elseif strcmp('${clusterid}','HPHI')
-    rawpathstem = '/lustre/scratch/wbic-beta/tec31/7T_SERPENT';
-    preprocessedpathstem = '/lustre/scratch/wbic-beta/tec31/SERPENT_preprocessed';
+    rawpathstem = '/lustre/scratch/wbic-beta/tec31/7T_SERPENT/';
+    preprocessedpathstem = '/lustre/scratch/wbic-beta/tec31/SERPENT_preprocessed/';
 end
 
 dofunc=sprintf('%s(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',af,'''${Step}''','''${prevStep}''','''${clusterid}''','preprocessedpathstem','rawpathstem','subjects','${ref}','fullid','basedir','blocksin','blocksin_folders','blocksout','minvols','dates','group');
