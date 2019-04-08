@@ -142,6 +142,28 @@ switch step
                 fprintf([ '\n\n ' outfilePath ' already exists, moving on...\n\n' ]);
             end % blocks
         end
+        if ~exist([outputfolderpath '/participants.tsv'])
+            fileID = fopen([outputfolderpath '/participants.tsv'],'w');
+            fprintf(fileID,'participant_id\n');
+            for i = 1:length(subjects)
+                fprintf(fileID,[subjects{i} '\n'])
+            end
+        end
+        if ~exist([outputfolderpath '/.bidsignore'])
+            fileID = fopen([outputfolderpath '/.bidsignore'],'w');
+            fprintf(fileID,'*_date_acc.txt\n')
+            fprintf(fileID,'wbic_scan_types_bids.txt\n')
+            fprintf(fileID,'*.dcm\n')
+            fprintf(fileID,'*rest3echoref*\n')
+            fprintf(fileID,'participant_id*_date_acc.txt\n')
+            fprintf(fileID,'participant_id*_date_acc.txt\n')
+        end
+        if ~exist([outputfolderpath '/dataset_description.json'])
+            fileID = fopen([outputfolderpath '/dataset_description.json'],'w');
+            fprintf(fileID,'{\n')
+            fprintf(fileID,'	Name": "SERPENT P00420",\n')
+            fprintf(fileID,'	"BIDSVersion": "1.0.2",\n')
+        end
         
         fprintf('\n\nRaw data copied to preprocessing directory! Now working on it.\n\n');
     case 'skullstrip'
