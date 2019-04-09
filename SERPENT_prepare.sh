@@ -59,7 +59,7 @@ this_subject = subjects{${ref}}
 this_path = pwd;
 disp(['Gzipping data (required for fmriprep)'])
 cd(['/lustre/scratch/wbic-beta/tec31/SERPENT_preprocessed/bidsformat/sub-' this_subject])
-system('!find -name '*.nii' -exec gzip {} \;')
+system(['!find -name ''*.nii'' -exec gzip {} \;'])
 cd(this_path)
 
 dofunc=sprintf('!singularity run --cleanenv -B /lustre:/mnt /lustre/scratch/wbic-beta/tec31/fmriprep/fmriprep-1.3.2.simg /mnt/scratch/wbic-beta/tec31/SERPENT_preprocessed/bidsformat/ /mnt/scratch/wbic-beta/tec31/SERPENT_preprocessed/fmriprep/ participant --participant-label %s --fs-license-file /mnt/scratch/wbic-beta/tec31/license.txt',this_subject);
