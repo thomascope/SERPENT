@@ -219,28 +219,26 @@ try
     PhaseEncodingDirection = get_phase_encode_direction(TextAsCells);
     fprintf(fileID,['  "PhaseEncodingDirection": "' PhaseEncodingDirection '",\n']);
 end
-try
-    all_stimes = dlmread(rawfile_stimes,' ');
-    image_hdr = spm_vol(rawfilePath);
-    if all_stimes(end) == 0 && length(all_stimes) == min(image_hdr.dim)+1 %sometimes errant space at the end of stimes file. Assume slice encoding direction is the smallest dimension.
-        all_stimes = all_stimes(1:end-1);
-    end
-    all_stimes = all_stimes/1000; %Expressed in milliseconds
-    fprintf(fileID,['  "SliceTiming": [']);
-    for i = 1:length(all_stimes)-1
-        fprintf(fileID,['    ' num2str(all_stimes(i)) ',\n']);
-    end
-    fprintf(fileID,['    ' num2str(all_stimes(end)) '\n']);
-    fprintf(fileID,['  ],\n']);
-    if length(all_stimes) == image_hdr.dim(1)
-        fprintf(fileID,['  "SliceEncodingDirection": "i",']);
-    elseif length(all_stimes) == image_hdr.dim(2)
-        fprintf(fileID,['  "SliceEncodingDirection": "j",']);
-    elseif length(all_stimes) == image_hdr.dim(3)
-        fprintf(fileID,['  "SliceEncodingDirection": "k",']);
-    else
-        error('Error. The length of the slice timing file doesn''t match and dimension in the image, please check.\n There are %i slices and the image dimensions are %i * %i * %i\n',length(all_stimes),image_hdr.dim(1),image_hdr.dim(2),image_hdr.dim(3));
-    end    
+all_stimes = dlmread(rawfile_stimes,' ');
+image_hdr = spm_vol(rawfilePath);
+if all_stimes(end) == 0 && length(all_stimes) == min(image_hdr.dim(1:3)+1 %sometimes errant space at the end of stimes file. Assume slice encoding direction is the smallest dimension.
+    all_stimes = all_stimes(1:end-1);
+end
+all_stimes = all_stimes/1000; %Expressed in milliseconds
+fprintf(fileID,['  "SliceTiming": [']);
+for i = 1:length(all_stimes)-1
+    fprintf(fileID,['    ' num2str(all_stimes(i)) ',\n']);
+end
+fprintf(fileID,['    ' num2str(all_stimes(end)) '\n']);
+fprintf(fileID,['  ],\n']);
+if length(all_stimes) == image_hdr.dim(1)
+    fprintf(fileID,['  "SliceEncodingDirection": "i",\n']);
+elseif length(all_stimes) == image_hdr.dim(2)
+    fprintf(fileID,['  "SliceEncodingDirection": "j",\n']);
+elseif length(all_stimes) == image_hdr.dim(3)
+    fprintf(fileID,['  "SliceEncodingDirection": "k",\n']);
+else
+    error('Error. The length of the slice timing file doesn''t match and dimension in the image, please check.\n There are %i slices and the image dimensions are %i * %i * %i\n',length(all_stimes),image_hdr.dim(1),image_hdr.dim(2),image_hdr.dim(3));
 end
 try
     ImageOrientationPatientDICOM = read_this_dicom_slashed_line('Image Orientation (Patient)',TextAsCells);
