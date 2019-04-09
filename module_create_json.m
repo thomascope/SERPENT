@@ -221,6 +221,10 @@ try
 end
 try
     all_stimes = dlmread(rawfile_stimes,' ');
+    image_hdr = spm_vol(rawfilePath);
+    if all_stimes(end) == 0 && length(all_stimes) == min(image_hdr.dim)+1 %sometimes errant space at the end of stimes file
+        all_stimes = all_stimes(1:end-1);
+    end
     all_stimes = all_stimes/1000; %Expressed in milliseconds
     fprintf(fileID,['  "SliceTiming": [']);
     for i = 1:length(all_stimes)-1
@@ -327,13 +331,13 @@ fprintf(fileID,['}\n']);
         this_split_line = this_split_line(~cellfun('isempty',deblank(this_split_line)));
         phase_posneg = logical(deblank(this_split_line{end}));
         if strcmp(phase_readdirection,'ROW') && phase_posneg
-            phase_encode_direction = 'j'
+            phase_encode_direction = 'j';
         elseif strcmp(phase_readdirection,'ROW') && phase_posneg
-            phase_encode_direction = 'j-'  
+            phase_encode_direction = 'j-'; 
         elseif strcmp(phase_readdirection,'COL') && phase_posneg
-            phase_encode_direction = 'i'
+            phase_encode_direction = 'i';
         elseif strcmp(phase_readdirection,'COL') && phase_posneg
-            phase_encode_direction = 'i-' 
+            phase_encode_direction = 'i-'; 
         end
     end
 end
