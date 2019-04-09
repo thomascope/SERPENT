@@ -29,7 +29,7 @@
 #!SBATCH -p skylake-himem
 #SBATCH --qos long.q
 #!SBATCH --mem=95840
-#SBATCH --mem=11730
+#SBATCH --mem=46920
 
 #! sbatch directives end here (put any additional directives above this line)
 

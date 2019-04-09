@@ -1,7 +1,7 @@
 myscriptdir=/lustre/scratch/wbic-beta/tec31/SERPENT_scripts/SERPENT
 clusterid=HPHI
 
-submit=${myscriptdir}/SERPENT_submit_hphi_short.sh
+submit=${myscriptdir}/SERPENT_submit_hphi_long.sh
 prepare=${myscriptdir}/SERPENT_prepare.sh
 func=${myscriptdir}/Preprocessing_mainfunction_7T.m
 subjs_def=${myscriptdir}/SERPENT_subjects_parameters.m
