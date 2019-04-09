@@ -221,7 +221,7 @@ try
 end
 all_stimes = dlmread(rawfile_stimes,' ');
 image_hdr = spm_vol(rawfilePath);
-if all_stimes(end) == 0 && length(all_stimes) == min(image_hdr.dim(1:3))+1 %sometimes errant space at the end of stimes file. Assume slice encoding direction is the smallest dimension.
+if all_stimes(end) == 0 && length(all_stimes) == min(image_hdr(1).dim(1:3))+1 %sometimes errant space at the end of stimes file. Assume slice encoding direction is the smallest dimension.
     all_stimes = all_stimes(1:end-1);
 end
 all_stimes = all_stimes/1000; %Expressed in milliseconds
