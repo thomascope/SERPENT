@@ -233,11 +233,11 @@ try
     fprintf(fileID,['    ' num2str(all_stimes(end)) '\n']);
     fprintf(fileID,['  ],\n']);
     if length(all_stimes) == image_hdr.dim(1)
-        fprintf(fileID,['  "SliceEncodingDirection": "i",'])
+        fprintf(fileID,['  "SliceEncodingDirection": "i",']);
     elseif length(all_stimes) == image_hdr.dim(2)
-        fprintf(fileID,['  "SliceEncodingDirection": "j",'])
+        fprintf(fileID,['  "SliceEncodingDirection": "j",']);
     elseif length(all_stimes) == image_hdr.dim(3)
-        fprintf(fileID,['  "SliceEncodingDirection": "k",'])
+        fprintf(fileID,['  "SliceEncodingDirection": "k",']);
     else
         error('Error. The length of the slice timing file doesn''t match and dimension in the image, please check.\n There are %i slices and the image dimensions are %i * %i * %i\n',length(all_stimes),image_hdr.dim(1),image_hdr.dim(2),image_hdr.dim(3));
     end    
