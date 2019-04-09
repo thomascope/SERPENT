@@ -127,7 +127,7 @@ switch step
                     sprintf([blocksout{subjcnt}{i} ' not part of BIDS format, moving on']);
                     continue
             end
-            if ~exist(outfilePath,'file')
+            if ~exist(outfilePath,'file') && ~exist([outfilePath '.gz'],'file')
                 fprintf([ '\n\nMoving ' blocksin{subjcnt}{i} ' to ' outfilePath '...\n\n' ]);
                 outfile_folder = fileparts(outfilePath);
                 if ~exist(outfile_folder,'dir')
