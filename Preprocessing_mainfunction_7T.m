@@ -114,15 +114,15 @@ switch step
             switch strtok(blocksout{subjcnt}{i}, '_')
 % BIDS 2.0 READY
                 %                 case 'structural'
-%                     outfilePath = [outputfolderpath 'sub-' subjects{subjcnt} '/ses-' dates{19} '/anat/sub-' subjects{subjcnt} '_ses-' dates{19} '_acq-mp2ragesag_out-uni_MP2RAGE.nii'];
+%                     outfilePath = [outputfolderpath 'sub-' subjects{subjcnt} '/ses-' dates{subjcnt} '/anat/sub-' subjects{subjcnt} '_ses-' dates{subjcnt} '_acq-mp2ragesag_out-uni_MP2RAGE.nii'];
 %                 case 'INV2'
-%                     outfilePath = [outputfolderpath 'sub-' subjects{subjcnt} '/ses-' dates{19} '/anat/sub-' subjects{subjcnt} '_ses-' dates{19} '_acq-mp2ragesag_out-inv2_MP2RAGE.nii'];
+%                     outfilePath = [outputfolderpath 'sub-' subjects{subjcnt} '/ses-' dates{subjcnt} '/anat/sub-' subjects{subjcnt} '_ses-' dates{subjcnt} '_acq-mp2ragesag_out-inv2_MP2RAGE.nii'];
 % BIDS 1.0 FOR NOW
                 case 'structural'
-                    outfilePath = [outputfolderpath 'sub-' subjects{subjcnt} '/ses-' dates{19} '/anat/sub-' subjects{subjcnt} '_ses-' dates{19} '_acq-mp2ragesag_T1w.nii'];
+                    outfilePath = [outputfolderpath 'sub-' subjects{subjcnt} '/ses-' dates{subjcnt} '/anat/sub-' subjects{subjcnt} '_ses-' dates{subjcnt} '_acq-mp2ragesag_T1w.nii'];
                 case 'Run'
                     split_run_num = strsplit(blocksout{subjcnt}{i},'_');
-                    outfilePath = [outputfolderpath 'sub-' subjects{subjcnt} '/ses-' dates{19} '/func/sub-' subjects{subjcnt} '_ses-' dates{19} '_task-SERPENT_acq-cmrr_run-' split_run_num{end} '_bold.nii'];
+                    outfilePath = [outputfolderpath 'sub-' subjects{subjcnt} '/ses-' dates{subjcnt} '/func/sub-' subjects{subjcnt} '_ses-' dates{subjcnt} '_task-SERPENT_acq-cmrr_run-' split_run_num{end} '_bold.nii'];
                 otherwise
                     sprintf([blocksout{subjcnt}{i} ' not part of BIDS format, moving on']);
                     continue
