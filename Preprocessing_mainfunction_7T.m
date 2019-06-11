@@ -396,7 +396,7 @@ switch step
             % % First is for SPM segment, second for CAT12
             %inputs{5, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
             inputs{5, crun} = cellstr([outpath 'mri/y_structural_skullstripped_csf.nii']);
-            inputs{6, crun} = cellstr([outpath 'structural_skullstripped_csf.nii,1']);
+            inputs{6, crun} = cellstr([outpath 'binarised_native_structural_mask.nii,1']);
         end
         
         normalisesmoothworkedcorrectly = zeros(1,nrun);
