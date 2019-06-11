@@ -441,7 +441,7 @@ switch step
                 this_rp_file = dir([outpath 'rp*' blocksout{crun}{theseepis(sess)} '.txt']);
                 inputs{(2*(sess-1))+3, crun} = cellstr([outpath this_rp_file.name]);
             end
-            
+            inputs{end+1, crun} = cellstr([outpath 'binarised_native_structural_mask.nii,1']);
         end
         
         SPMworkedcorrectly = zeros(1,nrun);
