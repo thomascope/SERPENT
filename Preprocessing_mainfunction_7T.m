@@ -191,6 +191,7 @@ switch step
             end
             inputs{6, crun} = 'structural_skullstripped_csf';
             inputs{7, crun} = cellstr([preprocessedpathstem subjects{crun} '/']);
+            inputs{8, crun} = cellstr([preprocessedpathstem subjects{crun} '/']);
         end
         
         skullstripworkedcorrectly = zeros(1,nrun);

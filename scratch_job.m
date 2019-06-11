@@ -1,6 +1,7 @@
 %-----------------------------------------------------------------------
-% Job saved on 14-Feb-2018 16:05:14 by cfg_util (rev $Rev: 6942 $)
-% spm SPM - SPM12 (7219)
+% Job saved on 11-Jun-2019 12:01:56 by cfg_util (rev $Rev: 6460 $)
+% spm SPM - SPM12 (6906)
+% cfg_basicio BasicIO - Unknown
 %-----------------------------------------------------------------------
 matlabbatch{1}.spm.spatial.normalise.write.subj.def = '<UNDEFINED>';
 matlabbatch{1}.spm.spatial.normalise.write.subj.resample = '<UNDEFINED>';
@@ -32,9 +33,9 @@ matlabbatch{5}.spm.spatial.normalise.write.woptions.bb = [-78 -112 -70
                                                           78 76 85];
 matlabbatch{5}.spm.spatial.normalise.write.woptions.vox = [1.5 1.5 1.5];
 matlabbatch{5}.spm.spatial.normalise.write.woptions.interp = 0;
-matlabbatch{5}.spm.spatial.normalise.write.woptions.prefix = 'wnn';
+matlabbatch{5}.spm.spatial.normalise.write.woptions.prefix = 'mask_';
 matlabbatch{6}.spm.util.imcalc.input(1) = cfg_dep('Normalise: Write: Normalised Images (Subj 1)', substruct('.','val', '{}',{5}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('()',{1}, '.','files'));
-matlabbatch{6}.spm.util.imcalc.output = 'binarised_warped_structural_mask';
+matlabbatch{6}.spm.util.imcalc.output = 'binarised_mask';
 matlabbatch{6}.spm.util.imcalc.outdir = {''};
 matlabbatch{6}.spm.util.imcalc.expression = 'i1>0.3';
 matlabbatch{6}.spm.util.imcalc.var = struct('name', {}, 'value', {});

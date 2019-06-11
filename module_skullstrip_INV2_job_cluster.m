@@ -68,3 +68,14 @@ matlabbatch{4}.spm.util.imcalc.options.dmtx = 0;
 matlabbatch{4}.spm.util.imcalc.options.mask = 0;
 matlabbatch{4}.spm.util.imcalc.options.interp = 1;
 matlabbatch{4}.spm.util.imcalc.options.dtype = 4;
+% If you also want to output a native space mask
+matlabbatch{5}.spm.util.imcalc.input(1) = cfg_dep('Segment: c1 Images', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','tiss', '()',{1}, '.','c', '()',{':'}));
+matlabbatch{5}.spm.util.imcalc.input(2) = cfg_dep('Segment: c2 Images', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','tiss', '()',{2}, '.','c', '()',{':'}));
+matlabbatch{5}.spm.util.imcalc.output = 'binarised_native_structural_mask';
+matlabbatch{5}.spm.util.imcalc.outdir = '<UNDEFINED>';
+matlabbatch{5}.spm.util.imcalc.expression = '(i1+ i2) > 0.5';
+matlabbatch{5}.spm.util.imcalc.var = struct('name', {}, 'value', {});
+matlabbatch{5}.spm.util.imcalc.options.dmtx = 0;
+matlabbatch{5}.spm.util.imcalc.options.mask = 0;
+matlabbatch{5}.spm.util.imcalc.options.interp = 1;
+matlabbatch{5}.spm.util.imcalc.options.dtype = 4;
