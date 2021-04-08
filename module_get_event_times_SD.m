@@ -5,7 +5,7 @@ function [starttime,stimType,stim_type_labels,buttonpressed,buttonpresstime,run_
 [workingdir,~,~] = fileparts(which('module_get_event_times.m'));
 behaviour_folder = [workingdir '/behavioural_data'];
 
-addpath(genpath('/imaging/tc02/toolboxes'));
+addpath(genpath('/imaging/mlr/users/tc02/toolboxes'));
 
 %% control parameters
 

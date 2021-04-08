@@ -3,9 +3,9 @@ function [disvol, searchlight_locations, thisRDM, disvol_cross, disvol_collapsed
 %and compare it to brain data
 %TEC May2018
 
-addpath(genpath('/imaging/tc02/toolboxes/pilab')) %Path to pattern information toolbox
-addpath(genpath('/imaging/tc02/toolboxes/rsatoolbox')) % Path to rsa toolbox
-addpath(genpath('/imaging/tc02/toolboxes/helpers')) % Path to Johan's helper files
+addpath(genpath('/imaging/mlr/users/tc02/toolboxes/pilab')) %Path to pattern information toolbox
+addpath(genpath('/imaging/mlr/users/tc02/toolboxes/rsatoolbox')) % Path to rsa toolbox
+addpath(genpath('/imaging/mlr/users/tc02/toolboxes/helpers')) % Path to Johan's helper files
 
 line_draw_data = dir(['./7T_JudgementData/' subject '_line_drawings*']);
 load(['./7T_JudgementData/' line_draw_data.name],'estimate_dissimMat_ltv_MA')

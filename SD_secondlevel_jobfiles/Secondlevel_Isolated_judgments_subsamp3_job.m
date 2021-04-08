@@ -1,15 +1,15 @@
-matlabbatch{1}.spm.stats.factorial_design.dir = {'/imaging/tc02/SERPENT_preprocessed/Isolated_judgments_subsamp3_29-Jun-2018'};
+matlabbatch{1}.spm.stats.factorial_design.dir = {'/imaging/mlr/users/tc02/SERPENT_preprocessed/Isolated_judgments_subsamp3_29-Jun-2018'};
 matlabbatch{1}.spm.stats.factorial_design.des.t2.scans1 = {
-'/imaging/tc02/SERPENT_preprocessed/S7C01/searchvolumes/Isolated_judgments_subsamp3.nii,1'
-'/imaging/tc02/SERPENT_preprocessed/S7C02/searchvolumes/Isolated_judgments_subsamp3.nii,1'
-'/imaging/tc02/SERPENT_preprocessed/S7C03/searchvolumes/Isolated_judgments_subsamp3.nii,1'
-'/imaging/tc02/SERPENT_preprocessed/S7C04/searchvolumes/Isolated_judgments_subsamp3.nii,1'
+'/imaging/mlr/users/tc02/SERPENT_preprocessed/S7C01/searchvolumes/Isolated_judgments_subsamp3.nii,1'
+'/imaging/mlr/users/tc02/SERPENT_preprocessed/S7C02/searchvolumes/Isolated_judgments_subsamp3.nii,1'
+'/imaging/mlr/users/tc02/SERPENT_preprocessed/S7C03/searchvolumes/Isolated_judgments_subsamp3.nii,1'
+'/imaging/mlr/users/tc02/SERPENT_preprocessed/S7C04/searchvolumes/Isolated_judgments_subsamp3.nii,1'
 };
 matlabbatch{1}.spm.stats.factorial_design.des.t2.scans2 = {
-'/imaging/tc02/SERPENT_preprocessed/S7P01/searchvolumes/Isolated_judgments_subsamp3.nii,1'
-'/imaging/tc02/SERPENT_preprocessed/S7P02/searchvolumes/Isolated_judgments_subsamp3.nii,1'
-'/imaging/tc02/SERPENT_preprocessed/S7P03/searchvolumes/Isolated_judgments_subsamp3.nii,1'
-'/imaging/tc02/SERPENT_preprocessed/S7P04/searchvolumes/Isolated_judgments_subsamp3.nii,1'
+'/imaging/mlr/users/tc02/SERPENT_preprocessed/S7P01/searchvolumes/Isolated_judgments_subsamp3.nii,1'
+'/imaging/mlr/users/tc02/SERPENT_preprocessed/S7P02/searchvolumes/Isolated_judgments_subsamp3.nii,1'
+'/imaging/mlr/users/tc02/SERPENT_preprocessed/S7P03/searchvolumes/Isolated_judgments_subsamp3.nii,1'
+'/imaging/mlr/users/tc02/SERPENT_preprocessed/S7P04/searchvolumes/Isolated_judgments_subsamp3.nii,1'
 };
 matlabbatch{1}.spm.stats.factorial_design.des.t2.dept = 0;
 matlabbatch{1}.spm.stats.factorial_design.des.t2.variance = 1;

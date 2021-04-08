@@ -3,7 +3,7 @@
 % spm SPM - SPM12 (6906)
 % cfg_basicio BasicIO - Unknown
 %-----------------------------------------------------------------------
-matlabbatch{1}.spm.stats.fmri_spec.dir = {'/imaging/tc02/SERPENT_preprocessed/S7C01/stats_mask0.4_3_multi'};
+matlabbatch{1}.spm.stats.fmri_spec.dir = {'/imaging/mlr/users/tc02/SERPENT_preprocessed/S7C01/stats_mask0.4_3_multi'};
 matlabbatch{1}.spm.stats.fmri_spec.timing.units = 'secs';
 matlabbatch{1}.spm.stats.fmri_spec.timing.RT = 1.75;
 matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t = 16;
@@ -652,7 +652,7 @@ matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(63).pmod = struct('name', {}, 'p
 matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(63).orth = 1;
 matlabbatch{1}.spm.stats.fmri_spec.sess(1).multi = {''};
 matlabbatch{1}.spm.stats.fmri_spec.sess(1).regress = struct('name', {}, 'val', {});
-matlabbatch{1}.spm.stats.fmri_spec.sess(1).multi_reg = {'/imaging/tc02/SERPENT_preprocessed/S7C01/rp_Run_1.txt'};
+matlabbatch{1}.spm.stats.fmri_spec.sess(1).multi_reg = {'/imaging/mlr/users/tc02/SERPENT_preprocessed/S7C01/rp_Run_1.txt'};
 matlabbatch{1}.spm.stats.fmri_spec.sess(1).hpf = 128;
 matlabbatch{1}.spm.stats.fmri_spec.sess(2).scans = {''};
 matlabbatch{1}.spm.stats.fmri_spec.sess(2).cond(1).name = 'photos_common_left_dog-like';
@@ -1298,7 +1298,7 @@ matlabbatch{1}.spm.stats.fmri_spec.sess(2).cond(63).pmod = struct('name', {}, 'p
 matlabbatch{1}.spm.stats.fmri_spec.sess(2).cond(63).orth = 1;
 matlabbatch{1}.spm.stats.fmri_spec.sess(2).multi = {''};
 matlabbatch{1}.spm.stats.fmri_spec.sess(2).regress = struct('name', {}, 'val', {});
-matlabbatch{1}.spm.stats.fmri_spec.sess(2).multi_reg = {'/imaging/tc02/SERPENT_preprocessed/S7C01/rp_Run_2.txt'};
+matlabbatch{1}.spm.stats.fmri_spec.sess(2).multi_reg = {'/imaging/mlr/users/tc02/SERPENT_preprocessed/S7C01/rp_Run_2.txt'};
 matlabbatch{1}.spm.stats.fmri_spec.sess(2).hpf = 128;
 matlabbatch{1}.spm.stats.fmri_spec.sess(3).scans = {''};
 matlabbatch{1}.spm.stats.fmri_spec.sess(3).cond(1).name = 'photos_common_left_dog-like';
@@ -1944,7 +1944,7 @@ matlabbatch{1}.spm.stats.fmri_spec.sess(3).cond(63).pmod = struct('name', {}, 'p
 matlabbatch{1}.spm.stats.fmri_spec.sess(3).cond(63).orth = 1;
 matlabbatch{1}.spm.stats.fmri_spec.sess(3).multi = {''};
 matlabbatch{1}.spm.stats.fmri_spec.sess(3).regress = struct('name', {}, 'val', {});
-matlabbatch{1}.spm.stats.fmri_spec.sess(3).multi_reg = {'/imaging/tc02/SERPENT_preprocessed/S7C01/rp_Run_3.txt'};
+matlabbatch{1}.spm.stats.fmri_spec.sess(3).multi_reg = {'/imaging/mlr/users/tc02/SERPENT_preprocessed/S7C01/rp_Run_3.txt'};
 matlabbatch{1}.spm.stats.fmri_spec.sess(3).hpf = 128;
 matlabbatch{1}.spm.stats.fmri_spec.sess(4).scans = {''};
 matlabbatch{1}.spm.stats.fmri_spec.sess(4).cond(1).name = 'photos_common_left_dog-like';
@@ -2590,7 +2590,7 @@ matlabbatch{1}.spm.stats.fmri_spec.sess(4).cond(63).pmod = struct('name', {}, 'p
 matlabbatch{1}.spm.stats.fmri_spec.sess(4).cond(63).orth = 1;
 matlabbatch{1}.spm.stats.fmri_spec.sess(4).multi = {''};
 matlabbatch{1}.spm.stats.fmri_spec.sess(4).regress = struct('name', {}, 'val', {});
-matlabbatch{1}.spm.stats.fmri_spec.sess(4).multi_reg = {'/imaging/tc02/SERPENT_preprocessed/S7C01/rp_Run_4.txt'};
+matlabbatch{1}.spm.stats.fmri_spec.sess(4).multi_reg = {'/imaging/mlr/users/tc02/SERPENT_preprocessed/S7C01/rp_Run_4.txt'};
 matlabbatch{1}.spm.stats.fmri_spec.sess(4).hpf = 128;
 matlabbatch{1}.spm.stats.fmri_spec.fact = struct('name', {}, 'levels', {});
 matlabbatch{1}.spm.stats.fmri_spec.bases.hrf.derivs = [0 0];

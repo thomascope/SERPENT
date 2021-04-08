@@ -854,7 +854,7 @@ end
 % all_stats{4} = stats_p_r;
 
 % %% Try again with parallelisation of different AR model orders
-% addpath(genpath('/imaging/tc02/toolboxes')); %Where is the RSA toolbox?
+% addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox?
 % 
 % %data_smoo = 3; %Smoothing on MVPA data
 % all_aros = [1 3 6 12];
@@ -979,7 +979,7 @@ end
 % end
 
 %% Analyse by condition and brain region
-addpath(genpath('/imaging/tc02/toolboxes')); %Where is the RSA toolbox?
+addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox?
 
 if opennewanalysispool == 1
     %Re-open Parpool with larger worker pool

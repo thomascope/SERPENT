@@ -45,8 +45,8 @@ eval(af2)
 addpath(pwd)
 
 if strcmp('${clusterid}','CBU')
-    rawpathstem = '/imaging/tc02/';
-    preprocessedpathstem = '/imaging/tc02/SERPENT_preprocessed/';
+    rawpathstem = '/imaging/mlr/users/tc02/';
+    preprocessedpathstem = '/imaging/mlr/users/tc02/SERPENT_preprocessed/';
 elseif strcmp('${clusterid}','HPC')
     rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
     preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
@@ -91,8 +91,8 @@ eval(af2)
 addpath(pwd)
 
 if strcmp('${clusterid}','CBU')
-    rawpathstem = '/imaging/tc02/';
-    preprocessedpathstem = '/imaging/tc02/SERPENT_preprocessed/';
+    rawpathstem = '/imaging/mlr/users/tc02/';
+    preprocessedpathstem = '/imaging/mlr/users/tc02/SERPENT_preprocessed/';
 elseif strcmp('${clusterid}','HPC')
     rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
     preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';
@@ -126,8 +126,8 @@ eval(af2)
 addpath(pwd)
 
 if strcmp('${clusterid}','CBU')
-    rawpathstem = '/imaging/tc02/';
-    preprocessedpathstem = '/imaging/tc02/SERPENT_preprocessed/';
+    rawpathstem = '/imaging/mlr/users/tc02/';
+    preprocessedpathstem = '/imaging/mlr/users/tc02/SERPENT_preprocessed/';
 elseif strcmp('${clusterid}','HPC')
     rawpathstem = '/rds/user/tec31/hpc-work/SERPENT/rawdata/';
     preprocessedpathstem = '/rds/user/tec31/hpc-work/SERPENT/preprocessed/';

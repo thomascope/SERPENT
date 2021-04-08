@@ -60,13 +60,13 @@ end
 global spmpath fsldir toolboxdir
 switch clusterid
     case 'CBU'
-%         rawpathstem = '/imaging/tc02/';
-%         preprocessedpathstem = '/imaging/tc02/SERPENT_preprocessed/';
+%         rawpathstem = '/imaging/mlr/users/tc02/';
+%         preprocessedpathstem = '/imaging/mlr/users/tc02/SERPENT_preprocessed/';
         rmpath(genpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/'))
         %addpath /imaging/local/software/spm_cbu_svn/releases/spm12_fil_r6906
         spmpath = '/group/language/data/thomascope/spm12_fil_r6906/';
         fsldir = '/imaging/local/software/fsl/fsl64/fsl-5.0.3/fsl/'; % Needs fixing
-        toolboxdir = '/imaging/tc02/toolboxes/';
+        toolboxdir = '/imaging/mlr/users/tc02/toolboxes/';
         addpath(spmpath)
         spm fmri
         scriptdir = '/group/language/data/thomascope/7T_SERPENT_pilot_analysis/';
