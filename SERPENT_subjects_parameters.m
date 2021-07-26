@@ -1,5 +1,23 @@
 %% Set up global variables 
 
+%clear all
+
+% add required paths
+addpath(pwd);
+% addpath('/group/language/data/ediz.sohoglu/matlab/utilities/');
+% addpath('/opt/neuromag/meg_pd_1.2/');
+
+% define paths
+rawpathstem = '/imaging/mlr/users/tc02/';
+preprocessedpathstem = '/imaging/mlr/users/tc02/SERPENT_preprocessed_2021/';
+
+% % define conditions
+% conditions = {'Mismatch_4' 'Match_4' 'Mismatch_8' 'Match_8' 'Mismatch_16' 'Match_16'};
+% 
+% contrast_labels = {'Sum all conditions';'Match-MisMatch'; 'Clear minus Unclear'; 'Gradient difference M-MM'};
+% contrast_weights = [1, 1, 1, 1, 1, 1; -1, 1, -1, 1, -1, 1; -1, -1, 0, 0, 1, 1; -1, 1, 0, 0, 1, -1];
+% conditions = {'Match 3' 'Match 15' 'Mismatch 3' 'Mismatch 15' 'Written'};
+
 cnt = 0; 
 
 cnt = cnt + 1; 

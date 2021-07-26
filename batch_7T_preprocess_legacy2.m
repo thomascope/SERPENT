@@ -1,121 +1,83 @@
 % Batch script for preprocessing of pilot 7T data
-% Written by TEC Feb July 2021
+% Written by TEC Feb 2018
 
 %% Setup environment
-clear all
 rmpath(genpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/'))
 %addpath /imaging/local/software/spm_cbu_svn/releases/spm12_fil_r6906
 addpath /group/language/data/thomascope/spm12_fil_r6906/
 spm fmri
+scriptdir = '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/';
 
 %% Define parameters
-setup_file = 'SERPENT_subjects_parameters';
-eval(setup_file)
-tr=2.5;
-scriptdir = '/group/language/data/thomascope/7T_SERPENT_pilot_analysis/';
+pilot_7T_subjects_parameters
 
 %% Options to skip steps
 applytopup = 1;
 opennewanalysispool = 1;
 
 %% Open a worker pool
-if opennewanalysispool == 1
-    if size(subjects,2) > 64
-        workersrequested = 64;
-        fprintf([ '\n\nUnable to ask for a worker per run; asking for 64 instead\n\n' ]);
-    else
-        workersrequested = size(subjects,2);
-    end
-    
-    %Open a parallel pool
-    if numel(gcp('nocreate')) == 0
-        Poolinfo = cbupool(workersrequested,'--mem-per-cpu=12G --time=167:00:00 --exclude=node-i[01-15]');
-        parpool(Poolinfo,Poolinfo.NumWorkers);
-    end
+if size(subjects,2) > 96
+    workersrequested = 96;
+    fprintf([ '\n\nUnable to ask for a worker per run; asking for 96 instead\n\n' ]);
+else
+    workersrequested = size(subjects,2);
 end
 
-%% First find INV1 scan for each participant - was not in the original lookup table as O'Brien method added later
-for crun = 1:size(subjects,2)
-    inv2folder = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'INV2'))}];
-    Series_number_location = findstr(inv2folder,'Series_')+8;
-    Series_number = inv2folder(Series_number_location:Series_number_location+1);
-    inv1folder = strrep(inv2folder,'INV2','INV1');
-    flag = 2;
-    inv1folder = strrep(inv1folder,['Series_0' Series_number],['Series_0' num2str(str2num(Series_number)-flag,'%02.0f')]);
-    if ~exist(inv1folder,'dir')
-        flag = 1;
-        inv1folder = strrep(inv2folder,'INV2','INV1');
-        inv1folder = strrep(inv1folder,['Series_0' Series_number],['Series_0' num2str(str2num(Series_number)-flag,'%02.0f')]);
-        if ~exist(inv1folder,'dir')
-            error(['Cannot find INV1 folder in the expected location, please check'])
+memoryperworker = 16;
+if memoryperworker*workersrequested >= 768 %I think you can't ask for more than this - it doesn't seem to work at time of testing anyway
+    memoryrequired = '768'; %NB: This must be a string, not an int!!!
+    fprintf([ '\n\nUnable to ask for as much RAM per worker as specified due to cluster limits, asking for 192Gb in total instead\n\n' ]);
+else
+    memoryrequired = num2str(memoryperworker*workersrequested);
+end
+
+try
+    currentdr = pwd;
+    cd('/group/language/data/thomascope/')
+    workerpool = cbupool(workersrequested);
+    workerpool.ResourceTemplate=['-l nodes=^N^,mem=' memoryrequired 'GB,walltime=168:00:00'];
+    try
+        matlabpool(workerpool)
+    catch
+        parpool(workerpool,workerpool.NumWorkers)
+    end
+    cd(currentdr)
+catch
+    try
+        cd('/group/language/data/thomascope/')
+        try
+            matlabpool 'close'
+        catch
+            delete(gcp)
         end
-    end
-    inv1rawfile = strrep(blocksin{crun}{find(strcmp(blocksout{crun},'INV2'))},[Series_number],[num2str(str2num(Series_number)-flag,'%02.0f')]);
-    if ~exist([inv1folder '/' inv1rawfile],'file')
-        error(['Cannot find INV1 file in the expected location for subject ' num2str(crun) ', please check'])
-    end
-    inv1_split_path = strsplit(inv1folder,'/');
-    if ~isempty(inv1_split_path{end})
-        blocksin_folders{crun}{end+1} = inv1_split_path{end};
-    else
-        blocksin_folders{crun}{end+1} = inv1_split_path{end-1};
-    end
-    blocksin{crun}{end+1} = inv1rawfile;
-    blocksout{crun}{end+1} = 'INV1';
-end
-
-%% Align images ac-pc and crop the neck
-coreg_and_crop_images = 1; %Necessary, but can skip if you've done before
-overwrite = 1; % If you want to re-do a step - otherwise will crash if data already exist.
-flags.which = 1; % For reslicing
-view_scans = 0; % Obviously doesn't work in parallel
-
-aligncropworkedcorrectly = zeros(1,size(subjects,2));
-clear this_scan
-% First make an array of all the scan names
-first_3 = {'structural','INV2','INV1'}; % ensure that the three structurals are first in the list for cropping
-for crun = 1:size(subjects,2)
-    for this_scan_number = 1:length(blocksout{crun})
-        if any(strcmp(first_3,blocksout{crun}{this_scan_number}))
-            rawdatafolder = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{this_scan_number}];
-            scanname = blocksin{crun}{this_scan_number};
+        workerpool = cbupool(workersrequested);
+        workerpool.ResourceTemplate=['-l nodes=^N^,mem=' memoryrequired 'GB,walltime=168:00:00'];
+        try
+            matlabpool(workerpool)
+        catch
+            parpool(workerpool,workerpool.NumWorkers)
+        end
+        cd(currentdr)
+    catch
+        try
+            cd('/group/language/data/thomascope/')
+            workerpool = cbupool(workersrequested);
             try
-                this_scan{crun}{end+1} = [rawdatafolder '/' scanname];
+                matlabpool(workerpool)
             catch
-                this_scan{crun}{1} = [rawdatafolder '/' scanname];
+                parpool(workerpool,workerpool.NumWorkers)
+            end
+            cd(currentdr)
+        catch
+            cd(currentdr)
+            fprintf([ '\n\nUnable to open up a cluster worker pool - opening a local cluster instead' ]);
+            try
+                matlabpool(12)
+            catch
+                parpool(12)
             end
         end
     end
-    for this_scan_number = 1:length(blocksout{crun})
-        if ~any(strcmp(first_3,blocksout{crun}{this_scan_number}))
-            rawdatafolder = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{this_scan_number}];
-            scanname = blocksin{crun}{this_scan_number};
-            this_scan{crun}{end+1} = [rawdatafolder '/' scanname];
-        end
-    end
-end
-
-if coreg_and_crop_images
-    parfor crun = 1:size(subjects,2)
-        addpath('./crop')
-        try
-            crop_images(this_scan{crun}',3); % Vital to do rough Talaraiching first as Freesurfer can't manage it. Only crop first 3 (structurals)
-            aligncropworkedcorrectly(crun)=1;
-        catch
-            aligncropworkedcorrectly(crun)=0;
-        end
-    end
-    %scanname = ['p' scanname];
-end
-
-%% Now do the regularisation and denoising, both with O'Brien and multiplicative methods
-parfor crun = 1:size(subjects,2)
-    addpath('./mp2rage_scripts')
-    structural_p = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}];
-    INV2_p = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'INV2'))} '/p' blocksin{crun}{find(strcmp(blocksout{crun},'INV2'))}];
-    INV1_p = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'INV1'))} '/p' blocksin{crun}{find(strcmp(blocksout{crun},'INV1'))}];
-    removebackgroundnoise(structural_p,INV1_p,INV2_p);
-    spm_imcalc_exp(structural_p,INV2_p);
 end
 
 
