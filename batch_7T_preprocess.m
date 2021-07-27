@@ -127,16 +127,32 @@ parfor crun = 1:size(subjects,2)
         mkdir([preprocessedpathstem subjects{crun} '/'])
     end
     copyfile(reference_image,[preprocessedpathstem subjects{crun} '/' this_reference_name this_reference_extension]);
+    
+    %  Or use the O'Brien image - less susceptible to bias than the Uni * INV2 image 
+    reference_image = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_denoised.nii'];
+    [~, this_reference_name, this_reference_extension] = fileparts(reference_image);
+    if ~exist([preprocessedpathstem subjects{crun} '/'],'dir')
+        mkdir([preprocessedpathstem subjects{crun} '/'])
+    end
+    copyfile(reference_image,[preprocessedpathstem subjects{crun} '/' this_reference_name this_reference_extension]);
 end
 
 %% Now do CAT12 segmentation
 nrun = size(subjects,2); % enter the number of runs here
 jobfile = {[scriptdir 'module_cat12_segment_SDoptimised_job.m']};
 inputs = cell(1, nrun);
+OBrien_regularisation = 1;
+if OBrien_regularisation
+    %  Use the O'Brien image - less susceptible to bias than the Uni * INV2 image 
+    post_fix = '_denoised.nii';
+else
+    % Use the Uni * INV2 image - better grey-white contrast than O'Brien image
+    post_fix = '_mul_inv2.nii';
+end
+
 
 for crun = 1:nrun
-    % Use the Uni * INV2 image - better grey-white contrast than O'Brien image
-    reference_image = [preprocessedpathstem subjects{crun} '/p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_mul_inv2.nii'];
+    reference_image = [preprocessedpathstem subjects{crun} '/p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix];
     inputs{1, crun} = cellstr(reference_image);
 end
 
@@ -144,6 +160,7 @@ cat12segmentworkedcorrectly = zeros(1,nrun);
 jobs = repmat(jobfile, 1, 1);
 
 parfor crun = 1:size(subjects,2)
+    pause(crun-1) % Offset all workers to avoid crashes
     spm('defaults','PET'); % for VBM
     spm_jobman('initcfg');
     cat12('expert')
@@ -165,6 +182,25 @@ parfor crun = 1:size(subjects,2)
     
 end
 
+view_scans = 0;
+allatonce = 1;
+% Now optionally examine the outputs
+if view_scans
+    all_segmentation_checks = {};
+    for crun = 1:nrun
+        %cmd = ['freeview -v ' char(inputs{1, crun}) ' ' preprocessedpathstem subjects{crun} '/mri/p1p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix ':colormap=Heat:opacity=0.2 ' preprocessedpathstem subjects{crun} '/mri/p2p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix ':colormap=PET:opacity=0.2']
+        %system(cmd)
+        if allatonce
+            all_segmentation_checks = [all_segmentation_checks; [preprocessedpathstem subjects{crun} '/mri/mp' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]; [preprocessedpathstem subjects{crun} '/mri/p1p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]; [preprocessedpathstem subjects{crun} '/mri/p2p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]; [preprocessedpathstem subjects{crun} '/mri/p3p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]];
+        else
+            spm_check_registration(char([[preprocessedpathstem subjects{crun} '/mri/mp' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]; [preprocessedpathstem subjects{crun} '/mri/p1p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]; [preprocessedpathstem subjects{crun} '/mri/p2p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]; [preprocessedpathstem subjects{crun} '/mri/p3p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]]))
+        end
+    end
+    if allatonce
+        spm_check_registration(char(all_segmentation_checks))
+    end
+end
+ 
 
 
 %% Skullstrip structural
