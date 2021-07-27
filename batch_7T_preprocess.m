@@ -5,7 +5,10 @@
 clear all
 rmpath(genpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/'))
 %addpath /imaging/local/software/spm_cbu_svn/releases/spm12_fil_r6906
-addpath /group/language/data/thomascope/spm12_fil_r6906/
+% addpath /group/language/data/thomascope/spm12_fil_r6906/
+% spm fmri
+rmpath(genpath('/group/language/data/thomascope/spm12_fil_r6906/'))
+addpath /group/language/data/thomascope/spm12_fil_r7771/ % Newedt version of cat12 - currently r1844
 spm fmri
 
 %% Define parameters
@@ -29,7 +32,7 @@ if opennewanalysispool == 1
     
     %Open a parallel pool
     if numel(gcp('nocreate')) == 0
-        Poolinfo = cbupool(workersrequested,'--mem-per-cpu=12G --time=167:00:00 --exclude=node-i[01-15]');
+        Poolinfo = cbupool(workersrequested,'--mem-per-cpu=20G --time=167:00:00 --exclude=node-h[05-08]');
         parpool(Poolinfo,Poolinfo.NumWorkers);
     end
 end
@@ -116,7 +119,52 @@ parfor crun = 1:size(subjects,2)
     INV1_p = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'INV1'))} '/p' blocksin{crun}{find(strcmp(blocksout{crun},'INV1'))}];
     removebackgroundnoise(structural_p,INV1_p,INV2_p);
     spm_imcalc_exp(structural_p,INV2_p);
+    
+    % Use the Uni * INV2 image - better grey-white contrast than O'Brien image
+    reference_image = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_mul_inv2.nii'];
+    [~, this_reference_name, this_reference_extension] = fileparts(reference_image);
+    if ~exist([preprocessedpathstem subjects{crun} '/'],'dir')
+        mkdir([preprocessedpathstem subjects{crun} '/'])
+    end
+    copyfile(reference_image,[preprocessedpathstem subjects{crun} '/' this_reference_name this_reference_extension]);
 end
+
+%% Now do CAT12 segmentation
+nrun = size(subjects,2); % enter the number of runs here
+jobfile = {[scriptdir 'module_cat12_segment_SDoptimised_job.m']};
+inputs = cell(1, nrun);
+
+for crun = 1:nrun
+    % Use the Uni * INV2 image - better grey-white contrast than O'Brien image
+    reference_image = [preprocessedpathstem subjects{crun} '/p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_mul_inv2.nii'];
+    inputs{1, crun} = cellstr(reference_image);
+end
+
+cat12segmentworkedcorrectly = zeros(1,nrun);
+jobs = repmat(jobfile, 1, 1);
+
+parfor crun = 1:size(subjects,2)
+    spm('defaults','PET'); % for VBM
+    spm_jobman('initcfg');
+    cat12('expert')
+    
+    cat_get_defaults('extopts.expertgui',1);
+    cat_get_defaults('output.CSF.native',1);
+    cat_get_defaults('output.CSF.mod',1);
+    cat_get_defaults('output.bias.native',1)
+    cat_get_defaults('output.GM.warped',1)
+    cat_get_defaults('output.WM.warped',1)
+    cat_get_defaults('opts.biasstr',1.0); % Use 1 for initial mask creation from MP2RAGE
+    
+    try
+        spm_jobman('run', jobs, inputs{:,crun});
+        cat12segmentworkedcorrectly(crun) = 1;
+    catch
+        cat12segmentworkedcorrectly(crun) = 0;
+    end
+    
+end
+
 
 
 %% Skullstrip structural
