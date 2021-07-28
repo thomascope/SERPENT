@@ -200,8 +200,72 @@ if view_scans
         spm_check_registration(char(all_segmentation_checks))
     end
 end
- 
 
+%% Now run Freesurfer with the CAT12 bias corrected image masked with imfilled P1+P2+P3 (Grey+White+CSF) (i.e. skullstripped)
+
+overwrite = 1; % If you want to re-do a step - otherwise will crash if data already exist.
+flags.which = 1; % For spm_reslice - 1 = don't reslice the first image.
+view_scans = 0; 
+
+this_subjects_dir = [preprocessedpathstem '/freesurfer_masked/'];
+setenv('SUBJECTS_DIR',this_subjects_dir);
+if ~exist(this_subjects_dir)
+    mkdir(this_subjects_dir);
+elseif exist([this_subjects_dir subjects{crun}])&&overwrite
+    rmdir([this_subjects_dir subjects{crun}],'s')
+    %mkdir([this_subjects_dir subjects{crun}]);
+end
+
+OBrien_regularisation = 1;
+if OBrien_regularisation
+    %  Use the O'Brien image - less susceptible to bias than the Uni * INV2 image 
+    post_fix = '_denoised.nii';
+else
+    % Use the Uni * INV2 image - better grey-white contrast than O'Brien image
+    post_fix = '_mul_inv2.nii';
+end
+thisdir = pwd;
+parfor crun = 1:nrun
+    %First skullstrip the image
+    this_scan = cellstr([preprocessedpathstem subjects{crun} '/mri/mp' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]);
+    all_tissue_vols = [];
+    for tissue_class = 1:3
+        all_tissue_vols = [all_tissue_vols; [preprocessedpathstem subjects{crun} '/mri/p' num2str(tissue_class) 'p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]];
+    end
+    Vo = spm_imcalc(all_tissue_vols,[preprocessedpathstem subjects{crun} '/coreg_filled_brainmask.nii'],'imfill(i1+i2+i3>0,''holes'')');
+    Vo = spm_imcalc(char([all_tissue_vols;this_scan]),[preprocessedpathstem subjects{crun} '/bias_corrected_brain.nii'],'imfill(i1+i2+i3>0,''holes'').*i4');
+    cd([preprocessedpathstem subjects{crun}])
+    if view_scans
+        %         % Optional checks - highly recommended as this step has gone all
+        %         % kinds of wrong for reasons I don't understand
+        spm_check_registration(char([this_scan; all_tissue_vols; 'coreg_filled_brainmask.nii'; 'bias_corrected_brain.nii']))
+        %system(['freeview -v coreg_filled_skullstripped.nii'])
+    end
+    
+    % Now run freesurfer
+    setenv('RAW_DATA_FOLDER',preprocessedpathstem)
+    setenv('SUBJECTS_DIR',this_subjects_dir);
+    setenv('FSF_OUTPUT_FORMAT','nii');
+    
+    % Q. I have already skull-stripped data. Can I submit it to recon-all?
+    % A: If your skull-stripped volume does not have the cerebellum, then no. If it does, then yes, however you will have to run the data a bit differently.
+    % First you must run only -autorecon1 like this:
+    % recon-all -autorecon1 -noskullstrip -s <subjid>
+    cmd = ['recon-all -autorecon1 -noskullstrip -s ' subjects{crun} ' -hires -i ' [preprocessedpathstem subjects{crun} '/coreg_filled_brainmask.nii'] ' -notal-check -cw256 -bigventricles'];
+    fprintf(['Submitting the following first stage command: ' cmd]);
+    system(cmd);
+    
+    % Then you will have to make a symbolic link or copy T1.mgz to brainmask.auto.mgz and a link from brainmask.auto.mgz to brainmask.mgz. Finally, open this brainmask.mgz file and check that it looks okay (there is no skull, cerebellum is intact; use the sample subject bert that comes with your FreeSurfer installation to make sure it looks comparable). From there you can run the final stages of recon-all:
+    % recon-all -autorecon2 -autorecon3 -s <subjid>
+    data_dir = [this_subjects_dir subjects{crun}];
+    copyfile([data_dir '/mri/T1.mgz'],[data_dir '/mri/brainmask.auto.mgz'])
+    copyfile([data_dir '/mri/T1.mgz'],[data_dir '/mri/brainmask.mgz'])
+    cmd = ['recon-all -autorecon2 -autorecon3 -noskullstrip -s ' subjects{crun} ' -hires -notal-check -cw256 -bigventricles'];
+    fprintf(['Submitting the following second stage command: ' cmd]);
+    system(cmd);
+    
+end
+cd(thisdir)
 
 %% Skullstrip structural
 nrun = size(subjects,2); % enter the number of runs here
