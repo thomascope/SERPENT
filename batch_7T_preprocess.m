@@ -188,6 +188,7 @@ allatonce = 1;
 if view_scans
     all_segmentation_checks = {};
     for crun = 1:nrun
+        setenv('QT_PLUGIN_PATH','/usr/lib64/qt5/plugins') % Necessary for freeview in newer versions of Matlab
         %cmd = ['freeview -v ' char(inputs{1, crun}) ' ' preprocessedpathstem subjects{crun} '/mri/p1p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix ':colormap=Heat:opacity=0.2 ' preprocessedpathstem subjects{crun} '/mri/p2p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix ':colormap=PET:opacity=0.2']
         %system(cmd)
         if allatonce
@@ -202,7 +203,7 @@ if view_scans
 end
 
 %% Now run Freesurfer with the CAT12 bias corrected image masked with imfilled P1+P2+P3 (Grey+White+CSF) (i.e. skullstripped)
-
+nrun = size(subjects,2); % enter the number of runs here
 overwrite = 1; % If you want to re-do a step - otherwise will crash if data already exist.
 flags.which = 1; % For spm_reslice - 1 = don't reslice the first image.
 view_scans = 0; 
@@ -239,6 +240,7 @@ parfor crun = 1:nrun
         %         % Optional checks - highly recommended as this step has gone all
         %         % kinds of wrong for reasons I don't understand
         spm_check_registration(char([this_scan; all_tissue_vols; 'coreg_filled_brainmask.nii'; 'bias_corrected_brain.nii']))
+        setenv('QT_PLUGIN_PATH','/usr/lib64/qt5/plugins') % Necessary for freeview in newer versions of Matlab
         %system(['freeview -v coreg_filled_skullstripped.nii'])
     end
     
@@ -251,7 +253,7 @@ parfor crun = 1:nrun
     % A: If your skull-stripped volume does not have the cerebellum, then no. If it does, then yes, however you will have to run the data a bit differently.
     % First you must run only -autorecon1 like this:
     % recon-all -autorecon1 -noskullstrip -s <subjid>
-    cmd = ['recon-all -autorecon1 -noskullstrip -s ' subjects{crun} ' -hires -i ' [preprocessedpathstem subjects{crun} '/coreg_filled_brainmask.nii'] ' -notal-check -cw256 -bigventricles'];
+    cmd = ['recon-all -autorecon1 -noskullstrip -s ' subjects{crun} ' -hires -i ' [preprocessedpathstem subjects{crun} '/bias_corrected_brain.nii'] ' -notal-check -cw256 -bigventricles'];
     fprintf(['Submitting the following first stage command: ' cmd]);
     system(cmd);
     
@@ -266,6 +268,21 @@ parfor crun = 1:nrun
     
 end
 cd(thisdir)
+
+view_scans = 0;
+% Now manually view outputs and decide which ones are bad
+bad_subjects = {};
+if view_scans
+    if isempty(bad_subjects)
+        for crun = 1:nrun
+            setenv('QT_PLUGIN_PATH','/usr/lib64/qt5/plugins') % Necessary for freeview in newer versions of Matlab
+            cmd = ['freeview -v ' this_subjects_dir subjects{crun} '/mri/T1.mgz ' this_subjects_dir subjects{crun} '/mri/wm.mgz ' this_subjects_dir subjects{crun} '/mri/brainmask.mgz ' this_subjects_dir subjects{crun} '/mri/aseg.mgz:colormap=lut:opacity=0.2 -f ' this_subjects_dir subjects{crun} '/surf/lh.white:edgecolor=blue ' this_subjects_dir subjects{crun} '/surf/lh.pial:edgecolor=red ' this_subjects_dir subjects{crun} '/surf/rh.white:edgecolor=blue ' this_subjects_dir subjects{crun} '/surf/rh.pial:edgecolor=red'];
+            system(cmd)
+            isgood(crun) = input('Does this subject look good? y or n.');
+        end
+        bad_subjects = subjects(isgood=='n')';
+    end
+end
 
 %% Skullstrip structural
 nrun = size(subjects,2); % enter the number of runs here
