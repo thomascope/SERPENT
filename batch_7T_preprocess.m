@@ -212,8 +212,12 @@ this_subjects_dir = [preprocessedpathstem '/freesurfer_masked/'];
 setenv('SUBJECTS_DIR',this_subjects_dir);
 if ~exist(this_subjects_dir)
     mkdir(this_subjects_dir);
-elseif exist([this_subjects_dir subjects{crun}])&&overwrite
-    rmdir([this_subjects_dir subjects{crun}],'s')
+else
+    for crun = 1:nrun
+        if exist([this_subjects_dir subjects{crun}])&&overwrite
+        rmdir([this_subjects_dir subjects{crun}],'s')
+        end
+    end
     %mkdir([this_subjects_dir subjects{crun}]);
 end
 
