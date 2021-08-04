@@ -229,53 +229,65 @@ else
     % Use the Uni * INV2 image - better grey-white contrast than O'Brien image
     post_fix = '_mul_inv2.nii';
 end
+freesurferworkedcorrectly = zeros(1,nrun);
+
 thisdir = pwd;
 parfor crun = 1:nrun
-    %First skullstrip the image
-    this_scan = cellstr([preprocessedpathstem subjects{crun} '/mri/mp' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]);
-    all_tissue_vols = [];
-    for tissue_class = 1:3
-        all_tissue_vols = [all_tissue_vols; [preprocessedpathstem subjects{crun} '/mri/p' num2str(tissue_class) 'p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]];
+    try
+        %First skullstrip the image
+        this_scan = cellstr([preprocessedpathstem subjects{crun} '/mri/mp' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]);
+        all_tissue_vols = [];
+        for tissue_class = 1:3
+            all_tissue_vols = [all_tissue_vols; [preprocessedpathstem subjects{crun} '/mri/p' num2str(tissue_class) 'p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]];
+        end
+        Vo = spm_imcalc(all_tissue_vols,[preprocessedpathstem subjects{crun} '/coreg_filled_brainmask.nii'],'imfill(i1+i2+i3>0,''holes'')');
+        Vo = spm_imcalc(char([all_tissue_vols;this_scan]),[preprocessedpathstem subjects{crun} '/bias_corrected_brain.nii'],'imfill(i1+i2+i3>0,''holes'').*i4');
+        cd([preprocessedpathstem subjects{crun}])
+        if view_scans
+            %         % Optional checks - highly recommended as this step has gone all
+            %         % kinds of wrong for reasons I don't understand
+            spm_check_registration(char([this_scan; all_tissue_vols; 'coreg_filled_brainmask.nii'; 'bias_corrected_brain.nii']))
+            setenv('QT_PLUGIN_PATH','/usr/lib64/qt5/plugins') % Necessary for freeview in newer versions of Matlab
+            %system(['freeview -v coreg_filled_skullstripped.nii'])
+        end
+        
+        % Now run freesurfer
+        setenv('RAW_DATA_FOLDER',preprocessedpathstem)
+        setenv('SUBJECTS_DIR',this_subjects_dir);
+        setenv('FSF_OUTPUT_FORMAT','nii');
+        
+        % Q. I have already skull-stripped data. Can I submit it to recon-all?
+        % A: If your skull-stripped volume does not have the cerebellum, then no. If it does, then yes, however you will have to run the data a bit differently.
+        % First you must run only -autorecon1 like this:
+        % recon-all -autorecon1 -noskullstrip -s <subjid>
+        cmd = ['recon-all -autorecon1 -noskullstrip -s ' subjects{crun} ' -hires -i ' [preprocessedpathstem subjects{crun} '/bias_corrected_brain.nii'] ' -notal-check -cw256 -bigventricles'];
+        fprintf(['Submitting the following first stage command: ' cmd]);
+        system(cmd);
+        
+        % Then you will have to make a symbolic link or copy T1.mgz to brainmask.auto.mgz and a link from brainmask.auto.mgz to brainmask.mgz. Finally, open this brainmask.mgz file and check that it looks okay (there is no skull, cerebellum is intact; use the sample subject bert that comes with your FreeSurfer installation to make sure it looks comparable). From there you can run the final stages of recon-all:
+        % recon-all -autorecon2 -autorecon3 -s <subjid>
+        data_dir = [this_subjects_dir subjects{crun}];
+        copyfile([data_dir '/mri/T1.mgz'],[data_dir '/mri/brainmask.auto.mgz'])
+        copyfile([data_dir '/mri/T1.mgz'],[data_dir '/mri/brainmask.mgz'])
+        cmd = ['recon-all -autorecon2 -autorecon3 -noskullstrip -s ' subjects{crun} ' -hires -notal-check -cw256 -bigventricles'];
+        fprintf(['Submitting the following second stage command: ' cmd]);
+        system(cmd);
+        freesurferworkedcorrectly(crun) = 1;
+    catch
+        freesurferworkedcorrectly(crun) = 0;
     end
-    Vo = spm_imcalc(all_tissue_vols,[preprocessedpathstem subjects{crun} '/coreg_filled_brainmask.nii'],'imfill(i1+i2+i3>0,''holes'')');
-    Vo = spm_imcalc(char([all_tissue_vols;this_scan]),[preprocessedpathstem subjects{crun} '/bias_corrected_brain.nii'],'imfill(i1+i2+i3>0,''holes'').*i4');
-    cd([preprocessedpathstem subjects{crun}])
-    if view_scans
-        %         % Optional checks - highly recommended as this step has gone all
-        %         % kinds of wrong for reasons I don't understand
-        spm_check_registration(char([this_scan; all_tissue_vols; 'coreg_filled_brainmask.nii'; 'bias_corrected_brain.nii']))
-        setenv('QT_PLUGIN_PATH','/usr/lib64/qt5/plugins') % Necessary for freeview in newer versions of Matlab
-        %system(['freeview -v coreg_filled_skullstripped.nii'])
-    end
-    
-    % Now run freesurfer
-    setenv('RAW_DATA_FOLDER',preprocessedpathstem)
-    setenv('SUBJECTS_DIR',this_subjects_dir);
-    setenv('FSF_OUTPUT_FORMAT','nii');
-    
-    % Q. I have already skull-stripped data. Can I submit it to recon-all?
-    % A: If your skull-stripped volume does not have the cerebellum, then no. If it does, then yes, however you will have to run the data a bit differently.
-    % First you must run only -autorecon1 like this:
-    % recon-all -autorecon1 -noskullstrip -s <subjid>
-    cmd = ['recon-all -autorecon1 -noskullstrip -s ' subjects{crun} ' -hires -i ' [preprocessedpathstem subjects{crun} '/bias_corrected_brain.nii'] ' -notal-check -cw256 -bigventricles'];
-    fprintf(['Submitting the following first stage command: ' cmd]);
-    system(cmd);
-    
-    % Then you will have to make a symbolic link or copy T1.mgz to brainmask.auto.mgz and a link from brainmask.auto.mgz to brainmask.mgz. Finally, open this brainmask.mgz file and check that it looks okay (there is no skull, cerebellum is intact; use the sample subject bert that comes with your FreeSurfer installation to make sure it looks comparable). From there you can run the final stages of recon-all:
-    % recon-all -autorecon2 -autorecon3 -s <subjid>
-    data_dir = [this_subjects_dir subjects{crun}];
-    copyfile([data_dir '/mri/T1.mgz'],[data_dir '/mri/brainmask.auto.mgz'])
-    copyfile([data_dir '/mri/T1.mgz'],[data_dir '/mri/brainmask.mgz'])
-    cmd = ['recon-all -autorecon2 -autorecon3 -noskullstrip -s ' subjects{crun} ' -hires -notal-check -cw256 -bigventricles'];
-    fprintf(['Submitting the following second stage command: ' cmd]);
-    system(cmd);
     
 end
 cd(thisdir)
 
 view_scans = 0;
 % Now manually view outputs and decide which ones are bad
-bad_subjects = {};
+bad_subjects = {
+        'S7P12'
+    'S7C09'
+    'S7C10'
+    'S7P20'
+    }; %After first Freesurfer run. Failures.
 if view_scans
     if isempty(bad_subjects)
         for crun = 1:nrun
@@ -287,6 +299,34 @@ if view_scans
         bad_subjects = subjects(isgood=='n')';
     end
 end
+
+% For bad subjects, the most common reason for failure was inclusion of the
+% skull in the CSF compartment of the CAT12 mask. Therefore try again
+% giving Freesurfer the raw image and allowing it to segment itself.
+
+for this_bad = 1:length(bad_subjects)
+    crun_cells = strfind(subjects,bad_subjects{this_bad});
+    crun = find(not(cellfun('isempty',crun_cells)));
+    assert(strcmp(bad_subjects{this_bad},subjects{crun}),['Error in comparing subject strings ' bad_subjects{this_bad} ' and ' subjects{crun}]);
+    
+    if exist([this_subjects_dir subjects{crun}])&&overwrite
+        rmdir([this_subjects_dir subjects{crun}],'s')
+    end
+end
+parfor this_bad = 1:length(bad_subjects)
+    try
+        crun_cells = strfind(subjects,bad_subjects{this_bad});
+        crun = find(not(cellfun('isempty',crun_cells)));
+        assert(strcmp(bad_subjects{this_bad},subjects{crun}),['Error in comparing subject strings ' bad_subjects{this_bad} ' and ' subjects{crun}]);
+        
+        this_scan = cellstr([preprocessedpathstem bad_subjects{this_bad} '/mri/mp' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) post_fix]);
+        fprintf(['Redoing bad subject: ' subjects{crun} '\n']);
+        cmd = ['recon-all -all -s ' subjects{crun} ' -hires -i ' this_scan{1} ' -notal-check -cw256 -bigventricles'];
+        fprintf(['Submitting the following command: ' cmd '\n']);
+        system(cmd);
+    end
+end
+    
 
 %% Skullstrip structural
 nrun = size(subjects,2); % enter the number of runs here
