@@ -4,8 +4,8 @@
 % cfg_basicio BasicIO - Unknown
 %-----------------------------------------------------------------------
 matlabbatch{1}.spm.spatial.preproc.channel(1).vols = '<UNDEFINED>';
-matlabbatch{1}.spm.spatial.preproc.channel(1).biasreg = 0.001;
-matlabbatch{1}.spm.spatial.preproc.channel(1).biasfwhm = 60;
+matlabbatch{1}.spm.spatial.preproc.channel(1).biasreg = 0.00001;
+matlabbatch{1}.spm.spatial.preproc.channel(1).biasfwhm = 30;
 matlabbatch{1}.spm.spatial.preproc.channel(1).write = [0 0];
 matlabbatch{1}.spm.spatial.preproc.channel(2).vols = '<UNDEFINED>';
 matlabbatch{1}.spm.spatial.preproc.channel(2).biasreg = 0.001;

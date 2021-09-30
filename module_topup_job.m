@@ -12,14 +12,21 @@ tsize=minvols;
 cmd = [fsldir '/bin/fslmerge -t ' outpath 'both_directions_fortopup ' base_image_path ' ' reversed_image_path ];
 system(cmd)
 
-%Now write txt file containing acquisition parameters (assumes y-direction
-%flip for phase encoding)
-base_head = spm_vol(base_image_path);
-reversed_head = spm_vol(reversed_image_path);
-if base_head.private.diminfo.slice_time.duration - reversed_head.private.diminfo.slice_time.duration > 0.0001
-    error('Something went wrong - acquisition parameters are not the same in the two images')
-end
-epi_params = [0 -1 0 base_head.private.diminfo.slice_time.duration; 0 1 0 reversed_head.private.diminfo.slice_time.duration]; 
+% %Now write txt file containing acquisition parameters (assumes y-direction
+% %flip for phase encoding)
+% base_head = spm_vol(base_image_path);
+% reversed_head = spm_vol(reversed_image_path);
+% if base_head.private.diminfo.slice_time.duration - reversed_head.private.diminfo.slice_time.duration > 0.0001
+%     error('Something went wrong - acquisition parameters are not the same in the two images')
+% end
+% epi_params = [0 -1 0 base_head.private.diminfo.slice_time.duration; 0 1 0 reversed_head.private.diminfo.slice_time.duration]; 
+
+% For SERPENT total readout time not recorded in header. Manually obtained
+% from json files e.g.:
+%[tec31@login-e-12 func]$ jq .TotalReadoutTime sub-25162_ses-20180726_task-serpent_acq-cmrrmbep2d3x215iso340volsSBRef_run-04_bold.json
+%0.0393694
+TotalReadoutTime = 0.0393694;
+epi_params = [0 -1 0 TotalReadoutTime; 0 1 0 TotalReadoutTime]; 
 dlmwrite([outpath 'epi_acq_param.txt'],epi_params,'delimiter',' ')
 
 %Then calculate topup (can take a longish time)
