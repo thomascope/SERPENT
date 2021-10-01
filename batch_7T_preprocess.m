@@ -361,6 +361,10 @@ parfor crun = 1:nrun
     end
 end
 
+if ~all(skullstripworkedcorrectly)
+    error('failed at skullstrip');
+end
+
 %% Now realign the EPIs
 
 realignworkedcorrectly = zeros(1,nrun);
@@ -536,7 +540,7 @@ for crun = 1:nrun
     
     % % First is for SPM segment, second for CAT12
     %inputs{1, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
-    inputs{1, crun} = cellstr([outpath 'mri/y_structural_csf.nii']);
+    inputs{1, crun} = cellstr([outpath 'mri/y_p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_denoised.nii']);
     
     
     theseepis = find(strncmp(blocksout{crun},'Run',3));
@@ -549,11 +553,11 @@ for crun = 1:nrun
     inputs{2, crun} = cellstr(filestonormalise_list);
     % % First is for SPM segment, second for CAT12
     %inputs{3, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
-    inputs{3, crun} = cellstr([outpath 'mri/y_structural_csf.nii']);
+    inputs{3, crun} = cellstr([outpath 'mri/y_p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_denoised.nii']);
     inputs{4, crun} = cellstr([outpath 'structural.nii,1']);
     % % First is for SPM segment, second for CAT12
     %inputs{5, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/y_' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
-    inputs{5, crun} = cellstr([outpath 'mri/y_structural_csf.nii']);
+    inputs{5, crun} = cellstr([outpath 'mri/y_p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_denoised.nii']);
     inputs{6, crun} = cellstr([outpath 'structural.nii,1']);
 end
 
@@ -573,4 +577,31 @@ end
 
 if ~all(normalisesmoothworkedcorrectly)
     error('failed at normalise and smooth');
+end
+
+%% Now check outputs
+%First native space
+for crun = 1:nrun
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    middle_epi = minvols(crun)/2;
+    native_epi_paths = {};
+    for i = 1:length(theseepis)
+        native_epi_paths = [native_epi_paths; outpath 's3rtopup_' blocksin{crun}{theseepis(i)} ',' num2str(middle_epi)];
+    end
+    spm_check_registration(char([outpath 'structural.nii'; outpath 'mri/p1p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_denoised.nii'; outpath 'mri/p2p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_denoised.nii'; outpath 'mri/p3p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_denoised.nii'; native_epi_paths]))
+    pause
+end
+
+%Then template space
+for crun = 1:nrun
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    middle_epi = minvols(crun)/2;
+    native_epi_paths = {};
+    for i = 1:length(theseepis)
+        native_epi_paths = [native_epi_paths; outpath 's3wtopup_' blocksin{crun}{theseepis(i)} ',' num2str(middle_epi)];
+    end
+    spm_check_registration(char([outpath 'wstructural.nii'; outpath 'mri/wp1p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_denoised.nii'; outpath 'mri/wp2p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_denoised.nii'; native_epi_paths]))
+    pause
 end
