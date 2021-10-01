@@ -14,7 +14,7 @@ spm fmri
 %% Define parameters
 setup_file = 'SERPENT_subjects_parameters';
 eval(setup_file)
-tr=2.5;
+tr=1.75;
 scriptdir = '/group/language/data/thomascope/7T_SERPENT_pilot_analysis/';
 
 %% Options to skip steps
@@ -605,3 +605,38 @@ for crun = 1:nrun
     spm_check_registration(char([outpath 'wstructural.nii'; outpath 'mri/wp1p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_denoised.nii'; outpath 'mri/wp2p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_denoised.nii'; native_epi_paths]))
     pause
 end
+
+% Checked, looks good except for the known problem of CAT12 putting skull
+% into CSF, preventing accurate TIV determination so...
+
+%% Now run SamSEG to get TIV estimates.
+nrun = size(subjects,2); % enter the number of runs here
+inputs = cell(2, nrun);
+
+this_subjects_dir = [preprocessedpathstem 'samseg_tiv/'];
+setenv('SUBJECTS_DIR',this_subjects_dir);
+if ~exist(this_subjects_dir)
+    mkdir(this_subjects_dir);
+end
+for crun = 1:nrun
+    inputs{1, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+    inputs{2, crun} = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'INV2'))} '/p' blocksin{crun}{find(strcmp(blocksout{crun},'INV2'))}]);
+end
+    
+parfor crun = 1:nrun
+    outdir=[this_subjects_dir subjects{crun} '/samseg2']
+    cmd = ['run_samseg --input ' char(inputs{1, crun}) ' ' char(inputs{2, crun}) ' --output ' outdir]
+    system(cmd)
+end
+samseg_tiv = [];
+for crun = 1:nrun
+    tiv_file=[this_subjects_dir subjects{crun} '/samseg2/sbtiv.stats'];
+    fid = fopen(tiv_file, 'rt');
+    TextAsCells = textscan(fid, '%s', 'Delimiter', ',');
+    fclose(fid);
+    mask = find(~cellfun(@isempty, strfind(TextAsCells{1}, 'Measure Intra-Cranial')));
+    samseg_tiv(crun) = str2num(TextAsCells{1}{mask+1});
+end
+save([preprocessedpathstem 'samseg_tivs'],'samseg_tiv');
+csvwrite([preprocessedpathstem 'samseg_tivs.csv'],samseg_tiv);
+
