@@ -3,7 +3,7 @@ global toolboxdir
 
 %clear all
 [workingdir,~,~] = fileparts(which('module_get_event_times_SD_cluster.m'));
-fprintf(['Working directory is ' workingdir]);
+fprintf(['Working directory is ' workingdir '\n']);
 behaviour_folder = [workingdir '/behavioural_data'];
 
 addpath(toolboxdir)
@@ -19,7 +19,7 @@ for runI=1:nRuns
     
     cd(behaviour_folder)
     this_file = dir(['SD*' subj_initials '_Run_' num2str(runI) '_' testing_date '.mat']);
-    fprintf(['This file is ' this_file.name]);
+    fprintf(['This file is ' this_file.name '\n']);
     run_params = load(this_file.name);
     tr = run_params.TR;
     
@@ -37,5 +37,16 @@ for runI=1:nRuns
     else
         buttonpressed{runI} = run_params.resp;
         buttonpresstime{runI} = ((startpulses{runI}-1) * tr) + stimdelay + (run_params.all_rts/1000);
+    end
+    
+    % Deal with the patient who did not press any buttons - put a dummy
+    % button press at the very end of the run - won't be modelled in HRF
+    if sum(buttonpressed{runI}==1)==0
+        buttonpressed{runI} = [buttonpressed{runI} 1];
+        buttonpresstime{runI} = [buttonpresstime{runI} nVolumes-1*tr];
+    end
+    if sum(buttonpressed{runI}==2)==0
+        buttonpressed{runI} = [buttonpressed{runI} 4];
+        buttonpresstime{runI} = [buttonpresstime{runI} nVolumes*tr];
     end
 end

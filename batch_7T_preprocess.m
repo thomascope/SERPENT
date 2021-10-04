@@ -3,19 +3,23 @@
 
 %% Setup environment
 clear all
-rmpath(genpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/'))
-%addpath /imaging/local/software/spm_cbu_svn/releases/spm12_fil_r6906
-% addpath /group/language/data/thomascope/spm12_fil_r6906/
-% spm fmri
-rmpath(genpath('/group/language/data/thomascope/spm12_fil_r6906/'))
-addpath /group/language/data/thomascope/spm12_fil_r7771/ % Newedt version of cat12 - currently r1844
-spm fmri
+global spmpath fsldir toolboxdir
 
+rmpath(genpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/'))
+rmpath(genpath('/group/language/data/thomascope/spm12_fil_r6906/'))
+spmpath = '/group/language/data/thomascope/spm12_fil_r7771/'; % Newest version of cat12 - currently r1844
+fsldir = '/imaging/local/software/fsl/fsl64/fsl-5.0.3/fsl/'; % Needs fixing
+toolboxdir = '/imaging/mlr/users/tc02/toolboxes/';
+scriptdir = '/group/language/data/thomascope/7T_SERPENT_pilot_analysis/';
+freesurferpath = '/home/tc02/freesurfer/';
+
+addpath(spmpath)
+spm fmri
+        
 %% Define parameters
 setup_file = 'SERPENT_subjects_parameters';
 eval(setup_file)
 tr=1.75;
-scriptdir = '/group/language/data/thomascope/7T_SERPENT_pilot_analysis/';
 
 %% Options to skip steps
 applytopup = 1;
@@ -640,3 +644,203 @@ end
 save([preprocessedpathstem 'samseg_tivs'],'samseg_tiv');
 csvwrite([preprocessedpathstem 'samseg_tivs.csv'],samseg_tiv);
 
+%% VBM and correlation analyses
+XXX To go here
+
+%% Now do SPM Univariate analysis in template space
+nrun = size(subjects,2); % enter the number of runs here
+for this_smooth = [3,8];
+    % Do a univariate SPM analysis at a smoothing level set by the this_smooth flag
+    disp('SPM univariate analysis')
+    
+    inputs = cell(0, nrun);
+    
+    starttime={};
+    stimType={};
+    stim_type_labels={};
+    for crun = 1:nrun
+        theseepis = find(strncmp(blocksout{crun},'Run',3));
+        outpath = [preprocessedpathstem subjects{crun} '/'];
+        filestoanalyse = cell(1,length(theseepis));
+        
+        [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD_cluster(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+        
+        inputs{1, crun} = cellstr([outpath 'stats_mask0.3_' num2str(this_smooth) '_multi']);
+        for sess = 1:length(theseepis)
+            filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s' num2str(this_smooth) 'wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+            inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+            this_rp_file = dir([outpath 'rp*' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+            inputs{(2*(sess-1))+3, crun} = cellstr([outpath this_rp_file.name]);
+        end
+        %inputs{end+1, crun} = cellstr([outpath 'binarised_native_structural_mask.nii,1']); % Don't mask at first level
+    end
+    
+    SPMworkedcorrectly = zeros(1,nrun);
+    parfor crun = 1:nrun
+        jobfile = create_SD_SPM_Job(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun),run_params{crun});
+        spm('defaults', 'fMRI');
+        spm_jobman('initcfg')
+        try
+            spm_jobman('run', jobfile);
+            SPMworkedcorrectly(crun) = 1;
+        catch
+            SPMworkedcorrectly(crun) = 0;
+        end
+    end
+    
+    if ~all(SPMworkedcorrectly)
+        error(['failed at SPM ' num2str(this_smooth) 'mm']);
+    end
+    
+end
+
+%% Now create a univariate second level SPM with Age as a covariate - one per condition of interest
+for this_smooth = [3,8];
+    exclude_bad = 0; % I have now excluded only the relevant EPI sequences above.
+    bad_scans = {
+        };
+    
+    age_lookup = readtable('SERPENT_Only_Included.csv');
+    all_conditions = {
+        'con_0005.nii','Photos > Line';
+        'con_0010.nii','Photos < Line';
+        'con_0015.nii','Left > Right';
+        'con_0020.nii','Left < Right';
+        'con_0025.nii','Common > Rare';
+        'con_0030.nii','Common < Rare';
+        'con_0035.nii','Left Button';
+        'con_0040.nii','Right Button'
+        'con_0045.nii','All Pictures'
+        'con_0050.nii','Negative All Pictures'
+        };
+    expected_sessions = 4;
+    
+    visual_check = 0;
+    nrun = size(all_conditions,1); % enter the number of runs here
+    %jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
+    
+    this_scan = {};
+    this_t_scan = {};
+    firstlevel_folder = ['stats_mask0.3_' num2str(this_smooth) '_multi'];
+    
+    jobfile = {[scriptdir 'module_secondlevel_job.m']};
+    jobs = repmat(jobfile, 1, nrun);
+    inputs = cell(4, nrun);
+    
+    for this_condition = 1:nrun
+        group1_mrilist = {}; %NB: Patient MRIs, so here group 2 (sorry)
+        group1_ages = [];
+        group2_mrilist = {};
+        group2_ages = [];
+        
+        if exclude_bad
+            inputs{1, this_condition} = cellstr([preprocessedpathstem firstlevel_folder '_nobad' filesep all_conditions{this_condition,2}]);
+        else
+            inputs{1, this_condition} = cellstr([preprocessedpathstem firstlevel_folder filesep all_conditions{this_condition,2}]);
+        end
+        for crun = 1:size(subjects,2)
+            if exclude_bad
+                if any(strcmp(bad_scans,subjects{crun}))
+                    continue
+                end
+            end
+            this_age = age_lookup.Age(strcmp(age_lookup.x_SubjectID,subjects{crun}));
+            this_spm_temp = load([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep 'SPM.mat']);
+            if length(this_spm_temp.SPM.Sess)~=expected_sessions
+                disp([subjects{crun} ' has ' num2str(length(this_spm_temp.SPM.Sess)) ' sessions when ' num2str(expected_sessions) ' expected. Check this is what you want'])
+                con_num = str2num(all_conditions{this_condition,1}(5:8));
+                new_con_num = (con_num/(expected_sessions+1))*(length(this_spm_temp.SPM.Sess)+1);
+                disp(['Replacing contrast ' num2str(con_num,'%04.f') ' with ' num2str(new_con_num,'%04.f')])
+                new_contrast_name = strrep(all_conditions{this_condition,1},num2str(con_num,'%04.f'),num2str(new_con_num,'%04.f'));
+                this_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep new_contrast_name]);
+                this_t_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep strrep(new_contrast_name,'con','spmT')]);
+            else
+                this_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep all_conditions{this_condition,1}]);
+                this_t_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep strrep(all_conditions{this_condition,1},'con','spmT')]);
+            end
+            if group(crun) == 1 % Controls
+                group2_mrilist(end+1) = this_scan(crun);
+                group2_ages(end+1) = this_age;
+            elseif group(crun) == 2 % Patients
+                group1_mrilist(end+1) = this_scan(crun);
+                group1_ages(end+1) = this_age;
+            end
+        end
+        inputs{2, this_condition} = group1_mrilist';
+        inputs{3, this_condition} = group2_mrilist';
+        inputs{4, this_condition} = [group1_ages';group2_ages'];
+        if visual_check
+            spm_check_registration(this_t_scan{~cellfun(@isempty,this_t_scan)}) % Optional visual check of your input images (don't need to be aligned or anything, just to see they're all structurals and exist)
+            input('Press any key to proceed to second level with these scans')
+        end
+    end
+    
+    secondlevelworkedcorrectly = zeros(1,nrun);
+    parfor crun = 1:nrun
+        spm('defaults', 'fMRI');
+        spm_jobman('initcfg')
+        try
+            spm_jobman('run', jobs{crun}, inputs{:,crun});
+            secondlevelworkedcorrectly(crun) = 1;
+        catch
+            secondlevelworkedcorrectly(crun) = 0;
+        end
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+%% Now repeat SPM Univariate analysis in native space
+nrun = size(subjects,2); % enter the number of runs here
+for this_smooth = [3,8];
+    % Do a univariate SPM analysis at a smoothing level set by the this_smooth flag
+    disp('SPM univariate analysis')
+    
+    inputs = cell(0, nrun);
+    
+    starttime={};
+    stimType={};
+    stim_type_labels={};
+    for crun = 1:nrun
+        theseepis = find(strncmp(blocksout{crun},'Run',3));
+        outpath = [preprocessedpathstem subjects{crun} '/'];
+        filestoanalyse = cell(1,length(theseepis));
+        
+        [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD_cluster(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+        
+        inputs{1, crun} = cellstr([outpath 'stats_native_mask0.3_' num2str(this_smooth) '_multi']);
+        for sess = 1:length(theseepis)
+            filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s' num2str(this_smooth) 'rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+            inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+            this_rp_file = dir([outpath 'rp*' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+            inputs{(2*(sess-1))+3, crun} = cellstr([outpath this_rp_file.name]);
+        end
+        %inputs{end+1, crun} = cellstr([outpath 'binarised_native_structural_mask.nii,1']); % Don't mask at first level
+    end
+    
+    SPMworkedcorrectly = zeros(1,nrun);
+    parfor crun = 1:nrun
+        jobfile = create_SD_SPM_Job(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun),run_params{crun});
+        spm('defaults', 'fMRI');
+        spm_jobman('initcfg')
+        try
+            spm_jobman('run', jobfile);
+            SPMworkedcorrectly(crun) = 1;
+        catch
+            SPMworkedcorrectly(crun) = 0;
+        end
+    end
+    
+    if ~all(SPMworkedcorrectly)
+        error(['failed at SPM ' num2str(this_smooth) 'mm']);
+    end
+    
+end
