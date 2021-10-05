@@ -763,7 +763,7 @@ nrun = 1;
 all_smooth = [3,8];
 parfor smooth_number = 1:2
     this_smooth = all_smooth(smooth_number)
-    jobfile = {'./vbm_scripts/VBM_batch_factorial_TIV_age.m'};
+    jobfile = {[scriptdir '/vbm_scripts/VBM_batch_factorial_TIV_age.m']};
     jobs = repmat(jobfile, 1, nrun);
     inputs = cell(6, nrun);
     stats_folder = {[preprocessedpathstem filesep 'VBM_stats_' num2str(this_smooth) '/factorial_full_group_vbm_TIVnormalised_agecovaried_unsmoothedmask']};
@@ -773,7 +773,7 @@ parfor smooth_number = 1:2
     inputs{1, 1} = stats_folder;
     
     for crun = 1:nrun
-        inputs{2, 1} = cell(length(group1_mrilist),1);
+        inputs{2, crun} = cell(length(group1_mrilist),1);
         for i = 1:length(group1_mrilist)
             if segmented
                 if spm_segment
@@ -785,7 +785,7 @@ parfor smooth_number = 1:2
                 inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mwc1' split_stem_group1{i}{end}]);
             end
         end
-        inputs{3, 1} = cell(length(group2_mrilist),1);
+        inputs{3, crun} = cell(length(group2_mrilist),1);
         for i = 1:length(group2_mrilist)
             if segmented
                 if spm_segment
@@ -834,24 +834,117 @@ parfor smooth_number = 1:2
     inputs = cell(1, nrun);
     inputs{1, 1} =  {[char(stats_folder) '/SPM.mat']};
     
-    jobfile = {'./vbm_scripts/VBM_batch_estimate.m'};
+    jobfile = {[scriptdir '/vbm_scripts/VBM_batch_estimate.m']};
     jobs = repmat(jobfile, 1, nrun);
     
     spm_jobman('run', jobs, inputs{:});
     
-    jobfile = {'./vbm_scripts/VBM_batch_contrast.m'};
+    jobfile = {[scriptdir '/vbm_scripts/VBM_batch_contrast.m']};
     jobs = repmat(jobfile, 1, nrun);
     
     spm_jobman('run', jobs, inputs{:});
     
-    jobfile = {'./vbm_scripts/VBM_batch_results.m'};
+    jobfile = {[scriptdir '/vbm_scripts/VBM_batch_results.m'}];
     jobs = repmat(jobfile, 1, nrun);
     
     spm_jobman('run', jobs, inputs{:});
 end
 
-
-
+% Now do covariate stats with behavioural regressors, and age+TIV
+nrun = length(fieldnames(group1_covariates(1)))-1;
+all_smooth = [3,8];
+for smooth_number = 1:2
+    this_smooth = all_smooth(smooth_number);
+    inputs = cell(6, nrun);
+    split_stem_group2 = regexp(group2_mrilist, '/', 'split');
+    split_stem_group1 = regexp(group1_mrilist, '/', 'split');
+    covariate_nans = NaN(length(group1_mrilist),nrun);
+       
+    for crun = 1:nrun
+        stats_folder{crun} = {[preprocessedpathstem filesep 'VBM_stats_' num2str(this_smooth) '/covariate_analysis/' char(age_lookup.Properties.VariableNames(crun+Age_column))]};
+        inputs{1, crun} = stats_folder{crun};
+        inputs{2, crun} = cell(length(group1_mrilist),1);
+        inputs{3, crun} = [group1_tivs'];
+        inputs{4, crun} = [group1_ages'];
+        inputs{5, crun} = NaN(length(group1_mrilist),1);
+        for i = 1:length(group1_mrilist)
+            if segmented
+                if spm_segment
+                    inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mw' split_stem_group1{i}{end}]);
+                elseif cat12_segment
+                    inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) split_stem_group1{i}{end}]);
+                end
+            else
+                inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mwc1' split_stem_group1{i}{end}]);
+            end
+            inputs{5, crun}(i) = eval(['group1_covariates(i).' char(age_lookup.Properties.VariableNames(crun+Age_column))]);
+            if isnan(inputs{5, crun}(i))
+                covariate_nans(i, crun) = 1;
+            end
+        end
+        if cat12_segment
+            inputs{6, crun} = {'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img'};
+        else
+            inputs{6, crun} = {'control_majority_unsmoothed_mask_c1_thr0.05_cons0.8.img'};
+        end
+        
+    end
+    
+    if ~exist(char(inputs{6, 1}),'file')
+        maskfilenames = {};
+        for i = 1:length(group2_mrilist)
+            if segmented
+                maskfilenames{i} = ['/' fullfile(split_stem_group2{i}{1:end-1}) '/w' split_stem_group2{i}{end}(3:end)];
+            else
+                maskfilenames{i} = ['/' fullfile(split_stem_group2{i}{1:end-1}) '/w' split_stem_group2{i}{end}];
+            end
+        end
+        if cat12_segment
+            make_majority_mask([0.2 0.1 0.05 0.001], 0.8, ['control_majority_unsmoothed_mask_p1'], char(maskfilenames))
+        else
+            make_majority_mask([0.2 0.1 0.05 0.001], 0.8, ['control_majority_unsmoothed_mask_c1'], char(maskfilenames))
+        end
+    end
+    
+    parfor crun = 1:nrun
+        if all(covariate_nans(:,crun)==1)
+            continue 
+        end
+        
+        try
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_ungrouped_covariate_TIV_age.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        spm('defaults', 'PET');
+        
+        these_inputs = cell(size(inputs,1),1); % Exclude NaN covariates
+        these_inputs{1,1} = inputs{1,crun};
+        for i = 2:size(inputs,1)-1
+            these_inputs{i,1} = inputs{i,crun}(isnan(covariate_nans(:,crun)));
+        end
+        these_inputs{i+1,1} = inputs{end,crun};
+        spm_jobman('run', jobs{crun}, these_inputs{:,1});
+        
+        new_inputs = cell(1, nrun);
+        new_inputs{1, crun} =  {[char(stats_folder{crun}) '/SPM.mat']};
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_estimate.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_covariate_ungrouped_contrast.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_results.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        catch
+        end
+    end
+end
 
 
 
@@ -938,10 +1031,10 @@ for this_smooth = [3,8];
     inputs = cell(4, nrun);
     
     for this_condition = 1:nrun
-        group1_mrilist = {}; %NB: Patient MRIs, so here group 2 (sorry)
-        group1_ages = [];
-        group2_mrilist = {};
-        group2_ages = [];
+        group1_firstlevel_mrilist = {}; %NB: Patient MRIs, so here group 2 (sorry)
+        group1_firstlevel_ages = [];
+        group2_firstlevel_mrilist = {};
+        group2_firstlevel_ages = [];
         
         if exclude_bad
             inputs{1, this_condition} = cellstr([preprocessedpathstem firstlevel_folder '_nobad' filesep all_conditions{this_condition,2}]);
@@ -969,16 +1062,16 @@ for this_smooth = [3,8];
                 this_t_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep strrep(all_conditions{this_condition,1},'con','spmT')]);
             end
             if group(crun) == 1 % Controls
-                group2_mrilist(end+1) = this_scan(crun);
-                group2_ages(end+1) = this_age;
+                group2_firstlevel_mrilist(end+1) = this_scan(crun);
+                group2_firstlevel_ages(end+1) = this_age;
             elseif group(crun) == 2 % Patients
-                group1_mrilist(end+1) = this_scan(crun);
-                group1_ages(end+1) = this_age;
+                group1_firstlevel_mrilist(end+1) = this_scan(crun);
+                group1_firstlevel_ages(end+1) = this_age;
             end
         end
-        inputs{2, this_condition} = group1_mrilist';
-        inputs{3, this_condition} = group2_mrilist';
-        inputs{4, this_condition} = [group1_ages';group2_ages'];
+        inputs{2, this_condition} = group1_firstlevel_mrilist';
+        inputs{3, this_condition} = group2_firstlevel_mrilist';
+        inputs{4, this_condition} = [group1_firstlevel_ages';group2_firstlevel_ages'];
         if visual_check
             spm_check_registration(this_t_scan{~cellfun(@isempty,this_t_scan)}) % Optional visual check of your input images (don't need to be aligned or anything, just to see they're all t-maps and exist)
             input('Press any key to proceed to second level with these scans')
