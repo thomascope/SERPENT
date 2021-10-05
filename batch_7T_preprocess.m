@@ -332,7 +332,7 @@ parfor this_bad = 1:length(bad_subjects)
 end
     
 
-%% Skullstrip structural
+%% Segment and skullstrip structural using SPM12 with both Uni and INV2 images
 nrun = size(subjects,2); % enter the number of runs here
 %jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
 jobfile = {[scriptdir 'module_skullstrip_INV2_job.m']};
@@ -644,10 +644,220 @@ end
 save([preprocessedpathstem 'samseg_tivs'],'samseg_tiv');
 csvwrite([preprocessedpathstem 'samseg_tivs.csv'],samseg_tiv);
 
-%% VBM and correlation analyses
-XXX To go here
+%% Now run a VBM analysis based on either the spm or cat12 segmentations
+nrun = size(subjects,2); % enter the number of runs here
+age_lookup = readtable('SERPENT_Only_Included.csv');
+load([preprocessedpathstem 'samseg_tivs'],'samseg_tiv');
+assert(length(samseg_tiv)==nrun,'Number of subjects and TIV values does not match, aborting')
+visual_check = 0;
+group1_mrilist = {}; %NB: Patient MRIs, so note group number swaps
+group1_ages = [];
+group1_tivs = [];
+group2_mrilist = {};
+group2_ages = [];
+group2_tivs = [];
+this_scan = {};
+this_segmented = {};
+segmented = 1;
+spm_segment = 0;
+cat12_segment = 1;
+clear group1_covariates group2_covariates
 
-%% Now do SPM Univariate analysis in template space
+for crun = 1:nrun
+    this_age = age_lookup.Age(strcmp(age_lookup.x_SubjectID,subjects{crun}));
+    %Define covariates
+    Age_column = find(strcmp(age_lookup.Properties.VariableNames,'Age'));
+    covariate_struct = table2struct(age_lookup(strcmp(age_lookup.x_SubjectID,subjects{crun}),Age_column:length(age_lookup.Properties.VariableNames)));
+    this_scan(crun) = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+    %this_scan(crun) = cellstr([preprocessedpathstem subjects{crun} '/structural.nii']);
+    if segmented
+        if spm_segment
+            this_segmented(crun) = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/c1p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+        elseif cat12_segment
+            outpath = [preprocessedpathstem subjects{crun} '/'];
+            this_segmented(crun) = cellstr([outpath 'mri/mwp1p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_denoised.nii']);
+        end
+    end
+    if group(crun) == 1 % Controls
+        if ~segmented
+            group2_mrilist(end+1) = this_scan(crun);
+        else
+            group2_mrilist(end+1) = this_segmented(crun);
+        end
+        group2_ages(end+1) = this_age;
+        group2_tivs(end+1) = samseg_tiv(crun);
+        if exist('group2_covariates','var')
+            group2_covariates(end+1) = covariate_struct;
+        else
+            group2_covariates = covariate_struct;
+        end
+    elseif group(crun) == 2 % Patients
+        if ~segmented
+            group1_mrilist(end+1) = this_scan(crun);
+        else
+            group1_mrilist(end+1) = this_segmented(crun);
+        end
+        group1_ages(end+1) = this_age;
+        group1_tivs(end+1) = samseg_tiv(crun);
+        if exist('group1_covariates','var')
+            group1_covariates(end+1) = covariate_struct;
+        else
+            group1_covariates = covariate_struct;
+        end
+    end
+end
+if visual_check
+    if segmented
+        spm_check_registration(this_segmented{:})
+    else
+        spm_check_registration(this_scan{:}) % Optional visual check of your input images (don't need to be aligned or anything, just to see they're all structurals and exist)
+    end
+end
+
+%NB: Only implemented so far for cat12 segmented images - other image types
+%will need extra steps, see https://github.com/thomascope/7T_pilot_analysis/blob/master/module_vbm_job.m
+% if spm_segment
+% % Make a DARTEL template based on a matched number of control and patient images
+% npatients = sum(group==2);
+% ncontrols = sum(group==1);
+% core_number = min(npatients,ncontrols);
+% 
+% core_imagepaths = [group1_mrilist; group2_mrilist(1:length(group1_mrilist))
+% 
+% XXX this section not yet complete, because we have moved to cat12
+% segmentation
+
+% Now smooth all scans
+group1_mrilist = group1_mrilist';
+group2_mrilist = group2_mrilist';
+mrilist = [group1_mrilist; group2_mrilist];
+
+jobfile = {[scriptdir 'module_smooth_job.m']};
+inputs = cell(2, nrun);
+
+for crun = 1:nrun
+    inputs{1, crun} = cellstr(mrilist{crun}); % Needs to be twice, once for each smoothing kernel
+    inputs{2, crun} = cellstr(mrilist{crun});
+end
+
+structuralsmoothworkedcorrectly = zeros(1,nrun);
+jobs = repmat(jobfile, 1, 1);
+
+parfor crun = 1:nrun
+    spm('defaults', 'fMRI');
+    spm_jobman('initcfg')
+    try
+        spm_jobman('run', jobs, inputs{:,crun});
+        structuralsmoothworkedcorrectly(crun) = 1;
+    catch
+        structuralsmoothworkedcorrectly(crun) = 0;
+    end
+end
+
+if ~all(structuralsmoothworkedcorrectly)
+    error('failed at segmented structural smooth');
+end
+
+% Now do group stats with TIV and age file as covariates in the ANOVA
+nrun = 1;
+all_smooth = [3,8];
+parfor smooth_number = 1:2
+    this_smooth = all_smooth(smooth_number)
+    jobfile = {'./vbm_scripts/VBM_batch_factorial_TIV_age.m'};
+    jobs = repmat(jobfile, 1, nrun);
+    inputs = cell(6, nrun);
+    stats_folder = {[preprocessedpathstem filesep 'VBM_stats_' num2str(this_smooth) '/factorial_full_group_vbm_TIVnormalised_agecovaried_unsmoothedmask']};
+    split_stem_group2 = regexp(group2_mrilist, '/', 'split');
+    split_stem_group1 = regexp(group1_mrilist, '/', 'split');
+    
+    inputs{1, 1} = stats_folder;
+    
+    for crun = 1:nrun
+        inputs{2, 1} = cell(length(group1_mrilist),1);
+        for i = 1:length(group1_mrilist)
+            if segmented
+                if spm_segment
+                    inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mw' split_stem_group1{i}{end}]);
+                elseif cat12_segment
+                    inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) split_stem_group1{i}{end}]);
+                end
+            else
+                inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mwc1' split_stem_group1{i}{end}]);
+            end
+        end
+        inputs{3, 1} = cell(length(group2_mrilist),1);
+        for i = 1:length(group2_mrilist)
+            if segmented
+                if spm_segment
+                    inputs{3,crun}(i) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) 'mw' split_stem_group2{i}{end}]);
+                elseif cat12_segment
+                    inputs{3,crun}(i) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) split_stem_group2{i}{end}]);
+                end
+            else
+                inputs{3,crun}(i) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) 'mwc1' split_stem_group2{i}{end}]);
+            end
+        end
+    end
+    
+    inputs{4, 1} = [group1_tivs';group2_tivs'];
+    inputs{5, 1} = [group1_ages'; group2_ages'];
+    if cat12_segment
+        inputs{6, 1} = {'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img'};
+    else
+        inputs{6, 1} = {'control_majority_unsmoothed_mask_c1_thr0.05_cons0.8.img'};
+    end
+    
+    if ~exist(char(inputs{6, 1}),'file')
+        maskfilenames = {};
+        for i = 1:length(group2_mrilist)
+            if segmented
+                maskfilenames{i} = ['/' fullfile(split_stem_group2{i}{1:end-1}) '/w' split_stem_group2{i}{end}(3:end)];
+            else
+                maskfilenames{i} = ['/' fullfile(split_stem_group2{i}{1:end-1}) '/w' split_stem_group2{i}{end}];
+            end
+        end
+        if cat12_segment
+            make_majority_mask([0.2 0.1 0.05 0.001], 0.8, ['control_majority_unsmoothed_mask_p1'], char(maskfilenames))
+        else
+            make_majority_mask([0.2 0.1 0.05 0.001], 0.8, ['control_majority_unsmoothed_mask_c1'], char(maskfilenames))
+        end
+    end
+    
+    if visual_check
+        all_input_images = [inputs{2};inputs{3}];
+        spm_check_registration(all_input_images{:})
+        input('Press any key to continue')
+    end
+    spm('defaults', 'PET');
+    spm_jobman('run', jobs, inputs{:});
+    
+    inputs = cell(1, nrun);
+    inputs{1, 1} =  {[char(stats_folder) '/SPM.mat']};
+    
+    jobfile = {'./vbm_scripts/VBM_batch_estimate.m'};
+    jobs = repmat(jobfile, 1, nrun);
+    
+    spm_jobman('run', jobs, inputs{:});
+    
+    jobfile = {'./vbm_scripts/VBM_batch_contrast.m'};
+    jobs = repmat(jobfile, 1, nrun);
+    
+    spm_jobman('run', jobs, inputs{:});
+    
+    jobfile = {'./vbm_scripts/VBM_batch_results.m'};
+    jobs = repmat(jobfile, 1, nrun);
+    
+    spm_jobman('run', jobs, inputs{:});
+end
+
+
+
+
+
+
+
+
+%% Now do fMRI SPM Univariate analysis in template space
 nrun = size(subjects,2); % enter the number of runs here
 for this_smooth = [3,8];
     % Do a univariate SPM analysis at a smoothing level set by the this_smooth flag
@@ -770,7 +980,7 @@ for this_smooth = [3,8];
         inputs{3, this_condition} = group2_mrilist';
         inputs{4, this_condition} = [group1_ages';group2_ages'];
         if visual_check
-            spm_check_registration(this_t_scan{~cellfun(@isempty,this_t_scan)}) % Optional visual check of your input images (don't need to be aligned or anything, just to see they're all structurals and exist)
+            spm_check_registration(this_t_scan{~cellfun(@isempty,this_t_scan)}) % Optional visual check of your input images (don't need to be aligned or anything, just to see they're all t-maps and exist)
             input('Press any key to proceed to second level with these scans')
         end
     end
