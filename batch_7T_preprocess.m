@@ -1711,7 +1711,20 @@ for this_smooth = [3,8];
     
 end
 
-
+%% Now run the cross validated Mahalanobis distance and RSM on each subject on the whole brain downsampled at 2 (quick)
+nrun = size(subjects,2); % enter the number of runs here
+mahalanobisworkedcorrectly = zeros(1,nrun);
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+parfor crun = 1:nrun
+    addpath(genpath('./RSA_scripts'))
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_multi_reversedbuttons'];
+    try
+        TDTCrossnobisAnalysis_1Subj(GLMDir,downsamp_ratio)
+        mahalanobisworkedcorrectly(crun) = 1;
+    catch
+        mahalanobisworkedcorrectly(crun) = 0;
+    end
+end
 
 
 
