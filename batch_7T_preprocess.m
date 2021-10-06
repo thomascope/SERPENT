@@ -653,9 +653,11 @@ visual_check = 0;
 group1_mrilist = {}; %NB: Patient MRIs, so note group number swaps
 group1_ages = [];
 group1_tivs = [];
+group1_sexes = [];
 group2_mrilist = {};
 group2_ages = [];
 group2_tivs = [];
+group2_sexes = [];
 this_scan = {};
 this_segmented = {};
 segmented = 1;
@@ -665,6 +667,7 @@ clear group1_covariates group2_covariates
 
 for crun = 1:nrun
     this_age = age_lookup.Age(strcmp(age_lookup.x_SubjectID,subjects{crun}));
+    this_sex = strcmp(age_lookup.Sex(strcmp(age_lookup.x_SubjectID,subjects{crun})),'M');
     %Define covariates
     Age_column = find(strcmp(age_lookup.Properties.VariableNames,'Age'));
     covariate_struct = table2struct(age_lookup(strcmp(age_lookup.x_SubjectID,subjects{crun}),Age_column:length(age_lookup.Properties.VariableNames)));
@@ -691,6 +694,7 @@ for crun = 1:nrun
         else
             group2_covariates = covariate_struct;
         end
+        group2_sexes(end+1) = this_sex;
     elseif group(crun) == 2 % Patients
         if ~segmented
             group1_mrilist(end+1) = this_scan(crun);
@@ -704,6 +708,7 @@ for crun = 1:nrun
         else
             group1_covariates = covariate_struct;
         end
+        group1_sexes(end+1) = this_sex;
     end
 end
 if visual_check
@@ -799,12 +804,12 @@ parfor smooth_number = 1:2
         end
     end
     
-    inputs{4, 1} = [group1_tivs';group2_tivs'];
+    inputs{4, 1} = [group1_tivs'; group2_tivs'];
     inputs{5, 1} = [group1_ages'; group2_ages'];
     if cat12_segment
-        inputs{6, 1} = {'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img'};
+        inputs{6, 1} = {[scriptdir 'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img']};
     else
-        inputs{6, 1} = {'control_majority_unsmoothed_mask_c1_thr0.05_cons0.8.img'};
+        inputs{6, 1} = {[scriptdir 'control_majority_unsmoothed_mask_c1_thr0.05_cons0.8.img']};
     end
     
     if ~exist(char(inputs{6, 1}),'file')
@@ -883,9 +888,9 @@ for smooth_number = 1:2
             end
         end
         if cat12_segment
-            inputs{6, crun} = {'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img'};
+            inputs{6, crun} = {[scriptdir 'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img']};
         else
-            inputs{6, crun} = {'control_majority_unsmoothed_mask_c1_thr0.05_cons0.8.img'};
+            inputs{6, crun} = {[scriptdir 'control_majority_unsmoothed_mask_c1_thr0.05_cons0.8.img']};
         end
         
     end
@@ -946,8 +951,554 @@ for smooth_number = 1:2
     end
 end
 
+% Now do covariate stats with behavioural regressors, and age+TIV+sex
+nrun = length(fieldnames(group1_covariates(1)))-1;
+all_smooth = [3,8];
+for smooth_number = 1:2
+    this_smooth = all_smooth(smooth_number);
+    inputs = cell(7, nrun);
+    split_stem_group2 = regexp(group2_mrilist, '/', 'split');
+    split_stem_group1 = regexp(group1_mrilist, '/', 'split');
+    covariate_nans = NaN(length(group1_mrilist),nrun);
+       
+    for crun = 1:nrun
+        stats_folder{crun} = {[preprocessedpathstem filesep 'VBM_stats_' num2str(this_smooth) '/covariate_analysis_withsex/' char(age_lookup.Properties.VariableNames(crun+Age_column))]};
+        inputs{1, crun} = stats_folder{crun};
+        inputs{2, crun} = cell(length(group1_mrilist),1);
+        inputs{3, crun} = [group1_tivs'];
+        inputs{4, crun} = [group1_ages'];
+        inputs{5, crun} = NaN(length(group1_mrilist),1);
+        inputs{6, crun} = [group1_sexes'];
+        for i = 1:length(group1_mrilist)
+            if segmented
+                if spm_segment
+                    inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mw' split_stem_group1{i}{end}]);
+                elseif cat12_segment
+                    inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) split_stem_group1{i}{end}]);
+                end
+            else
+                inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mwc1' split_stem_group1{i}{end}]);
+            end
+            inputs{5, crun}(i) = eval(['group1_covariates(i).' char(age_lookup.Properties.VariableNames(crun+Age_column))]);
+            if isnan(inputs{5, crun}(i))
+                covariate_nans(i, crun) = 1;
+            end
+        end
+        if cat12_segment
+            inputs{7, crun} = {[scriptdir 'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img']};
+        else
+            inputs{7, crun} = {[scriptdir 'control_majority_unsmoothed_mask_c1_thr0.05_cons0.8.img']};
+        end
+        
+    end
+    
+    if ~exist(char(inputs{7, 1}),'file')
+        maskfilenames = {};
+        for i = 1:length(group2_mrilist)
+            if segmented
+                maskfilenames{i} = ['/' fullfile(split_stem_group2{i}{1:end-1}) '/w' split_stem_group2{i}{end}(3:end)];
+            else
+                maskfilenames{i} = ['/' fullfile(split_stem_group2{i}{1:end-1}) '/w' split_stem_group2{i}{end}];
+            end
+        end
+        if cat12_segment
+            make_majority_mask([0.2 0.1 0.05 0.001], 0.8, ['control_majority_unsmoothed_mask_p1'], char(maskfilenames))
+        else
+            make_majority_mask([0.2 0.1 0.05 0.001], 0.8, ['control_majority_unsmoothed_mask_c1'], char(maskfilenames))
+        end
+    end
+    
+    parfor crun = 1:nrun
+        if all(covariate_nans(:,crun)==1)
+            continue 
+        end
+        
+        try
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_ungrouped_covariate_TIV_age_sex.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        spm('defaults', 'PET');
+        
+        these_inputs = cell(size(inputs,1),1); % Exclude NaN covariates
+        these_inputs{1,1} = inputs{1,crun};
+        for i = 2:size(inputs,1)-1
+            these_inputs{i,1} = inputs{i,crun}(isnan(covariate_nans(:,crun)));
+        end
+        these_inputs{i+1,1} = inputs{end,crun};
+        spm_jobman('run', jobs{crun}, these_inputs{:,1});
+        
+        new_inputs = cell(1, nrun);
+        new_inputs{1, crun} =  {[char(stats_folder{crun}) '/SPM.mat']};
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_estimate.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_covariate_ungrouped_contrast.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_results.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        catch
+        end
+    end
+end
 
+% Now repeat covariate stats with controls too - behavioural regressors, and age+TIV
+nrun = length(fieldnames(group1_covariates(1)))-1;
+all_smooth = [3,8];
+for smooth_number = 1:2
+    this_smooth = all_smooth(smooth_number);
+    inputs = cell(6, nrun);
+    split_stem_group2 = regexp(group2_mrilist, '/', 'split');
+    split_stem_group1 = regexp(group1_mrilist, '/', 'split');
+    covariate_nans = NaN(length(group1_mrilist)+length(group2_mrilist),nrun);
+       
+    for crun = 1:nrun
+        stats_folder{crun} = {[preprocessedpathstem filesep 'VBM_stats_' num2str(this_smooth) '/covariate_analysis_withcontrols/' char(age_lookup.Properties.VariableNames(crun+Age_column))]};       
+        inputs{1, crun} = stats_folder{crun};
+        inputs{2, crun} = cell(length(group1_mrilist)+length(group2_mrilist),1);
+        inputs{3, crun} = [group1_tivs';group2_tivs'];
+        inputs{4, crun} = [group1_ages';group2_ages'];
+        inputs{5, crun} = [NaN(length(group1_mrilist),1);NaN(length(group1_mrilist),1)];
+        for i = 1:length(group1_mrilist)
+            if segmented
+                if spm_segment
+                    inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mw' split_stem_group1{i}{end}]);
+                elseif cat12_segment
+                    inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) split_stem_group1{i}{end}]);
+                end
+            else
+                inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mwc1' split_stem_group1{i}{end}]);
+            end
+            inputs{5, crun}(i) = eval(['group1_covariates(i).' char(age_lookup.Properties.VariableNames(crun+Age_column))]);
+            if isnan(inputs{5, crun}(i))
+                covariate_nans(i, crun) = 1;
+            end
+        end
+        for i = 1:length(group2_mrilist)
+            if segmented
+                if spm_segment
+                    inputs{2,crun}(i+length(group1_mrilist)) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) 'mw' split_stem_group2{i}{end}]);
+                elseif cat12_segment
+                    inputs{2,crun}(i+length(group1_mrilist)) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) split_stem_group2{i}{end}]);
+                end
+            else
+                inputs{2,crun}(i+length(group1_mrilist)) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) 'mwc1' split_stem_group2{i}{end}]);
+            end
+            inputs{5, crun}(i+length(group1_mrilist)) = eval(['group2_covariates(i).' char(age_lookup.Properties.VariableNames(crun+Age_column))]);
+            if isnan(inputs{5, crun}(i+length(group1_mrilist)))
+                covariate_nans(i+length(group1_mrilist), crun) = 1;
+            end
+        end
+        if cat12_segment
+            inputs{6, crun} = {[scriptdir 'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img']};
+        else
+            inputs{6, crun} = {[scriptdir 'control_majority_unsmoothed_mask_c1_thr0.05_cons0.8.img']};
+        end
+        
+    end
+    
+    if ~exist(char(inputs{6, 1}),'file')
+        maskfilenames = {};
+        for i = 1:length(group2_mrilist)
+            if segmented
+                maskfilenames{i} = ['/' fullfile(split_stem_group2{i}{1:end-1}) '/w' split_stem_group2{i}{end}(3:end)];
+            else
+                maskfilenames{i} = ['/' fullfile(split_stem_group2{i}{1:end-1}) '/w' split_stem_group2{i}{end}];
+            end
+        end
+        if cat12_segment
+            make_majority_mask([0.2 0.1 0.05 0.001], 0.8, ['control_majority_unsmoothed_mask_p1'], char(maskfilenames))
+        else
+            make_majority_mask([0.2 0.1 0.05 0.001], 0.8, ['control_majority_unsmoothed_mask_c1'], char(maskfilenames))
+        end
+    end
+    
+    parfor crun = 1:nrun
+        if all(covariate_nans(:,crun)==1)
+            continue 
+        end
+        
+        try
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_ungrouped_covariate_TIV_age.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        spm('defaults', 'PET');
+        
+        these_inputs = cell(size(inputs,1),1); % Exclude NaN covariates
+        these_inputs{1,1} = inputs{1,crun};
+        for i = 2:size(inputs,1)-1
+            these_inputs{i,1} = inputs{i,crun}(isnan(covariate_nans(:,crun)));
+        end
+        these_inputs{i+1,1} = inputs{end,crun};
+        spm_jobman('run', jobs{crun}, these_inputs{:,1});
+        
+        new_inputs = cell(1, nrun);
+        new_inputs{1, crun} =  {[char(stats_folder{crun}) '/SPM.mat']};
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_estimate.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_covariate_ungrouped_contrast.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_results.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        catch
+        end
+    end
+end
 
+% Now repeat covariate stats with controls too - behavioural regressors, and age+TIV+sex
+nrun = length(fieldnames(group1_covariates(1)))-1;
+all_smooth = [3,8];
+for smooth_number = 1:2
+      this_smooth = all_smooth(smooth_number);
+    inputs = cell(6, nrun);
+    split_stem_group2 = regexp(group2_mrilist, '/', 'split');
+    split_stem_group1 = regexp(group1_mrilist, '/', 'split');
+    covariate_nans = NaN(length(group1_mrilist)+length(group2_mrilist),nrun);
+       
+    for crun = 1:nrun
+        stats_folder{crun} = {[preprocessedpathstem filesep 'VBM_stats_' num2str(this_smooth) '/covariate_analysis_withcontrols_withsex/' char(age_lookup.Properties.VariableNames(crun+Age_column))]};       
+        inputs{1, crun} = stats_folder{crun};
+        inputs{2, crun} = cell(length(group1_mrilist)+length(group2_mrilist),1);
+        inputs{3, crun} = [group1_tivs';group2_tivs'];
+        inputs{4, crun} = [group1_ages';group2_ages'];
+        inputs{5, crun} = [NaN(length(group1_mrilist),1);NaN(length(group1_mrilist),1)];
+        inputs{6, crun} = [group1_sexes';group2_sexes'];
+        for i = 1:length(group1_mrilist)
+            if segmented
+                if spm_segment
+                    inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mw' split_stem_group1{i}{end}]);
+                elseif cat12_segment
+                    inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) split_stem_group1{i}{end}]);
+                end
+            else
+                inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mwc1' split_stem_group1{i}{end}]);
+            end
+            inputs{5, crun}(i) = eval(['group1_covariates(i).' char(age_lookup.Properties.VariableNames(crun+Age_column))]);
+            if isnan(inputs{5, crun}(i))
+                covariate_nans(i, crun) = 1;
+            end
+        end
+        for i = 1:length(group2_mrilist)
+            if segmented
+                if spm_segment
+                    inputs{2,crun}(i+length(group1_mrilist)) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) 'mw' split_stem_group2{i}{end}]);
+                elseif cat12_segment
+                    inputs{2,crun}(i+length(group1_mrilist)) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) split_stem_group2{i}{end}]);
+                end
+            else
+                inputs{2,crun}(i+length(group1_mrilist)) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) 'mwc1' split_stem_group2{i}{end}]);
+            end
+            inputs{5, crun}(i+length(group1_mrilist)) = eval(['group2_covariates(i).' char(age_lookup.Properties.VariableNames(crun+Age_column))]);
+            if isnan(inputs{5, crun}(i+length(group1_mrilist)))
+                covariate_nans(i+length(group1_mrilist), crun) = 1;
+            end
+        end
+        if cat12_segment
+            inputs{7, crun} = {[scriptdir 'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img']};
+        else
+            inputs{7, crun} = {[scriptdir 'control_majority_unsmoothed_mask_c1_thr0.05_cons0.8.img']};
+        end
+        
+    end
+    
+    if ~exist(char(inputs{7, 1}),'file')
+        maskfilenames = {};
+        for i = 1:length(group2_mrilist)
+            if segmented
+                maskfilenames{i} = ['/' fullfile(split_stem_group2{i}{1:end-1}) '/w' split_stem_group2{i}{end}(3:end)];
+            else
+                maskfilenames{i} = ['/' fullfile(split_stem_group2{i}{1:end-1}) '/w' split_stem_group2{i}{end}];
+            end
+        end
+        if cat12_segment
+            make_majority_mask([0.2 0.1 0.05 0.001], 0.8, ['control_majority_unsmoothed_mask_p1'], char(maskfilenames))
+        else
+            make_majority_mask([0.2 0.1 0.05 0.001], 0.8, ['control_majority_unsmoothed_mask_c1'], char(maskfilenames))
+        end
+    end
+    
+    parfor crun = 1:nrun
+        if all(covariate_nans(:,crun)==1)
+            continue 
+        end
+        
+        try
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_ungrouped_covariate_TIV_age_sex.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        spm('defaults', 'PET');
+        
+        these_inputs = cell(size(inputs,1),1); % Exclude NaN covariates
+        these_inputs{1,1} = inputs{1,crun};
+        for i = 2:size(inputs,1)-1
+            these_inputs{i,1} = inputs{i,crun}(isnan(covariate_nans(:,crun)));
+        end
+        these_inputs{i+1,1} = inputs{end,crun};
+        spm_jobman('run', jobs{crun}, these_inputs{:,1});
+        
+        new_inputs = cell(1, nrun);
+        new_inputs{1, crun} =  {[char(stats_folder{crun}) '/SPM.mat']};
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_estimate.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_covariate_ungrouped_contrast.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_results.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        catch
+        end
+    end
+end
+
+% Now repeat covariate stats with group as a factor - behavioural regressors, and age+TIV
+nrun = length(fieldnames(group1_covariates(1)))-1;
+all_smooth = [3,8];
+for smooth_number = 1:2
+    this_smooth = all_smooth(smooth_number);
+    inputs = cell(7, nrun);
+    split_stem_group2 = regexp(group2_mrilist, '/', 'split');
+    split_stem_group1 = regexp(group1_mrilist, '/', 'split');
+    covariate_nans = NaN(length(group1_mrilist)+length(group2_mrilist),nrun);
+    
+    for crun = 1:nrun
+        stats_folder{crun} = {[preprocessedpathstem filesep 'VBM_stats_' num2str(this_smooth) '/grouped_covariate_analysis/' char(age_lookup.Properties.VariableNames(crun+Age_column))]};
+        inputs{1, crun} = stats_folder{crun};
+        inputs{2, crun} = cell(length(group1_mrilist),1);
+        inputs{3, crun} = cell(length(group2_mrilist),1);
+        inputs{4, crun} = [group1_tivs';group2_tivs'];
+        inputs{5, crun} = [group1_ages';group2_ages'];
+        inputs{6, crun} = [NaN(length(group1_mrilist),1);NaN(length(group1_mrilist),1)];
+        for i = 1:length(group1_mrilist)
+            if segmented
+                if spm_segment
+                    inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mw' split_stem_group1{i}{end}]);
+                elseif cat12_segment
+                    inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) split_stem_group1{i}{end}]);
+                end
+            else
+                inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mwc1' split_stem_group1{i}{end}]);
+            end
+            inputs{6, crun}(i) = eval(['group1_covariates(i).' char(age_lookup.Properties.VariableNames(crun+Age_column))]);
+            if isnan(inputs{6, crun}(i))
+                covariate_nans(i, crun) = 1;
+            end
+        end
+        for i = 1:length(group2_mrilist)
+            if segmented
+                if spm_segment
+                    inputs{3,crun}(i) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) 'mw' split_stem_group2{i}{end}]);
+                elseif cat12_segment
+                    inputs{3,crun}(i) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) split_stem_group2{i}{end}]);
+                end
+            else
+                inputs{3,crun}(i) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) 'mwc1' split_stem_group2{i}{end}]);
+            end
+            inputs{6, crun}(i+length(group1_mrilist)) = eval(['group2_covariates(i).' char(age_lookup.Properties.VariableNames(crun+Age_column))]);
+            if isnan(inputs{6, crun}(i+length(group1_mrilist)))
+                covariate_nans(i+length(group1_mrilist), crun) = 1;
+            end
+        end
+        if cat12_segment
+            inputs{7, crun} = {[scriptdir 'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img']};
+        else
+            inputs{7, crun} = {[scriptdir 'control_majority_unsmoothed_mask_c1_thr0.05_cons0.8.img']};
+        end
+        
+    end
+    
+    if ~exist(char(inputs{7, crun}),'file')
+        maskfilenames = {};
+        for i = 1:length(group2_mrilist)
+            if segmented
+                maskfilenames{i} = ['/' fullfile(split_stem_group2{i}{1:end-1}) '/w' split_stem_group2{i}{end}(3:end)];
+            else
+                maskfilenames{i} = ['/' fullfile(split_stem_group2{i}{1:end-1}) '/w' split_stem_group2{i}{end}];
+            end
+        end
+        if cat12_segment
+            make_majority_mask([0.2 0.1 0.05 0.001], 0.8, ['control_majority_unsmoothed_mask_p1'], char(maskfilenames))
+        else
+            make_majority_mask([0.2 0.1 0.05 0.001], 0.8, ['control_majority_unsmoothed_mask_c1'], char(maskfilenames))
+        end
+    end
+    
+    parfor crun = 1:nrun
+        if all(covariate_nans(:,crun)==1)
+            continue
+        end
+        
+        try
+            jobfile = {[scriptdir '/vbm_scripts/VBM_batch_grouped_covariate_TIV_age.m']};
+            jobs = repmat(jobfile, 1, nrun);
+            spm('defaults', 'PET');
+            
+            these_inputs = cell(size(inputs,1),1); % Exclude NaN covariates
+            these_inputs{1,1} = inputs{1,crun};
+            these_inputs{2,1} = inputs{2,crun}(isnan(covariate_nans(1:length(group1_mrilist),crun)));
+            these_inputs{3,1} = inputs{3,crun}(isnan(covariate_nans(length(group1_mrilist)+1:end,crun)));
+            for i = 4:size(inputs,1)-1
+                these_inputs{i,1} = inputs{i,crun}(isnan(covariate_nans(:,crun)));
+            end
+            these_inputs{i+1,1} = inputs{end,crun};
+            spm_jobman('run', jobs{crun}, these_inputs{:,1});
+            
+            new_inputs = cell(1, nrun);
+            new_inputs{1, crun} =  {[char(stats_folder{crun}) '/SPM.mat']};
+            
+            jobfile = {[scriptdir '/vbm_scripts/VBM_batch_estimate.m']};
+            jobs = repmat(jobfile, 1, nrun);
+            
+            spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+            
+            jobfile = {[scriptdir '/vbm_scripts/VBM_batch_covariate_grouped_contrast.m']};
+            jobs = repmat(jobfile, 1, nrun);
+            
+            spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+            
+            jobfile = {[scriptdir '/vbm_scripts/VBM_batch_results.m']};
+            jobs = repmat(jobfile, 1, nrun);
+            
+            spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        catch
+        end
+    end
+end
+
+% Now repeat covariate stats with group as a factor - behavioural regressors, and age+TIV+sex
+nrun = length(fieldnames(group1_covariates(1)))-1;
+all_smooth = [3,8];
+for smooth_number = 1:2
+    this_smooth = all_smooth(smooth_number);
+    inputs = cell(8, nrun);
+    split_stem_group2 = regexp(group2_mrilist, '/', 'split');
+    split_stem_group1 = regexp(group1_mrilist, '/', 'split');
+    covariate_nans = NaN(length(group1_mrilist)+length(group2_mrilist),nrun);
+       
+    for crun = 1:nrun
+        stats_folder{crun} = {[preprocessedpathstem filesep 'VBM_stats_' num2str(this_smooth) '/grouped_covariate_analysis_withsex/' char(age_lookup.Properties.VariableNames(crun+Age_column))]};
+        inputs{1, crun} = stats_folder{crun};
+        inputs{2, crun} = cell(length(group1_mrilist),1);
+        inputs{3, crun} = cell(length(group2_mrilist),1);
+        inputs{4, crun} = [group1_tivs';group2_tivs'];
+        inputs{5, crun} = [group1_ages';group2_ages'];
+        inputs{6, crun} = [NaN(length(group1_mrilist),1);NaN(length(group1_mrilist),1)];
+        inputs{7, crun} = [group1_sexes';group2_sexes'];
+        for i = 1:length(group1_mrilist)
+            if segmented
+                if spm_segment
+                    inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mw' split_stem_group1{i}{end}]);
+                elseif cat12_segment
+                    inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) split_stem_group1{i}{end}]);
+                end
+            else
+                inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/s' num2str(this_smooth) 'mwc1' split_stem_group1{i}{end}]);
+            end
+            inputs{6, crun}(i) = eval(['group1_covariates(i).' char(age_lookup.Properties.VariableNames(crun+Age_column))]);
+            if isnan(inputs{6, crun}(i))
+                covariate_nans(i, crun) = 1;
+            end
+        end
+        for i = 1:length(group2_mrilist)
+            if segmented
+                if spm_segment
+                    inputs{3,crun}(i) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) 'mw' split_stem_group2{i}{end}]);
+                elseif cat12_segment
+                    inputs{3,crun}(i) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) split_stem_group2{i}{end}]);
+                end
+            else
+                inputs{3,crun}(i) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/s' num2str(this_smooth) 'mwc1' split_stem_group2{i}{end}]);
+            end
+            inputs{6, crun}(i+length(group1_mrilist)) = eval(['group2_covariates(i).' char(age_lookup.Properties.VariableNames(crun+Age_column))]);
+            if isnan(inputs{6, crun}(i+length(group1_mrilist)))
+                covariate_nans(i+length(group1_mrilist), crun) = 1;
+            end
+        end
+        if cat12_segment
+            inputs{8, crun} = {[scriptdir 'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img']};
+        else
+            inputs{8, crun} = {[scriptdir 'control_majority_unsmoothed_mask_c1_thr0.05_cons0.8.img']};
+        end
+        
+    end
+    
+    if ~exist(char(inputs{8, crun}),'file')
+        maskfilenames = {};
+        for i = 1:length(group2_mrilist)
+            if segmented
+                maskfilenames{i} = ['/' fullfile(split_stem_group2{i}{1:end-1}) '/w' split_stem_group2{i}{end}(3:end)];
+            else
+                maskfilenames{i} = ['/' fullfile(split_stem_group2{i}{1:end-1}) '/w' split_stem_group2{i}{end}];
+            end
+        end
+        if cat12_segment
+            make_majority_mask([0.2 0.1 0.05 0.001], 0.8, ['control_majority_unsmoothed_mask_p1'], char(maskfilenames))
+        else
+            make_majority_mask([0.2 0.1 0.05 0.001], 0.8, ['control_majority_unsmoothed_mask_c1'], char(maskfilenames))
+        end
+    end
+    
+    parfor crun = 1:nrun
+        if all(covariate_nans(:,crun)==1)
+            continue 
+        end
+        
+        try
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_grouped_covariate_TIV_age_sex.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        spm('defaults', 'PET');
+        
+        these_inputs = cell(size(inputs,1),1); % Exclude NaN covariates
+        these_inputs{1,1} = inputs{1,crun};
+        these_inputs{2,1} = inputs{2,crun}(isnan(covariate_nans(1:length(group1_mrilist),crun)));
+        these_inputs{3,1} = inputs{3,crun}(isnan(covariate_nans(length(group1_mrilist)+1:end,crun)));
+        for i = 4:size(inputs,1)-1
+            these_inputs{i,1} = inputs{i,crun}(isnan(covariate_nans(:,crun)));
+        end
+        these_inputs{i+1,1} = inputs{end,crun};
+        spm_jobman('run', jobs{crun}, these_inputs{:,1});
+        
+        new_inputs = cell(1, nrun);
+        new_inputs{1, crun} =  {[char(stats_folder{crun}) '/SPM.mat']};
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_estimate.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_covariate_grouped_contrast.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        
+        jobfile = {[scriptdir '/vbm_scripts/VBM_batch_results.m']};
+        jobs = repmat(jobfile, 1, nrun);
+        
+        spm_jobman('run', jobs{crun}, new_inputs{:,crun});
+        catch
+        end
+    end
+end
 
 
 %% Now do fMRI SPM Univariate analysis in template space
@@ -968,7 +1519,7 @@ for this_smooth = [3,8];
         
         [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD_cluster(subjects{crun},dates{crun},length(theseepis),minvols(crun));
         
-        inputs{1, crun} = cellstr([outpath 'stats_mask0.3_' num2str(this_smooth) '_multi']);
+        inputs{1, crun} = cellstr([outpath 'stats_mask0.3_' num2str(this_smooth) '_multi_reversedbuttons']);
         for sess = 1:length(theseepis)
             filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s' num2str(this_smooth) 'wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
             inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -980,7 +1531,13 @@ for this_smooth = [3,8];
     
     SPMworkedcorrectly = zeros(1,nrun);
     parfor crun = 1:nrun
-        jobfile = create_SD_SPM_Job(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun),run_params{crun});
+        for i = 1:length(subjects)
+            this_dir = pwd;
+            cd([scriptdir 'behavioural_data'])
+            [~,~, reversed_buttons] = SD_7T_behaviour_withnull( subjects{crun}, dates{crun} ); % Need to check button presses are recorded correctly
+            cd(this_dir)
+        end
+        jobfile = create_SD_SPM_Job(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun),run_params{crun},reversed_buttons);
         spm('defaults', 'fMRI');
         spm_jobman('initcfg')
         try
@@ -1024,7 +1581,7 @@ for this_smooth = [3,8];
     
     this_scan = {};
     this_t_scan = {};
-    firstlevel_folder = ['stats_mask0.3_' num2str(this_smooth) '_multi'];
+    firstlevel_folder = ['stats_mask0.3_' num2str(this_smooth) '_multi_reversedbuttons'];
     
     jobfile = {[scriptdir 'module_secondlevel_job.m']};
     jobs = repmat(jobfile, 1, nrun);
@@ -1119,7 +1676,7 @@ for this_smooth = [3,8];
         
         [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD_cluster(subjects{crun},dates{crun},length(theseepis),minvols(crun));
         
-        inputs{1, crun} = cellstr([outpath 'stats_native_mask0.3_' num2str(this_smooth) '_multi']);
+        inputs{1, crun} = cellstr([outpath 'stats_native_mask0.3_' num2str(this_smooth) '_multi_reversedbuttons']);
         for sess = 1:length(theseepis)
             filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s' num2str(this_smooth) 'rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
             inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -1131,7 +1688,13 @@ for this_smooth = [3,8];
     
     SPMworkedcorrectly = zeros(1,nrun);
     parfor crun = 1:nrun
-        jobfile = create_SD_SPM_Job(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun),run_params{crun});
+        for i = 1:length(subjects)
+            this_dir = pwd;
+            cd([scriptdir 'behavioural_data'])
+            [~,~, reversed_buttons_native] = SD_7T_behaviour_withnull( subjects{crun}, dates{crun} ); % Need to check button presses are recorded correctly
+            cd(this_dir)
+        end
+        jobfile = create_SD_SPM_Job(subjects{crun},dates{crun},starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},inputs(:,crun),run_params{crun},reversed_buttons_native);
         spm('defaults', 'fMRI');
         spm_jobman('initcfg')
         try
@@ -1146,4 +1709,19 @@ for this_smooth = [3,8];
         error(['failed at SPM ' num2str(this_smooth) 'mm']);
     end
     
+end
+
+
+
+
+
+
+
+
+%% Assess behavioural performance
+for i = 1:length(subjects)
+    this_dir = pwd;
+    cd([scriptdir 'behavioural_data'])
+    [ all_response_averages(i), all_rt_averages(i), all_reversed(i)] = SD_7T_behaviour_withnull( subjects{i}, dates{i} );
+    cd(this_dir)
 end

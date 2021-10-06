@@ -1,4 +1,4 @@
-function jobfile = create_SD_SPM_Job(subject,date,starttime,stimType,stim_type_labels,buttonpressed,buttonpresstime,inputs,run_params)
+function jobfile = create_SD_SPM_Job(subject,date,starttime,stimType,stim_type_labels,buttonpressed,buttonpresstime,inputs,run_params,reversed_buttons)
 
 %A function for creating an appropriate univariate SPM for a given subject
 
@@ -30,13 +30,21 @@ for runI = 1:size(starttime,2)
     end
     %Now model the button press
     fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').cond(' num2str(this_cond+1) ').name = ''Left Button Press'';\n']);
+    if reversed_buttons
+    fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').cond(' num2str(this_cond+1) ').onset = [' num2str(buttonpresstime{runI}(buttonpressed{runI}==4)) '];\n']);
+    else
     fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').cond(' num2str(this_cond+1) ').onset = [' num2str(buttonpresstime{runI}(buttonpressed{runI}==1)) '];\n']);
+    end
     fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').cond(' num2str(this_cond+1) ').duration = 0;\n']);
     fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').cond(' num2str(this_cond+1) ').tmod = 0;\n']);
     fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').cond(' num2str(this_cond+1) ').pmod = struct(''name'', {}, ''param'', {}, ''poly'', {});\n']);
     fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').cond(' num2str(this_cond+1) ').orth = 1;\n']);
     fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').cond(' num2str(this_cond+2) ').name = ''Right Button Press'';\n']);
+    if reversed_buttons
+    fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').cond(' num2str(this_cond+2) ').onset = [' num2str(buttonpresstime{runI}(buttonpressed{runI}==1)) '];\n']);
+    else
     fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').cond(' num2str(this_cond+2) ').onset = [' num2str(buttonpresstime{runI}(buttonpressed{runI}==4)) '];\n']);
+    end
     fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').cond(' num2str(this_cond+2) ').duration = 0;\n']);
     fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').cond(' num2str(this_cond+2) ').tmod = 0;\n']);
     fprintf(fileID,['matlabbatch{1}.spm.stats.fmri_spec.sess(' num2str(runI) ').cond(' num2str(this_cond+2) ').pmod = struct(''name'', {}, ''param'', {}, ''poly'', {});\n']);
