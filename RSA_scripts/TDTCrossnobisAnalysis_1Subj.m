@@ -5,8 +5,8 @@ if ~exist('downsamp_ratio','var')
     downsamp_ratio = 1;
 end
 
-addpath('/group/language/data/thomascope/7T_SERPENT_pilot_analysis/RSA_scriptses_scripts_fMRI')
-addpath('/group/language/data/thomascope/7T_SERPENT_pilot_analysis/RSA_scriptsdecoding_toolbox_v3.999')
+addpath('/group/language/data/thomascope/7T_SERPENT_pilot_analysis/RSA_scripts/es_scripts_fMRI')
+addpath('/group/language/data/thomascope/7T_SERPENT_pilot_analysis/RSA_scripts/decoding_toolbox_v3.999')
 addpath(genpath('/group/language/data/ediz.sohoglu/matlab/rsatoolbox'));
 
 
@@ -185,6 +185,7 @@ try
     global_template_model(1:size(global_template_model,1)+1:end) = NaN; %Diagonal
     global_template_model = 1-global_template_model; %Dissimilarity
     modelNames{1} = 'Global_Template_Model';
+    models{1} = global_template_model;
     
     V = spm_vol(fullfile(GLMDir,'mask.nii'));
     mask = spm_read_vols(V);
