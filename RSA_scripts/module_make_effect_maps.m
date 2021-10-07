@@ -2,7 +2,7 @@ function module_make_effect_maps(GLMDir,downsamp_ratio)
 %For taking already calculated crossnobis distances and doing RSA
 
 redo_maps = 0; %If you want to calculate them again for some reason.
-save_design_matrices = 0; %If you want to output the design matrices for visualisation
+save_design_matrices = 1; %If you want to output the design matrices for visualisation
 
 if ~exist('downsamp_ratio','var')
     downsamp_ratio = 1;
