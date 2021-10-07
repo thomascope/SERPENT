@@ -1726,9 +1726,48 @@ parfor crun = 1:nrun
     end
 end
 
+%% Do an RSA analysis
+nrun = size(subjects,2); % enter the number of runs here
+RSAnobisworkedcorrectly = zeros(1,nrun);
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+parfor crun = 1:nrun
+    addpath(genpath('./RSA_scripts'))
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_multi_reversedbuttons'];
+    try
+        module_make_effect_maps(GLMDir,downsamp_ratio)
+        RSAnobisworkedcorrectly(crun) = 1;
+    catch
+        RSAnobisworkedcorrectly(crun) = 0;
+    end
+end
 
+%% Now normalise the native space RSA maps into template space with CAT12 deformation fields calculated earlier
+nrun = size(subjects,2); % enter the number of runs here
+native2templateworkedcorrectly = zeros(1,nrun);
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+parfor crun = 1:nrun
+    addpath(genpath('./RSA_scripts'))
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_multi_reversedbuttons'];
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    try
+        module_nativemap_2_template(GLMDir,downsamp_ratio,outpath)
+        native2templateworkedcorrectly(crun) = 1;
+    catch
+        native2templateworkedcorrectly(crun) = 0;
+    end
+end
 
+%% Now do a second level analysis on the searchlights
+crun = 1;
+age_lookup = readtable('SERPENT_Only_Included.csv');
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+rmpath([scriptdir '/RSA_scripts/es_scripts_fMRI']) %Stops SPM getting defaults for second level if on path
 
+GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_multi_reversedbuttons']; %Template, first subject
+outpath = [preprocessedpathstem '/stats_native_mask0.3_3_multi_reversedbuttons/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level']; %Results directory
+
+searchlighthighressecondlevel = []; % Sampling at 1mm isotropic - preferable for REML
+searchlighthighressecondlevel = module_searchlight_secondlevel_hires(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
 
 
 %% Assess behavioural performance

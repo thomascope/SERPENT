@@ -1,7 +1,7 @@
 function module_make_effect_maps(GLMDir,downsamp_ratio)
 %For taking already calculated crossnobis distances and doing RSA
 
-redo_maps = 1; %If you want to calculate them again for some reason.
+redo_maps = 0; %If you want to calculate them again for some reason.
 save_design_matrices = 0; %If you want to output the design matrices for visualisation
 
 if ~exist('downsamp_ratio','var')
@@ -54,7 +54,7 @@ if downsamp_ratio == 1
 else
     outputDir = fullfile(GLMDir,['TDTcrossnobis_downsamp_' num2str(downsamp_ratio)],version);
 end
-if exist(outputDir,'dir'); rmdir(outputDir,'s'); mkdir(outputDir); else; mkdir(outputDir); end
+if redo_maps&&exist(outputDir,'dir'); rmdir(outputDir,'s'); mkdir(outputDir); else; mkdir(outputDir); end
 
 clear models
 
@@ -172,92 +172,79 @@ for i = 1:length(basemodelNames)
         this_model_name{end+1} = [cross_decode_label_pairs{j,1} ' to ' cross_decode_label_pairs{j,2} ' ' basemodelNames{i}];
     end
 end
-% 
-% %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
-% %was consistently 8 elements after/before the auditory word
-% for i = 1:size(cross_decode_label_pairs,1)
-%     models{end+1} = modeltemplate;
-%     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments_cross;
-%     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments_cross';
-%     this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Shared Segments - cross'];
-%     %Optional check - view matrix
-%     %                     imagesc(models{end},'AlphaData',~isnan(models{end}))
-%     %                     title(this_model_name{end})
-%     %                     pause
-% end
-% 
-% 
-% %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
-% %was consistently 8 elements after/before the auditory word
-% basemodels.shared_segments_cross_noself = basemodels.shared_segments;
-% basemodels.shared_segments_cross_noself(1:17:end) = NaN;
-% basemodels.shared_segments_cross_noself = circshift(basemodels.shared_segments_cross_noself,[8 0]);
-% for i = 1:size(cross_decode_label_pairs,1)
-%     models{end+1} = modeltemplate;
-%     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments_cross_noself;
-%     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments_cross_noself';
-%     this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Shared Segments - no self'];
-%     %Optional check - view matrix
-%     %                 imagesc(models{end},'AlphaData',~isnan(models{end}))
-%     %                 title(this_model_name{end})
-%     %                 colorbar
-%     %                 pause
-% end
-% 
-% cross_decode_label_pairs = {
-%     'Match Unclear', 'Mismatch Unclear';
-%     'Match Clear', 'Mismatch Unclear';
-%     'Match Unclear', 'Mismatch Clear';
-%     'Match Clear', 'Mismatch Clear'
-%     'Match Unclear', 'Match Clear';
-%     'Mismatch Unclear', 'Mismatch Clear';
-%     'Match Unclear', 'Written';
-%     'Match Clear', 'Written';
-%     'Mismatch Unclear', 'Written';
-%     'Mismatch Clear', 'Written'
-%     'Match Unclear', 'Written';
-%     'Match Clear', 'Written';
-%     };
-% 
-% for i = 1:size(cross_decode_label_pairs,1)
-%     models{end+1} = modeltemplate;
-%     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
-%     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base';
-%     this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Cross-decode_Match'];
-%     %Optional check - view matrix
-%     %             imagesc(models{end},'AlphaData',~isnan(models{end}))
-%     %             title(this_model_name{end})
-%     %             pause
-% end
-% 
-% %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
-% %was consistently 8 elements after/before the auditory word
-% for i = 1:size(cross_decode_label_pairs,1)
-%     models{end+1} = modeltemplate;
-%     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
-%     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
-%     this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' SS_Match'];
-%     %Optional check - view matrix
-%     %                     imagesc(models{end},'AlphaData',~isnan(models{end}))
-%     %                     title(this_model_name{end})
-%     %                     pause
-% end
-% 
-% 
-% %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
-% %was consistently 8 elements after/before the auditory word
-% basemodels.shared_segments(1:17:end) = NaN;
-% for i = 1:size(cross_decode_label_pairs,1)
-%     models{end+1} = modeltemplate;
-%     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
-%     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
-%     this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' SS_Match - no self'];
-%     %Optional check - view matrix
-%     %                     imagesc(models{end},'AlphaData',~isnan(models{end}))
-%     %                     title(this_model_name{end})
-%     %                     pause
-% end
-% basemodels.shared_segments(1:17:end) = 1;
+
+cross_decode_label_pairs = {
+    'photo_left', 'line_drawings_left';
+    'photo_right', 'line_drawings_left';
+    'photo_left', 'line_drawings_right';
+    'photo_right', 'line_drawings_right';
+};
+
+for i = 1:length(basemodelNames)
+    this_basemodel = eval(['basemodels.' basemodelNames{i}])
+    model_unsorted = modeltemplate;
+    for j = 1:size(cross_decode_label_pairs,1)
+        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
+        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
+    end
+    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    this_model_name{end+1} = ['Photo to Line ' basemodelNames{i}];
+end
+
+cross_decode_label_pairs = {
+    'photo_right', 'line_drawings_left';
+    'photo_left', 'line_drawings_right';
+    'photo_left', 'photo_right';
+    'line_drawings_left', 'line_drawings_right';
+    };
+
+for i = 1:length(basemodelNames)
+    this_basemodel = eval(['basemodels.' basemodelNames{i}])
+    model_unsorted = modeltemplate;
+    for j = 1:size(cross_decode_label_pairs,1)
+        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
+        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
+    end
+    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    this_model_name{end+1} = ['Left to Right ' basemodelNames{i}];
+end
+
+cross_decode_label_pairs = {
+    'photo_left', 'photo_left'
+    'photo_right', 'photo_right';
+    'photo_left', 'photo_left';
+    'photo_left', 'photo_right';
+    };
+
+for i = 1:length(basemodelNames)
+    this_basemodel = eval(['basemodels.' basemodelNames{i}])
+    model_unsorted = modeltemplate;
+    for j = 1:size(cross_decode_label_pairs,1)
+        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
+        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
+    end
+    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    this_model_name{end+1} = ['Global Photo ' basemodelNames{i}];
+end
+
+cross_decode_label_pairs = {
+    'line_drawings_left', 'line_drawings_left'
+    'line_drawings_right', 'line_drawings_right';
+    'line_drawings_left', 'line_drawings_left';
+    'line_drawings_left', 'line_drawings_right';
+    };
+
+for i = 1:length(basemodelNames)
+    this_basemodel = eval(['basemodels.' basemodelNames{i}])
+    model_unsorted = modeltemplate;
+    for j = 1:size(cross_decode_label_pairs,1)
+        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
+        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
+    end
+    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    this_model_name{end+1} = ['Global Line Drawings ' basemodelNames{i}];
+end
+
 % 
 % % Now add combined conditions
 % cross_decode_label_pairs = {
