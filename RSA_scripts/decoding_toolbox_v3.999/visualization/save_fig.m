@@ -20,12 +20,12 @@
 
 function save_fig(filename, cfg, fighdl)
 
-    % replace '.' in filename by '_' to avoid problems with file ending
-    if any(filename == '.')
-      disp(['Replacing''.'' in filename ''' filename ''' by ''_'' to avoid problems with file ending'])
-      filename(filename == '.') = '_';
-      disp(['New Filename: ' filename])
-    end
+%     % replace '.' in filename by '_' to avoid problems with file ending
+%     if any(filename == '.')
+%       disp(['Replacing''.'' in filename ''' filename ''' by ''_'' to avoid problems with file ending'])
+%       filename(filename == '.') = '_';
+%       disp(['New Filename: ' filename])
+%     end
 
     if ~exist('cfg', 'var')
         cfg = [];

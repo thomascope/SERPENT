@@ -1648,16 +1648,6 @@ for this_smooth = [3,8];
     end
 end
 
-
-
-
-
-
-
-
-
-
-
 %% Now repeat SPM Univariate analysis in native space
 nrun = size(subjects,2); % enter the number of runs here
 for this_smooth = [3,8];
@@ -1723,6 +1713,43 @@ parfor crun = 1:nrun
         mahalanobisworkedcorrectly(crun) = 1;
     catch
         mahalanobisworkedcorrectly(crun) = 0;
+    end
+end
+
+%% Or run the cross validated Mahalanobis distance and RSM on each subject on the whole brain not downsampled, but in parallel over voxels (slow, and produces around 12Gb output data per subject, but more powerful statistics) - the bigger the worker pool the better.
+run_not_downsampled = 1; % NB: MAKES HUGE FILES!
+if run_not_downsampled
+    nrun = size(subjects,2); % enter the number of runs here
+    mahalanobisparallelworkedcorrectly = zeros(1,nrun);
+    if opennewanalysispool == 1
+        delete(gcp) % Make a bigger pool for this step.
+        Poolinfo = cbupool(120,'--mem-per-cpu=1G --time=167:00:00 --exclude=node-i[01-15]');
+        parpool(Poolinfo,Poolinfo.NumWorkers);
+    end
+    for crun = 1:nrun
+        if numel(gcp('nocreate')) == 0 % If parallel pool crashes, this should allow the loop to simply resume at the next subject
+            Poolinfo = cbupool(60,'--mem-per-cpu=1G --time=167:00:00');
+            parpool(Poolinfo,Poolinfo.NumWorkers);
+        end
+        addpath(genpath('./RSA_scripts'))
+        GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_multi_reversedbuttons'];
+        try
+            TDTCrossnobisAnalysis_parallelsearch(GLMDir)
+            mahalanobisparallelworkedcorrectly(crun) = 1;
+        catch
+            mahalanobisparallelworkedcorrectly(crun) = 0;
+        end
+    end
+    if opennewanalysispool == 1
+        delete(gcp)
+        if size(subjects,2) > 64
+            workersrequested = 64;
+            fprintf([ '\n\nUnable to ask for a worker per run; asking for 64 instead\n\n' ]);
+        else
+            workersrequested = size(subjects,2);
+        end
+        Poolinfo = cbupool(workersrequested,'--mem-per-cpu=12G --time=167:00:00');
+        parpool(Poolinfo,Poolinfo.NumWorkers);
     end
 end
 
