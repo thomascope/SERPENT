@@ -428,8 +428,51 @@ if applytopup == 1
     end
 end
 
-%% Now reslice all the images
+%% Now co-register estimate, using structural as reference, mean as source and epi as others, then reslice only the mean
 
+coregisterworkedcorrectly = zeros(1,nrun);
+
+parfor crun = 1:nrun
+    job = struct
+    job.eoptions.cost_fun = 'nmi'
+    job.eoptions.tol = [repmat(0.02,1,3), repmat(0.01,1,6), repmat(0.001,1,3)];
+    job.eoptions.sep = [4 2];
+    job.eoptions.fwhm = [7 7];
+    
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    job.ref = {[outpath 'structural.nii,1']};
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    job.source = {[outpath 'meantopup_' blocksin{crun}{theseepis(1)} ',1']};
+    
+    filestocoregister = cell(1,length(theseepis));
+    filestocoregister_list = [];
+    for i = 1:length(theseepis)
+        filestocoregister{i} = spm_select('ExtFPList',outpath,['^topup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
+        filestocoregister_list = [filestocoregister_list; filestocoregister{i}]
+    end
+    filestocoregister = cellstr(filestocoregister_list);
+    
+    job.other = filestocoregister
+    
+    try
+        spm_run_coreg(job)
+        
+        % Now co-register reslice the mean EPI
+        P = char(job.ref{:},job.source{:});
+        spm_reslice(P)
+        
+        coregisterworkedcorrectly(crun) = 1;
+    catch
+        coregisterworkedcorrectly(crun) = 0;
+    end
+end
+
+if ~all(coregisterworkedcorrectly)
+    error('failed at coregister');
+end
+
+%% Now reslice all the images
+backup_old = 1;
 resliceworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
     theseepis = find(strncmp(blocksout{crun},'Run',3))
@@ -437,7 +480,10 @@ parfor crun = 1:nrun
     outpath = [preprocessedpathstem subjects{crun} '/'];
     for i = 1:length(theseepis)
         filestorealign{i} = spm_select('ExtFPList',outpath,['^topup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
-    end
+        if backup_old == 1
+            copyfile([outpath 'rtopup_' blocksin{crun}{theseepis(i)}],[outpath 'old_rtopup_' blocksin{crun}{theseepis(i)}]);
+        end
+    end        
     flags = struct
     flags.which = 2;
     try
@@ -488,49 +534,6 @@ end
 
 if ~all(smoothworkedcorrectly)
     error('failed at native space smooth');
-end
-
-%% Now co-register estimate, using structural as reference, mean as source and epi as others, then reslice only the mean
-
-coregisterworkedcorrectly = zeros(1,nrun);
-
-parfor crun = 1:nrun
-    job = struct
-    job.eoptions.cost_fun = 'nmi'
-    job.eoptions.tol = [repmat(0.02,1,3), repmat(0.01,1,6), repmat(0.001,1,3)];
-    job.eoptions.sep = [4 2];
-    job.eoptions.fwhm = [7 7];
-    
-    outpath = [preprocessedpathstem subjects{crun} '/'];
-    job.ref = {[outpath 'structural.nii,1']};
-    theseepis = find(strncmp(blocksout{crun},'Run',3));
-    job.source = {[outpath 'meantopup_' blocksin{crun}{theseepis(1)} ',1']};
-    
-    filestocoregister = cell(1,length(theseepis));
-    filestocoregister_list = [];
-    for i = 1:length(theseepis)
-        filestocoregister{i} = spm_select('ExtFPList',outpath,['^topup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
-        filestocoregister_list = [filestocoregister_list; filestocoregister{i}]
-    end
-    filestocoregister = cellstr(filestocoregister_list);
-    
-    job.other = filestocoregister
-    
-    try
-        spm_run_coreg(job)
-        
-        % Now co-register reslice the mean EPI
-        P = char(job.ref{:},job.source{:});
-        spm_reslice(P)
-        
-        coregisterworkedcorrectly(crun) = 1;
-    catch
-        coregisterworkedcorrectly(crun) = 0;
-    end
-end
-
-if ~all(coregisterworkedcorrectly)
-    error('failed at coregister');
 end
 
 %% Now normalise write for visualisation and smooth at 3 and 8
@@ -1721,14 +1724,9 @@ run_not_downsampled = 1; % NB: MAKES HUGE FILES!
 if run_not_downsampled
     nrun = size(subjects,2); % enter the number of runs here
     mahalanobisparallelworkedcorrectly = zeros(1,nrun);
-    if opennewanalysispool == 1
-        delete(gcp) % Make a bigger pool for this step.
-        Poolinfo = cbupool(120,'--mem-per-cpu=1G --time=167:00:00 --exclude=node-i[01-15]');
-        parpool(Poolinfo,Poolinfo.NumWorkers);
-    end
     for crun = 1:nrun
         if numel(gcp('nocreate')) == 0 % If parallel pool crashes, this should allow the loop to simply resume at the next subject
-            Poolinfo = cbupool(60,'--mem-per-cpu=1G --time=167:00:00');
+            Poolinfo = cbupool(60,'--mem-per-cpu=10G --time=167:00:00');
             parpool(Poolinfo,Poolinfo.NumWorkers);
         end
         addpath(genpath('./RSA_scripts'))
@@ -1761,7 +1759,7 @@ parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_multi_reversedbuttons'];
     try
-        module_make_effect_maps(GLMDir,downsamp_ratio)
+        module_make_effect_maps(GLMDir,downsamp_ratio,subjects{crun})
         RSAnobisworkedcorrectly(crun) = 1;
     catch
         RSAnobisworkedcorrectly(crun) = 0;
@@ -1783,6 +1781,20 @@ parfor crun = 1:nrun
         native2templateworkedcorrectly(crun) = 0;
     end
 end
+
+%% Now check this normalisation - looking at the results seems to have failed in parietal lobe
+template = '/imaging/mlr/users/tc02/SERPENT_preprocessed_2021/S7C01/stats_native_mask0.3_3_multi_reversedbuttons/TDTcrossnobis/spearman/wnativeSpaceMask_templates within photo_right.nii';
+all_masks = {};
+for i = 1:length(subjects)
+all_masks{i} = strrep(template,'S7C01',subjects{i});
+end
+spm_check_registration(char(all_masks'))
+
+%It was S7P01! Very shifted. Examining raw images, seems to be a problem
+%with co-registration of s3rtopup image - offset.
+%S7P16 also looks less than ideal - lots of non-brain in mask, pushing occipital lobe in
+
+
 
 %% Now do a second level analysis on the searchlights
 crun = 1;

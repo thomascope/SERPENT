@@ -1,8 +1,8 @@
-function module_make_effect_maps(GLMDir,downsamp_ratio)
+function module_make_effect_maps(GLMDir,downsamp_ratio,subject)
 %For taking already calculated crossnobis distances and doing RSA
 
 redo_maps = 0; %If you want to calculate them again for some reason.
-save_design_matrices = 1; %If you want to output the design matrices for visualisation
+save_design_matrices = 0; %If you want to output the design matrices for visualisation
 
 if ~exist('downsamp_ratio','var')
     downsamp_ratio = 1;
@@ -19,6 +19,8 @@ if downsamp_ratio == 1
 else
     cfg.results.dir = fullfile(GLMDir,['TDTcrossnobis_downsamp_' num2str(downsamp_ratio)]);
 end
+
+behaviour_folder = ['/group/language/data/thomascope/7T_SERPENT_pilot_analysis/behavioural_data/judgment_dissim_matrices/'];
 
 % Set the label names to the regressor names which you want to use for
 % your similarity analysis, e.g.
@@ -76,6 +78,24 @@ basemodelNames = {'templates','templates_noself'};
 basemodels.decoding = ones(15,15);
 basemodels.decoding(1:16:end) = 0;
 basemodelNames = {'templates','templates_noself','decoding'};
+
+% Load behavioural judgments
+load([behaviour_folder subject '_photo_judgment_matrix.mat']);
+load([behaviour_folder subject '_line_judgment_matrix.mat']);
+
+basemodels.photo = photo_judgment_matrix;
+basemodels.photo_noself = photo_judgment_matrix;
+basemodels.photo_noself(1:16:end) = 0;
+
+basemodels.line = line_judgment_matrix;
+basemodels.line_noself = line_judgment_matrix;
+basemodels.line_noself(1:16:end) = 0;
+
+basemodels.judgment = (photo_judgment_matrix+line_judgment_matrix)/2;
+basemodels.judgment_noself = (photo_judgment_matrix+line_judgment_matrix)/2;
+basemodels.judgment_noself(1:16:end) = 0;
+
+basemodelNames = {'templates','templates_noself','decoding','photo','photo_noself','line','line_noself','judgment','judgment_noself'};
 
 load(fullfile(cfg.results.dir,'res_other_average.mat'));
 data = results.other_average.output;
@@ -164,7 +184,7 @@ cross_decode_label_pairs = {
 
 for i = 1:length(basemodelNames)
     for j = 1:size(cross_decode_label_pairs,1)
-        this_basemodel = eval(['basemodels.' basemodelNames{i}])
+        this_basemodel = eval(['basemodels.' basemodelNames{i}]);
         model_unsorted = modeltemplate;
         model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
         model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
@@ -181,7 +201,7 @@ cross_decode_label_pairs = {
 };
 
 for i = 1:length(basemodelNames)
-    this_basemodel = eval(['basemodels.' basemodelNames{i}])
+    this_basemodel = eval(['basemodels.' basemodelNames{i}]);
     model_unsorted = modeltemplate;
     for j = 1:size(cross_decode_label_pairs,1)
         model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
@@ -199,7 +219,7 @@ cross_decode_label_pairs = {
     };
 
 for i = 1:length(basemodelNames)
-    this_basemodel = eval(['basemodels.' basemodelNames{i}])
+    this_basemodel = eval(['basemodels.' basemodelNames{i}]);
     model_unsorted = modeltemplate;
     for j = 1:size(cross_decode_label_pairs,1)
         model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
@@ -217,7 +237,7 @@ cross_decode_label_pairs = {
     };
 
 for i = 1:length(basemodelNames)
-    this_basemodel = eval(['basemodels.' basemodelNames{i}])
+    this_basemodel = eval(['basemodels.' basemodelNames{i}]);
     model_unsorted = modeltemplate;
     for j = 1:size(cross_decode_label_pairs,1)
         model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
@@ -235,7 +255,7 @@ cross_decode_label_pairs = {
     };
 
 for i = 1:length(basemodelNames)
-    this_basemodel = eval(['basemodels.' basemodelNames{i}])
+    this_basemodel = eval(['basemodels.' basemodelNames{i}]);
     model_unsorted = modeltemplate;
     for j = 1:size(cross_decode_label_pairs,1)
         model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
