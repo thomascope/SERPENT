@@ -1,6 +1,9 @@
 function [physical_dissimilarity,domesticity_dissimilarity,setting_dissimilarity,biological_dissimilarity,nonphysical_dissimilarity] = McRae_Dissimilarities
 % A script for applying the McRae stimulus set semantic features to our
 % dataset.
+% After: Semantic feature production norms for a large set of living and nonliving things
+% Ken McRae, George S. Cree, Mark S. Seidenberg & Chris Mcnorgan 
+% Behavior Research Methods volume 37, pages547-559 (2005)
 
 Physical_List = {
     'Large'
