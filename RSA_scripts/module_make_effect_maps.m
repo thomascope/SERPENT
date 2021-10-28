@@ -232,8 +232,7 @@ end
 cross_decode_label_pairs = {
     'photo_left', 'photo_left'
     'photo_right', 'photo_right';
-    'photo_left', 'photo_left';
-    'photo_left', 'photo_right';
+    'photo_right', 'photo_left';
     };
 
 for i = 1:length(basemodelNames)
@@ -250,8 +249,7 @@ end
 cross_decode_label_pairs = {
     'line_drawings_left', 'line_drawings_left'
     'line_drawings_right', 'line_drawings_right';
-    'line_drawings_left', 'line_drawings_left';
-    'line_drawings_left', 'line_drawings_right';
+    'line_drawings_right', 'line_drawings_left';
     };
 
 for i = 1:length(basemodelNames)
@@ -263,6 +261,50 @@ for i = 1:length(basemodelNames)
     end
     models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
     this_model_name{end+1} = ['Global Line Drawings ' basemodelNames{i}];
+end
+
+cross_decode_label_pairs = {
+    'photo_right', 'photo_left';
+    'line_drawings_right', 'line_drawings_left';
+    'photo_right', 'line_drawings_right';
+    'photo_right', 'line_drawings_left';
+    'photo_left', 'line_drawings_right';
+    'photo_left', 'line_drawings_left';
+    };
+
+for i = 1:length(basemodelNames)
+    this_basemodel = eval(['basemodels.' basemodelNames{i}]);
+    model_unsorted = modeltemplate;
+    for j = 1:size(cross_decode_label_pairs,1)
+        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
+        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
+    end
+    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    this_model_name{end+1} = ['Between ' basemodelNames{i}];
+end
+
+cross_decode_label_pairs = {
+    'photo_left', 'photo_left'
+    'photo_right', 'photo_right';
+    'line_drawings_left', 'line_drawings_left'
+    'line_drawings_right', 'line_drawings_right';
+    'photo_right', 'photo_left';
+    'line_drawings_right', 'line_drawings_left';
+    'photo_right', 'line_drawings_right';
+    'photo_right', 'line_drawings_left';
+    'photo_left', 'line_drawings_right';
+    'photo_left', 'line_drawings_left';
+    };
+
+for i = 1:length(basemodelNames)
+    this_basemodel = eval(['basemodels.' basemodelNames{i}]);
+    model_unsorted = modeltemplate;
+    for j = 1:size(cross_decode_label_pairs,1)
+        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
+        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
+    end
+    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    this_model_name{end+1} = ['Global ' basemodelNames{i}];
 end
 
 % 

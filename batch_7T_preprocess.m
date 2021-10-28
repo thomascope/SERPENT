@@ -1669,7 +1669,7 @@ for this_smooth = [3,8];
         
         [starttime{crun},stimType{crun},stim_type_labels{crun},buttonpressed{crun},buttonpresstime{crun},run_params{crun}] = module_get_event_times_SD_cluster(subjects{crun},dates{crun},length(theseepis),minvols(crun));
         
-        inputs{1, crun} = cellstr([outpath 'stats_native_mask0.3_' num2str(this_smooth) '_multi_reversedbuttons']);
+        inputs{1, crun} = cellstr([outpath 'stats_native_mask0.3_' num2str(this_smooth) '_coreg_reversedbuttons']);
         for sess = 1:length(theseepis)
             filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s' num2str(this_smooth) 'rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
             inputs{(2*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -1710,7 +1710,7 @@ mahalanobisworkedcorrectly = zeros(1,nrun);
 downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_multi_reversedbuttons'];
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons'];
     try
         TDTCrossnobisAnalysis_1Subj(GLMDir,downsamp_ratio)
         mahalanobisworkedcorrectly(crun) = 1;
@@ -1730,7 +1730,7 @@ if run_not_downsampled
             parpool(Poolinfo,Poolinfo.NumWorkers);
         end
         addpath(genpath('./RSA_scripts'))
-        GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_multi_reversedbuttons'];
+        GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons'];
         try
             TDTCrossnobisAnalysis_parallelsearch(GLMDir)
             mahalanobisparallelworkedcorrectly(crun) = 1;
@@ -1757,7 +1757,7 @@ RSAnobisworkedcorrectly = zeros(1,nrun);
 downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_multi_reversedbuttons'];
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons'];
     try
         module_make_effect_maps(GLMDir,downsamp_ratio,subjects{crun})
         RSAnobisworkedcorrectly(crun) = 1;
@@ -1772,7 +1772,7 @@ native2templateworkedcorrectly = zeros(1,nrun);
 downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_multi_reversedbuttons'];
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons'];
     outpath = [preprocessedpathstem subjects{crun} '/'];
     try
         module_nativemap_2_template(GLMDir,downsamp_ratio,outpath)
@@ -1782,17 +1782,17 @@ parfor crun = 1:nrun
     end
 end
 
-%% Now check this normalisation - looking at the results seems to have failed in parietal lobe
-template = '/imaging/mlr/users/tc02/SERPENT_preprocessed_2021/S7C01/stats_native_mask0.3_3_multi_reversedbuttons/TDTcrossnobis/spearman/wnativeSpaceMask_templates within photo_right.nii';
-all_masks = {};
-for i = 1:length(subjects)
-all_masks{i} = strrep(template,'S7C01',subjects{i});
-end
-spm_check_registration(char(all_masks'))
-
-%It was S7P01! Very shifted. Examining raw images, seems to be a problem
-%with co-registration of s3rtopup image - offset.
-%S7P16 also looks less than ideal - lots of non-brain in mask, pushing occipital lobe in
+% %% Now check this normalisation - looking at the results seems to have failed in parietal lobe
+% template = '/imaging/mlr/users/tc02/SERPENT_preprocessed_2021/S7C01/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis/spearman/wnativeSpaceMask_templates within photo_right.nii';
+% all_masks = {};
+% for i = 1:length(subjects)
+% all_masks{i} = strrep(template,'S7C01',subjects{i});
+% end
+% spm_check_registration(char(all_masks'))
+% 
+% %It was S7P01! Very shifted. Examining raw images, seems to be a problem
+% %with co-registration of s3rtopup image - offset.
+% %S7P16 also looks less than ideal - lots of non-brain in mask, pushing occipital lobe in
 
 
 
@@ -1802,12 +1802,86 @@ age_lookup = readtable('SERPENT_Only_Included.csv');
 downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 rmpath([scriptdir '/RSA_scripts/es_scripts_fMRI']) %Stops SPM getting defaults for second level if on path
 
-GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_multi_reversedbuttons']; %Template, first subject
-outpath = [preprocessedpathstem '/stats_native_mask0.3_3_multi_reversedbuttons/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level']; %Results directory
+GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons']; %Template, first subject
+outpath = [preprocessedpathstem '/stats_native_mask0.3_3_coreg_reversedbuttons/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level']; %Results directory
 
 searchlighthighressecondlevel = []; % Sampling at 1mm isotropic - preferable for REML
 searchlighthighressecondlevel = module_searchlight_secondlevel_hires(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
 
+
+%% Calculate tSNR maps
+nrun = size(subjects,2); % enter the number of runs here
+inputs = cell(2, nrun);
+
+for crun = 1:nrun
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    filestosmooth = cell(1,length(theseepis));
+    filestosmooth_list = [];
+    for i = 1:length(theseepis)
+        filestosmooth{i} = spm_select('ExtFPList',outpath,['^rtopup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
+        filestosmooth_list = [filestosmooth_list; filestosmooth{i}];
+    end
+    inputs{1, crun} = cellstr(filestosmooth_list); 
+end
+
+parfor crun = 1:nrun
+    calc_tsnr(inputs{1, crun})
+end
+
+nrun = size(subjects,2); % enter the number of runs here
+%jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
+jobfile = {[scriptdir 'module_normalise_job.m']};
+inputs = cell(2, nrun);
+
+for crun = 1:nrun
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    
+    inputs{1, crun} = cellstr([outpath 'mri/y_p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_denoised.nii']);
+    inputs{2, crun} = cellstr([outpath 'tsnr.nii']);
+    
+end
+
+normalisetsnrcorrectly = zeros(1,nrun);
+jobs = repmat(jobfile, 1, 1);
+
+parfor crun = 1:nrun
+    spm('defaults', 'fMRI');
+    spm_jobman('initcfg')
+    try
+        spm_jobman('run', jobs, inputs{:,crun});
+        normalisetsnrcorrectly(crun) = 1;
+    catch
+        normalisetsnrcorrectly(crun) = 0;
+    end
+end
+
+normalised_tsnr_maps = {};
+control_normalised_tsnr_maps = {};
+patient_normalised_tsnr_maps = {};
+
+for crun = 1:nrun
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    normalised_tsnr_maps{crun} = [outpath 'wtsnr.nii'];
+    if group(crun)==1
+        control_normalised_tsnr_maps{end+1} = [outpath 'wtsnr.nii'];
+    elseif group(crun)==2
+        patient_normalised_tsnr_maps{end+1} = [outpath 'wtsnr.nii'];
+    end
+end
+
+these_maps = spm_vol(char(normalised_tsnr_maps));
+spm_imcalc(these_maps,'mean_tSNR_map.nii','mean(X)',{1 0 0})
+spm_imcalc(char([cellstr('mean_tSNR_map.nii'); scriptdir 'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img']),'masked_mean_tSNR_map.nii','i1.*(i2>0.05)')
+
+these_maps = spm_vol(char(control_normalised_tsnr_maps));
+spm_imcalc(these_maps,'mean_control_tSNR_map.nii','mean(X)',{1 0 0})
+spm_imcalc(char([cellstr('mean_control_tSNR_map.nii'); scriptdir 'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img']),'masked_mean_control_tSNR_map.nii','i1.*(i2>0.05)')
+
+these_maps = spm_vol(char(patient_normalised_tsnr_maps));
+spm_imcalc(these_maps,'mean_patient_tSNR_map.nii','mean(X)',{1 0 0})
+spm_imcalc(char([cellstr('mean_patient_tSNR_map.nii'); scriptdir 'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img']),'masked_mean_patient_tSNR_map.nii','i1.*(i2>0.05)')
 
 %% Assess behavioural performance
 for i = 1:length(subjects)

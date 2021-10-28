@@ -124,6 +124,32 @@ for i = 1:length(covariates_of_interest)
 end
 
 
+%now plot tSNR maps
+
+tSNR_maps = {
+    '/group/language/data/thomascope/7T_SERPENT_pilot_analysis/mean_control_tSNR_map.nii'
+    '/group/language/data/thomascope/7T_SERPENT_pilot_analysis/mean_patient_tSNR_map.nii'
+    '/group/language/data/thomascope/7T_SERPENT_pilot_analysis/mean_tSNR_map.nii'
+    };
+groups = {
+    'Control'
+    'Patient'
+    'Overall'
+   };
+for i = 1:3
+    this_scan_data = spm_read_vols(spm_vol(tSNR_maps{i}));
+    upper_range(i) = max(max(max(this_scan_data)));
+end
+cfg.sampling_distance = 3;        
+cfg.threshold = [0 max(upper_range)];
+for i = 1:3
+    jp_spm8_surfacerender2_version_tc(tSNR_maps{i},'jet',cfg)
+    savepath = ['./rendered_images/SNR_' groups{i} '_' num2str(cfg.threshold(1),'%.2f') '_' num2str(cfg.threshold(2),'%.2f')  '_' num2str(cfg.sampling_distance)];
+    eval(['export_fig ' savepath '.png -transparent'])
+    close all
+end
+
+
 
 all_scans = dir('./multivariate_segments/*.nii');
 
