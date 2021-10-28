@@ -5,6 +5,8 @@ function [physical_dissimilarity,domesticity_dissimilarity,setting_dissimilarity
 % Ken McRae, George S. Cree, Mark S. Seidenberg & Chris Mcnorgan 
 % Behavior Research Methods volume 37, pages547-559 (2005)
 
+show_matrices = 0;
+
 Physical_List = {
     'Large'
     'Medium'

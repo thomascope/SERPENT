@@ -104,8 +104,8 @@ basemodels.physical_dissimilarity_noself = physical_dissimilarity;
 basemodels.physical_dissimilarity_noself(1:16:end) = 0;
 
 basemodels.nonphysical_dissimilarity = nonphysical_dissimilarity;
-basemodels.nonphysical_dissimilarity = nonphysical_dissimilarity;
-basemodels.nonphysical_dissimilarity(1:16:end) = 0;
+basemodels.nonphysical_dissimilarity_noself = nonphysical_dissimilarity;
+basemodels.nonphysical_dissimilarity_noself(1:16:end) = 0;
 
 basemodelNames = {'templates','templates_noself','decoding','photo','photo_noself','line','line_noself','physical_dissimilarity','physical_dissimilarity_noself','nonphysical_dissimilarity','nonphysical_dissimilarity_noself'};
 
