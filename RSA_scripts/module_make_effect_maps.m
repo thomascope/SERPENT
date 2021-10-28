@@ -85,15 +85,15 @@ load([behaviour_folder subject '_line_judgment_matrix.mat']);
 
 basemodels.photo = photo_judgment_matrix;
 basemodels.photo_noself = photo_judgment_matrix;
-basemodels.photo_noself(1:16:end) = 0;
+basemodels.photo_noself(1:16:end) = NaN;
 
 basemodels.line = line_judgment_matrix;
 basemodels.line_noself = line_judgment_matrix;
-basemodels.line_noself(1:16:end) = 0;
+basemodels.line_noself(1:16:end) = NaN;
 
 basemodels.judgment = (photo_judgment_matrix+line_judgment_matrix)/2;
 basemodels.judgment_noself = (photo_judgment_matrix+line_judgment_matrix)/2;
-basemodels.judgment_noself(1:16:end) = 0;
+basemodels.judgment_noself(1:16:end) = NaN;
 
 basemodelNames = {'templates','templates_noself','decoding','photo','photo_noself','line','line_noself','judgment','judgment_noself'};
 
@@ -101,11 +101,11 @@ basemodelNames = {'templates','templates_noself','decoding','photo','photo_nosel
 
 basemodels.physical_dissimilarity = physical_dissimilarity;
 basemodels.physical_dissimilarity_noself = physical_dissimilarity;
-basemodels.physical_dissimilarity_noself(1:16:end) = 0;
+basemodels.physical_dissimilarity_noself(1:16:end) = NaN;
 
 basemodels.nonphysical_dissimilarity = nonphysical_dissimilarity;
 basemodels.nonphysical_dissimilarity_noself = nonphysical_dissimilarity;
-basemodels.nonphysical_dissimilarity_noself(1:16:end) = 0;
+basemodels.nonphysical_dissimilarity_noself(1:16:end) = NaN;
 
 basemodelNames = {'templates','templates_noself','decoding','photo','photo_noself','line','line_noself','physical_dissimilarity','physical_dissimilarity_noself','nonphysical_dissimilarity','nonphysical_dissimilarity_noself'};
 
@@ -159,20 +159,20 @@ modeltemplate = NaN(size(results.other_average.output{notempty_data(1)}));
     this_model_name{1} = 'Global_Template_Model';
     models{1} = global_template_model;
 
-    %Individual sets
-    for i = 1:length(basemodelNames)
-        for j = 1:length(all_combinations)
-            model_unsorted = modeltemplate;
-            this_basemodel = eval(['basemodels.' basemodelNames{i}]);
-            model_unsorted(15*(j-1)+1:15*j,15*(j-1)+1:15*j)=this_basemodel;
-            models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-            this_model_name{end+1} = [basemodelNames{i} ' within ' all_combinations{j}];
-            %Optional check - view matrix
-            %                 imagesc(models{this_model},'AlphaData',~isnan(models{this_model}))
-            %                 title(this_model_name{this_model})
-            %                 pause
-        end
-    end
+%     %Individual sets
+%     for i = 1:length(basemodelNames)
+%         for j = 1:length(all_combinations)
+%             model_unsorted = modeltemplate;
+%             this_basemodel = eval(['basemodels.' basemodelNames{i}]);
+%             model_unsorted(15*(j-1)+1:15*j,15*(j-1)+1:15*j)=this_basemodel;
+%             models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+%             this_model_name{end+1} = [basemodelNames{i} ' within ' all_combinations{j}];
+%             %Optional check - view matrix
+%             %                 imagesc(models{this_model},'AlphaData',~isnan(models{this_model}))
+%             %                 title(this_model_name{this_model})
+%             %                 pause
+%         end
+%     end
     
     %Combined set
     for i = 1:length(basemodelNames)
@@ -185,25 +185,25 @@ modeltemplate = NaN(size(results.other_average.output{notempty_data(1)}));
         this_model_name{end+1} = ['All ' basemodelNames{i}];
     end
  
-cross_decode_label_pairs = {
-    'photo_left', 'line_drawings_left';
-    'photo_right', 'line_drawings_left';
-    'photo_left', 'line_drawings_right';
-    'photo_right', 'line_drawings_right';
-    'photo_left', 'photo_right';
-    'line_drawings_left', 'line_drawings_right';
-};
-
-for i = 1:length(basemodelNames)
-    for j = 1:size(cross_decode_label_pairs,1)
-        this_basemodel = eval(['basemodels.' basemodelNames{i}]);
-        model_unsorted = modeltemplate;
-        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
-        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
-        models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-        this_model_name{end+1} = [cross_decode_label_pairs{j,1} ' to ' cross_decode_label_pairs{j,2} ' ' basemodelNames{i}];
-    end
-end
+% cross_decode_label_pairs = {
+%     'photo_left', 'line_drawings_left';
+%     'photo_right', 'line_drawings_left';
+%     'photo_left', 'line_drawings_right';
+%     'photo_right', 'line_drawings_right';
+%     'photo_left', 'photo_right';
+%     'line_drawings_left', 'line_drawings_right';
+% };
+% 
+% for i = 1:length(basemodelNames)
+%     for j = 1:size(cross_decode_label_pairs,1)
+%         this_basemodel = eval(['basemodels.' basemodelNames{i}]);
+%         model_unsorted = modeltemplate;
+%         model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
+%         model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
+%         models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+%         this_model_name{end+1} = [cross_decode_label_pairs{j,1} ' to ' cross_decode_label_pairs{j,2} ' ' basemodelNames{i}];
+%     end
+% end
 
 cross_decode_label_pairs = {
     'photo_left', 'line_drawings_left';
