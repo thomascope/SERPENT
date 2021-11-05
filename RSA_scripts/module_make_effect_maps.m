@@ -107,7 +107,7 @@ basemodels.nonphysical_dissimilarity = nonphysical_dissimilarity;
 basemodels.nonphysical_dissimilarity_noself = nonphysical_dissimilarity;
 basemodels.nonphysical_dissimilarity_noself(1:16:end) = NaN;
 
-basemodelNames = {'templates','templates_noself','decoding','photo','photo_noself','line','line_noself','physical_dissimilarity','physical_dissimilarity_noself','nonphysical_dissimilarity','nonphysical_dissimilarity_noself'};
+basemodelNames = {'templates','templates_noself','decoding','photo','photo_noself','line','line_noself','judgment','judgment_noself','physical_dissimilarity','physical_dissimilarity_noself','nonphysical_dissimilarity','nonphysical_dissimilarity_noself'};
 
 load(fullfile(cfg.results.dir,'res_other_average.mat'));
 data = results.other_average.output;

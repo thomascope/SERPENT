@@ -1746,7 +1746,7 @@ if run_not_downsampled
         else
             workersrequested = size(subjects,2);
         end
-        Poolinfo = cbupool(workersrequested,'--mem-per-cpu=12G --time=167:00:00');
+        Poolinfo = cbupool(workersrequested,'--mem-per-cpu=14G --time=167:00:00');
         parpool(Poolinfo,Poolinfo.NumWorkers);
     end
 end
@@ -1754,7 +1754,7 @@ end
 %% Do an RSA analysis
 nrun = size(subjects,2); % enter the number of runs here
 RSAnobisworkedcorrectly = zeros(1,nrun);
-downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons'];
@@ -1769,7 +1769,7 @@ end
 %% Now normalise the native space RSA maps into template space with CAT12 deformation fields calculated earlier
 nrun = size(subjects,2); % enter the number of runs here
 native2templateworkedcorrectly = zeros(1,nrun);
-downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons'];
@@ -1799,7 +1799,7 @@ end
 %% Now do a second level analysis on the searchlights
 crun = 1;
 age_lookup = readtable('SERPENT_Only_Included.csv');
-downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 rmpath([scriptdir '/RSA_scripts/es_scripts_fMRI']) %Stops SPM getting defaults for second level if on path
 
 GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons']; %Template, first subject
