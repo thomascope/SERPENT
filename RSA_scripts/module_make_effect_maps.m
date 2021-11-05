@@ -109,6 +109,9 @@ basemodels.nonphysical_dissimilarity_noself(1:16:end) = NaN;
 
 basemodelNames = {'templates','templates_noself','decoding','photo','photo_noself','line','line_noself','judgment','judgment_noself','physical_dissimilarity','physical_dissimilarity_noself','nonphysical_dissimilarity','nonphysical_dissimilarity_noself'};
 
+% Now load visual models
+gistRDM = generateGistRDMs_SERPENT; %NB: Time consuming, so just loads result if re-run
+
 load(fullfile(cfg.results.dir,'res_other_average.mat'));
 data = results.other_average.output;
 notempty_data = find(~cellfun(@isempty,results.other_average.output));
