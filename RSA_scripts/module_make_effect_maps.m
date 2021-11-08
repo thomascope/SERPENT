@@ -111,56 +111,60 @@ basemodelNames = {'templates','templates_noself','decoding','photo','photo_nosel
 
 % Now load visual models
 gistRDM = generateGistRDMs_SERPENT; %NB: Time consuming, so just loads result if re-run
+% cnnRDM = getNetActivations_SERPENT; %NB: Requires DNN toolbox and Alexnet training - run locally and load results:
+load('/group/language/data/thomascope/7T_SERPENT_pilot_analysis/DNN_results/cnnRDM.mat')
+visual_matrices = {'photo_left','photo_right','line_drawings_left','line_drawings_right'};
+
 
 load(fullfile(cfg.results.dir,'res_other_average.mat'));
 data = results.other_average.output;
 notempty_data = find(~cellfun(@isempty,results.other_average.output));
 modeltemplate = NaN(size(results.other_average.output{notempty_data(1)}));
- 
-    % Condition order is annoying - not conducive to easy RSA matrix formation
-    %stim_type_labels = allcomb(styledir, frequency_labels, direction_labels, category_labels)
-    % Rotation order is:
-    % Style - photo vs line_drawing
-    % Frequency - common vs moderate vs rare
-    % Direction - left vs right
-    % Template - dog-like vs cat-like vs horse-like vs marine vs birds
-    
-    styles = {'photo','line_drawings'};
-    frequency = {'common','moderate','rare'};
-    direction = {'left','right'};
-    template = {'dog-like','cat-like','horse-like','marine','birds'};
-    all_combinations = {[styles{1} '_' direction{1}];[styles{1} '_' direction{2}];[styles{2} '_' direction{1}];[styles{2} '_' direction{2}]};
-    all_combinations_replicated = [repmat({[styles{1} '_' direction{1}]},15,1);repmat({[styles{1} '_' direction{2}]},15,1);repmat({[styles{2} '_' direction{1}]},15,1);repmat({[styles{2} '_' direction{2}]},15,1)];
-    %rotations = [2,3,2,5]; % For later illustration of dissimilarity matrices
-    stim_type_table = cell2table(allcomb(styles, frequency, direction, template),'VariableNames',{'styles','frequency','direction','template'});
-    stim_type_table.stimnumber = [1:size(stim_type_table,1)]';
-    
-    %Now sort into a more sensible order for visualisation
-    sorted_stim_type_table = cell2table(allcomb(styles, direction, template, frequency),'VariableNames',{'styles','direction','template','frequency'});
-    sorted_stim_type_table.designnumber = [1:size(stim_type_table,1)]';
-    joined_table = join(sorted_stim_type_table,stim_type_table);
-    joined_table_originalorder = join(stim_type_table,sorted_stim_type_table);
-    [stim_type_table(strcmp(stim_type_table.direction,direction{1}),:);stim_type_table(strcmp(stim_type_table.direction,direction{2}),:)];
-    
-    % First set up a global template based model - keep the others for later
-    % more complex design matrices
-    global_template_model = zeros(size(modeltemplate));
-    for i = 1:length(labelnames)
-        this_template = zeros(1,length(template));
-        for j = 1:length(template)
-            this_template(j) = contains(labelnames{i},template{j});
-        end
-        this_template_type = template{find(this_template)};
-        for j = 1:length(labelnames)
-            if contains(labelnames{j},this_template_type)
-                global_template_model(i,j) = 1/3;
-            end
+
+% Condition order is annoying - not conducive to easy RSA matrix formation
+%stim_type_labels = allcomb(styledir, frequency_labels, direction_labels, category_labels)
+% Rotation order is:
+% Style - photo vs line_drawing
+% Frequency - common vs moderate vs rare
+% Direction - left vs right
+% Template - dog-like vs cat-like vs horse-like vs marine vs birds
+
+styles = {'photo','line_drawings'};
+frequency = {'common','moderate','rare'};
+direction = {'left','right'};
+template = {'dog-like','cat-like','horse-like','marine','birds'};
+all_combinations = {[styles{1} '_' direction{1}];[styles{1} '_' direction{2}];[styles{2} '_' direction{1}];[styles{2} '_' direction{2}]};
+all_combinations_replicated = [repmat({[styles{1} '_' direction{1}]},15,1);repmat({[styles{1} '_' direction{2}]},15,1);repmat({[styles{2} '_' direction{1}]},15,1);repmat({[styles{2} '_' direction{2}]},15,1)];
+%rotations = [2,3,2,5]; % For later illustration of dissimilarity matrices
+stim_type_table = cell2table(allcomb(styles, frequency, direction, template),'VariableNames',{'styles','frequency','direction','template'});
+stim_type_table.stimnumber = [1:size(stim_type_table,1)]';
+
+%Now sort into a more sensible order for visualisation
+sorted_stim_type_table = cell2table(allcomb(styles, direction, template, frequency),'VariableNames',{'styles','direction','template','frequency'});
+sorted_stim_type_table.designnumber = [1:size(stim_type_table,1)]';
+joined_table = join(sorted_stim_type_table,stim_type_table);
+joined_table_originalorder = join(stim_type_table,sorted_stim_type_table);
+[stim_type_table(strcmp(stim_type_table.direction,direction{1}),:);stim_type_table(strcmp(stim_type_table.direction,direction{2}),:)];
+
+% First set up a global template based model - keep the others for later
+% more complex design matrices
+global_template_model = zeros(size(modeltemplate));
+for i = 1:length(labelnames)
+    this_template = zeros(1,length(template));
+    for j = 1:length(template)
+        this_template(j) = contains(labelnames{i},template{j});
+    end
+    this_template_type = template{find(this_template)};
+    for j = 1:length(labelnames)
+        if contains(labelnames{j},this_template_type)
+            global_template_model(i,j) = 1/3;
         end
     end
-    global_template_model(1:size(global_template_model,1)+1:end) = NaN; %Diagonal
-    global_template_model = 1-global_template_model; %Dissimilarity
-    this_model_name{1} = 'Global_Template_Model';
-    models{1} = global_template_model;
+end
+global_template_model(1:size(global_template_model,1)+1:end) = NaN; %Diagonal
+global_template_model = 1-global_template_model; %Dissimilarity
+this_model_name{1} = 'Global_Template_Model';
+models{1} = global_template_model;
 
 %     %Individual sets
 %     for i = 1:length(basemodelNames)
@@ -176,18 +180,41 @@ modeltemplate = NaN(size(results.other_average.output{notempty_data(1)}));
 %             %                 pause
 %         end
 %     end
-    
-    %Combined set
-    for i = 1:length(basemodelNames)
-        model_unsorted = modeltemplate;
-        for j = 1:length(all_combinations)
-            this_basemodel = eval(['basemodels.' basemodelNames{i}]);
-            model_unsorted(15*(j-1)+1:15*j,15*(j-1)+1:15*j)=this_basemodel;
-        end
-        models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-        this_model_name{end+1} = ['All ' basemodelNames{i}];
+
+%Combined set
+for i = 1:length(basemodelNames)
+    model_unsorted = modeltemplate;
+    for j = 1:length(all_combinations)
+        this_basemodel = eval(['basemodels.' basemodelNames{i}]);
+        model_unsorted(15*(j-1)+1:15*j,15*(j-1)+1:15*j)=this_basemodel;
     end
- 
+    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    this_model_name{end+1} = ['All ' basemodelNames{i}];
+end
+
+model_unsorted = modeltemplate;
+for j = 1:length(all_combinations)
+    model_unsorted(15*(j-1)+1:15*j,15*(j-1)+1:15*j) = gistRDM(j,j,1).RDM;
+end
+models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+this_model_name{end+1} = ['All GIST Euclidean'];
+
+model_unsorted = modeltemplate;
+for j = 1:length(all_combinations)
+    model_unsorted(15*(j-1)+1:15*j,15*(j-1)+1:15*j) = gistRDM(j,j,2).RDM;
+end
+models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+this_model_name{end+1} = ['All GIST correlation'];
+
+for layer = 1:8
+    model_unsorted = modeltemplate;
+    for j = 1:length(all_combinations)
+        model_unsorted(15*(j-1)+1:15*j,15*(j-1)+1:15*j) = cnnRDM(j,j,2,layer).RDM;
+    end
+    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    this_model_name{end+1} = ['All CNN correlation ' num2str(layer)];
+end
+
 % cross_decode_label_pairs = {
 %     'photo_left', 'line_drawings_left';
 %     'photo_right', 'line_drawings_left';
@@ -196,7 +223,7 @@ modeltemplate = NaN(size(results.other_average.output{notempty_data(1)}));
 %     'photo_left', 'photo_right';
 %     'line_drawings_left', 'line_drawings_right';
 % };
-% 
+%
 % for i = 1:length(basemodelNames)
 %     for j = 1:size(cross_decode_label_pairs,1)
 %         this_basemodel = eval(['basemodels.' basemodelNames{i}]);
@@ -213,7 +240,7 @@ cross_decode_label_pairs = {
     'photo_right', 'line_drawings_left';
     'photo_left', 'line_drawings_right';
     'photo_right', 'line_drawings_right';
-};
+    };
 
 for i = 1:length(basemodelNames)
     this_basemodel = eval(['basemodels.' basemodelNames{i}]);
@@ -224,6 +251,24 @@ for i = 1:length(basemodelNames)
     end
     models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
     this_model_name{end+1} = ['Photo to Line ' basemodelNames{i}];
+end
+
+model_unsorted = modeltemplate;
+for j = 1:size(cross_decode_label_pairs,1)
+    model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM;
+    model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM';
+end
+models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+this_model_name{end+1} = ['Photo to Line GIST correlation'];
+
+for layer = 1:8
+    model_unsorted = modeltemplate;
+    for j = 1:size(cross_decode_label_pairs,1)
+        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM;
+        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM';
+    end
+    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    this_model_name{end+1} = ['Photo to Line CNN correlation ' num2str(layer)];
 end
 
 cross_decode_label_pairs = {
@@ -261,6 +306,24 @@ for i = 1:length(basemodelNames)
     this_model_name{end+1} = ['Global Photo ' basemodelNames{i}];
 end
 
+model_unsorted = modeltemplate;
+for j = 1:size(cross_decode_label_pairs,1)
+    model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM;
+    model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM';
+end
+models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+this_model_name{end+1} = ['Global Photo GIST correlation'];
+
+for layer = 1:8
+    model_unsorted = modeltemplate;
+    for j = 1:size(cross_decode_label_pairs,1)
+        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM;
+        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM';
+    end
+    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    this_model_name{end+1} = ['Global Photo CNN correlation ' num2str(layer)];
+end
+
 cross_decode_label_pairs = {
     'line_drawings_left', 'line_drawings_left'
     'line_drawings_right', 'line_drawings_right';
@@ -276,6 +339,24 @@ for i = 1:length(basemodelNames)
     end
     models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
     this_model_name{end+1} = ['Global Line Drawings ' basemodelNames{i}];
+end
+
+model_unsorted = modeltemplate;
+for j = 1:size(cross_decode_label_pairs,1)
+    model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM;
+    model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM';
+end
+models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+this_model_name{end+1} = ['Global Line Drawings GIST correlation'];
+
+for layer = 1:8
+    model_unsorted = modeltemplate;
+    for j = 1:size(cross_decode_label_pairs,1)
+        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM;
+        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM';
+    end
+    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    this_model_name{end+1} = ['Global Line Drawings CNN correlation ' num2str(layer)];
 end
 
 cross_decode_label_pairs = {
@@ -322,7 +403,7 @@ for i = 1:length(basemodelNames)
     this_model_name{end+1} = ['Global ' basemodelNames{i}];
 end
 
-% 
+%
 % % Now add combined conditions
 % cross_decode_label_pairs = {
 %     'Match Unclear', 'Mismatch Unclear';
@@ -331,14 +412,14 @@ end
 %     'Match Clear', 'Mismatch Clear';
 %     'Match Unclear', 'Match Clear';
 %     'Mismatch Unclear', 'Mismatch Clear';};
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['All spoken Cross-decode_Match'];
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base';
 % end
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['All spoken SS_Match'];
 % for i = 1:size(cross_decode_label_pairs,1)
@@ -353,7 +434,7 @@ end
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
 % end
 % basemodels.shared_segments(1:17:end) = 0;
-% 
+%
 % cross_decode_label_pairs = {
 %     'Match Unclear', 'Written';
 %     'Match Clear', 'Written';
@@ -374,7 +455,7 @@ end
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
 % end
 % basemodels.shared_segments(1:17:end) = 0;
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['Spoken to Written Cross-decode_written'];
 % for i = 1:2
@@ -421,7 +502,7 @@ end
 % basemodels.shared_segments_cross(9:17:end/2) = 0;
 % basemodels.shared_segments_cross(end/2+1:17:end) = 0;
 % basemodels.shared_segments(1:17:end) = 0;
-% 
+%
 % % Now look at Match-Mismatch written word cross decoding
 % cross_decode_label_pairs = {
 %     'Match Unclear', 'Mismatch Unclear';
@@ -429,14 +510,14 @@ end
 %     'Match Unclear', 'Mismatch Clear';
 %     'Match Clear', 'Mismatch Clear';
 %     };
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['Match to Mismatch Shared Segments - no self'];
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments_cross_noself;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments_cross_noself';
 % end
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['Match to Mismatch SS_Match - no self'];
 % basemodels.shared_segments(1:17:end) = NaN;
@@ -445,11 +526,11 @@ end
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
 % end
 % basemodels.shared_segments(1:17:end) = 0;
-% 
+%
 % basemodels.shared_segments(1:17:end) = NaN;
 % basemodels.combined_SS = basemodels.shared_segments-basemodels.shared_segments_cross_noself;
 % basemodels.shared_segments(1:17:end) = 0;
-% 
+%
 % basemodels.combined_SS = (basemodels.combined_SS +1)/2; %Scale zero to 1
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['Match to Mismatch combined_SS - no self - rescaled'];
@@ -457,7 +538,7 @@ end
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.combined_SS;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.combined_SS';
 % end
-% 
+%
 % basemodels.only_cross = basemodels.combined_SS;
 % basemodels.only_cross(basemodels.shared_segments~=1) = NaN;
 % models{end+1} = modeltemplate;
@@ -466,7 +547,7 @@ end
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_cross;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_cross';
 % end
-% 
+%
 % basemodels.only_not_cross = basemodels.combined_SS;
 % basemodels.only_not_cross(basemodels.shared_segments_cross_noself~=1) = NaN;
 % models{end+1} = modeltemplate;
@@ -475,21 +556,21 @@ end
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_not_cross;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_not_cross';
 % end
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['Match to Mismatch cross-decode written'];
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = MisMatch_Cross_decode_base;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = MisMatch_Cross_decode_base';
 % end
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['Match to Mismatch cross-decode spoken'];
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base';
 % end
-% 
+%
 % % Now look at these three models Clear-Unclear
 % % then in every individual combination
 % cross_decode_label_pairs = {
@@ -504,21 +585,21 @@ end
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.combined_SS;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.combined_SS';
 % end
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['Clear to Unclear only cross'];
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_cross;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_cross';
 % end
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['Clear to Unclear only not cross'];
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_not_cross;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_not_cross';
 % end
-% 
+%
 % cross_decode_label_pairs = {
 %     'Match Unclear', 'Mismatch Unclear';
 %     'Match Clear', 'Mismatch Unclear';
@@ -527,7 +608,7 @@ end
 %     'Match Unclear', 'Match Clear';
 %     'Mismatch Unclear', 'Mismatch Clear';
 %     };
-% 
+%
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end+1} = modeltemplate;
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.combined_SS;
@@ -538,7 +619,7 @@ end
 %     %             title(this_model_name{end})
 %     %             pause
 % end
-% 
+%
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end+1} = modeltemplate;
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_cross;
@@ -549,7 +630,7 @@ end
 %     %             title(this_model_name{end})
 %     %             pause
 % end
-% 
+%
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end+1} = modeltemplate;
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_not_cross;
@@ -560,7 +641,7 @@ end
 %     %             title(this_model_name{end})
 %     %             pause
 % end
-% 
+%
 
 V = spm_vol(fullfile(GLMDir,'mask.nii'));
 mask = spm_read_vols(V);
