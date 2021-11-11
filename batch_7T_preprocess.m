@@ -852,7 +852,7 @@ parfor smooth_number = 1:2
     
     spm_jobman('run', jobs, inputs{:});
     
-    jobfile = {[scriptdir '/vbm_scripts/VBM_batch_results.m'}];
+    jobfile = {[scriptdir '/vbm_scripts/VBM_batch_results.m']};
     jobs = repmat(jobfile, 1, nrun);
     
     spm_jobman('run', jobs, inputs{:});
@@ -1808,6 +1808,130 @@ outpath = [preprocessedpathstem '/stats_native_mask0.3_3_coreg_reversedbuttons/s
 searchlighthighressecondlevel = []; % Sampling at 1mm isotropic - preferable for REML
 searchlighthighressecondlevel = module_searchlight_secondlevel_hires(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
 
+%% Repeat excluding subjects with poor quality data
+subjects_noP16 = subjects;
+subjects_noP16(strcmp(subjects_noP16,'S7P16')) = [];
+
+crun = 1;
+age_lookup = readtable('SERPENT_Only_Included.csv');
+downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+rmpath([scriptdir '/RSA_scripts/es_scripts_fMRI']) %Stops SPM getting defaults for second level if on path
+
+GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons']; %Template, first subject
+outpath = [preprocessedpathstem '/stats_native_mask0.3_3_coreg_reversedbuttons/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level_noP16']; %Results directory
+
+searchlighthighressecondlevel = []; % Sampling at 1mm isotropic - preferable for REML
+searchlighthighressecondlevel = module_searchlight_secondlevel_hires(GLMDir,subjects_noP16,group,age_lookup,outpath,downsamp_ratio);
+
+%% Now do ROI analysis
+% First separate out probablistic map into components: Wang, Liang, et al. "Probabilistic maps of visual topography in human cortex." Cerebral cortex 25.10 (2015): 3911-3931.
+% 01 - V1v	    
+% 02 - V1d	   
+% 03 - V2v	   
+% 04 - V2d	   
+% 05 - V3v	    
+% 06 - V3d	    
+% 07 - hV4	  
+% 08 - VO1	    
+% 09 - VO2	
+make_atlas_rois = 0; %Already done
+if make_atlas_rois
+    for this_roi = 1:9
+    spm_imcalc('./Regions_of_Interest/maxprob_vol_lh.nii',['./Regions_of_Interest/lh_roi_' num2str(this_roi) '.nii'],['i1==' num2str(this_roi)])
+    spm_imcalc('./Regions_of_Interest/maxprob_vol_rh.nii',['./Regions_of_Interest/rh_roi_' num2str(this_roi) '.nii'],['i1==' num2str(this_roi)])
+    end
+end
+
+
+% Now create a vector along the ventral stream, using Engell's Face-Scene
+% contrast: Engell A.D. and McCarthy G. (2013). fMRI activation by face and biological motion perception: Comparison of response maps and creation of probabilistic atlases. NeuroImage, 74, 140-151.
+face_map_info = spm_vol('./Regions_of_Interest/ASAP_maps/facescene_pmap_N124_stat3.nii');
+face_map = spm_read_vols(face_map_info); % This is the Face-Scene contrast for 124 young healthy people, expressed as percent significant in each voxel
+
+%Find peak location on each side (Right and left FFA)
+left_half = face_map;
+left_half(1:floor(size(face_map,1)/2),:,:) = 0; %NB: x-direction negative indexed here
+right_half = face_map;
+right_half(ceil((size(face_map,1))/2):end,:,:) = 0;
+[~,idx_r] = max(right_half(:));
+[~,idx_l] = max(left_half(:));
+all_interpolated_MNI_locations = {};
+for start_idx = [idx_r, idx_l]
+    %Work forwards and backwards from those points to make a tensor;
+    [r,c,p] = ind2sub(size(face_map),start_idx);
+    MNI_x = [face_map_info.mat(1,4)+(r*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(c*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(p*face_map_info.mat(3,3))];
+    
+    %Work forwards and backwards from that point to make a tensor;
+    y_start = MNI_x(2);
+    %First go backwards
+    last_location = [r,c,p];
+    these_negative_locations = [];
+    these_negative_MNI_locations = [];
+    for this_y = (c-1):-1:(c-50)
+        this_plane = face_map((last_location(1)-5):(last_location(1)+5),this_y,(last_location(3)-5):(last_location(3)+5));
+        [mxv,idx] = max(this_plane(:)); % Look for a voxel within 1cm of previous in X+Z
+        if mxv>0.1 % More than 10% of subjects have face preference here
+            [r_temp,c_temp,p_temp] = ind2sub(size(this_plane),idx);
+            last_location = [last_location(1)+r_temp-6,this_y,last_location(3)+p_temp-6];
+            these_negative_locations = [these_negative_locations; last_location];
+            last_MNI_location = [face_map_info.mat(1,4)+(last_location(1)*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(last_location(2)*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(last_location(3)*face_map_info.mat(3,3))];
+            these_negative_MNI_locations = [these_negative_MNI_locations; last_MNI_location];
+        else % Less than 10% of subjects have face preference - end of tensor
+            break
+        end
+    end
+    
+    %Then go forwards
+    last_location = [r,c,p];
+    these_positive_locations = [];
+    these_positive_MNI_locations = [];
+    for this_y = (c+1):1:(c+50)
+        this_plane = face_map((last_location(1)-5):(last_location(1)+5),this_y,(last_location(3)-5):(last_location(3)+5));
+        [mxv,idx] = max(this_plane(:)); % Look for a voxel within 1cm of previous in X+Z
+        if mxv>0.1 % More than 10% of subjects have face preference here
+            [r_temp,c_temp,p_temp] = ind2sub(size(this_plane),idx);
+            last_location = [last_location(1)+r_temp-6,this_y,last_location(3)+p_temp-6];
+            these_positive_locations = [these_positive_locations; last_location];
+            last_MNI_location = (face_map_info.mat*[last_location 1]')';
+            last_MNI_location = last_MNI_location(1:3);
+            %last_MNI_location = [face_map_info.mat(1,4)+(last_location(1)*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(last_location(2)*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(last_location(3)*face_map_info.mat(3,3))];
+            these_positive_MNI_locations = [these_positive_MNI_locations; last_MNI_location];
+        else % Less than 10% of subjects have face preference - end of tensor
+            break
+        end
+    end
+    
+    %Then create tensor
+    these_locations = [flipud(these_negative_locations); [r,c,p]; these_positive_locations];
+    these_MNI_locations = [flipud(these_negative_MNI_locations); MNI_x; these_positive_MNI_locations];
+    % Interpolate from 2mm to 1mm resolution
+    these_interpolated_MNI_locations = [];
+    for this_y_loc = 1:size(these_MNI_locations,1)-1
+        these_interpolated_MNI_locations = [these_interpolated_MNI_locations; these_MNI_locations(this_y_loc,:)];
+        these_interpolated_MNI_locations = [these_interpolated_MNI_locations; mean(these_MNI_locations(this_y_loc:this_y_loc+1,:),1)];
+    end
+    these_interpolated_MNI_locations = [these_interpolated_MNI_locations; these_MNI_locations(end,:)];
+    all_interpolated_MNI_locations{end+1} = these_interpolated_MNI_locations;
+end
+
+% Write these tensors for visualisation
+example_volume_info = spm_vol('photo_line_template_noself.nii'); %An example multivariate contrast 
+example_volume = spm_read_vols(example_volume_info); %An example multivariate contrast 
+tensors_to_write = zeros(size(example_volume));
+for this_tensor = 1:length(all_interpolated_MNI_locations)
+    for this_location = 1:length(all_interpolated_MNI_locations{this_tensor})
+        these_voxel_coordinates = [all_interpolated_MNI_locations{this_tensor}(this_location,:),1]*(inv(example_volume_info.mat))';
+        try
+            tensors_to_write(these_voxel_coordinates(1),these_voxel_coordinates(2),these_voxel_coordinates(3)) = 1;
+        end
+    end
+end
+tensor_volume_info = example_volume_info;
+tensor_volume_info.descrip = 'Tensors for multivariate analysis';
+tensor_volume_info.fname = 'face-scene tensors.nii';
+spm_write_vol(tensor_volume_info,tensors_to_write)
+
+save('all_interpolated_MNI_locations','all_interpolated_MNI_locations')
 
 %% Calculate tSNR maps
 nrun = size(subjects,2); % enter the number of runs here

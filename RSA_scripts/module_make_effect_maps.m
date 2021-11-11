@@ -73,11 +73,34 @@ basemodelNames = {'templates'};
 
 basemodels.templates_noself = basemodels.templates;
 basemodels.templates_noself(1:16:end) = NaN;
-basemodelNames = {'templates','templates_noself'};
+basemodelNames(end+1) = {'templates_noself'};
+
+basemodels.l_s_a_noself = zeros(15,15);
+basemodels.l_s_a_noself(1:9,1:9) = 1/3;
+basemodels.l_s_a_noself(10:12,10:12) = 1/3;
+basemodels.l_s_a_noself(13:15,13:15) = 1/3;
+basemodels.l_s_a_noself = 1-basemodels.l_s_a_noself;
+basemodels.l_s_a_noself(1:16:end) = NaN;
+basemodelNames(end+1) = {'l_s_a_noself'};
+
+basemodels.l_sa_noself = zeros(15,15);
+basemodels.l_sa_noself(1:9,1:9) = 1/3;
+basemodels.l_sa_noself(10:15,10:15) = 1/3;
+basemodels.l_sa_noself = 1-basemodels.l_sa_noself;
+basemodels.l_sa_noself(1:16:end) = NaN;
+basemodelNames(end+1) = {'l_sa_noself'};
+
+basemodels.lsm_ll_sa_noself = zeros(15,15);
+basemodels.lsm_ll_sa_noself(1:6,1:6) = 1/3;
+basemodels.lsm_ll_sa_noself(7:9,7:9) = 1/3;
+basemodels.lsm_ll_sa_noself(10:15,10:15) = 1/3;
+basemodels.lsm_ll_sa_noself = 1-basemodels.lsm_ll_sa_noself;
+basemodels.lsm_ll_sa_noself(1:16:end) = NaN;
+basemodelNames(end+1) = {'lsm_ll_sa_noself'};
 
 basemodels.decoding = ones(15,15);
 basemodels.decoding(1:16:end) = 0;
-basemodelNames = {'templates','templates_noself','decoding'};
+basemodelNames(end+1) = {'decoding'};
 
 % Load behavioural judgments
 load([behaviour_folder subject '_photo_judgment_matrix.mat']);
@@ -95,7 +118,7 @@ basemodels.judgment = (photo_judgment_matrix+line_judgment_matrix)/2;
 basemodels.judgment_noself = (photo_judgment_matrix+line_judgment_matrix)/2;
 basemodels.judgment_noself(1:16:end) = NaN;
 
-basemodelNames = {'templates','templates_noself','decoding','photo','photo_noself','line','line_noself','judgment','judgment_noself'};
+basemodelNames(end+1:end+6) = {'photo','photo_noself','line','line_noself','judgment','judgment_noself'};
 
 [physical_dissimilarity,domesticity_dissimilarity,setting_dissimilarity,biological_dissimilarity,nonphysical_dissimilarity] = McRae_Dissimilarities;
 
@@ -107,13 +130,33 @@ basemodels.nonphysical_dissimilarity = nonphysical_dissimilarity;
 basemodels.nonphysical_dissimilarity_noself = nonphysical_dissimilarity;
 basemodels.nonphysical_dissimilarity_noself(1:16:end) = NaN;
 
-basemodelNames = {'templates','templates_noself','decoding','photo','photo_noself','line','line_noself','judgment','judgment_noself','physical_dissimilarity','physical_dissimilarity_noself','nonphysical_dissimilarity','nonphysical_dissimilarity_noself'};
+basemodelNames(end+1:end+4) = {'physical_dissimilarity','physical_dissimilarity_noself','nonphysical_dissimilarity','nonphysical_dissimilarity_noself'};
 
 % Now load visual models
 gistRDM = generateGistRDMs_SERPENT; %NB: Time consuming, so just loads result if re-run
 % cnnRDM = getNetActivations_SERPENT; %NB: Requires DNN toolbox and Alexnet training - run locally and load results:
 load('/group/language/data/thomascope/7T_SERPENT_pilot_analysis/DNN_results/cnnRDM.mat')
 visual_matrices = {'photo_left','photo_right','line_drawings_left','line_drawings_right'};
+
+% Make photo_left to photo_right CNN and Gist models - CNN does not work
+% well for line
+cross_decode_label_pairs = {
+    'photo_right', 'photo_left';
+    };
+
+for j = 1:size(cross_decode_label_pairs,1)
+    basemodels.GIST_pp_corr_noself = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM;
+    basemodels.GIST_pp_corr_noself(1:16:end) = NaN;
+end
+basemodelNames(end+1) = {'GIST_pp_corr_noself'};
+
+for layer = 1:8
+    for j = 1:size(cross_decode_label_pairs,1)
+        eval(['basemodels.CNN_' num2str(layer) '_pp_corr_noself = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM;']);
+        basemodels.GIST_pp_corr_noself(1:16:end) = NaN;
+    end
+    basemodelNames(end+1) = {['CNN_' num2str(layer) '_pp_corr_noself']};
+end
 
 
 load(fullfile(cfg.results.dir,'res_other_average.mat'));
@@ -663,8 +706,11 @@ if save_design_matrices
     end
     for m=1:length(this_model_name)
         if ~all(all(isnan(models{m}(1:60,1:60))))
+            if exist([multivariate_matrix_dir this_model_name{m} '.png'],'file')
+                disp([multivariate_matrix_dir this_model_name{m} '.png already exists, moving on '])
+            else
             %Unmix model to more sensible ordering:
-            unmixed_model{m} = models{m}(joined_table.stimnumber,joined_table.stimnumber)
+            unmixed_model{m} = models{m}(joined_table.stimnumber,joined_table.stimnumber);
             b = imagesc(unmixed_model{m}(1:60,1:60),[floor(min(min(unmixed_model{m}(1:60,1:60)))) ceil(max(max(unmixed_model{m}(1:60,1:60))))]);
             set(b,'AlphaData',~isnan(unmixed_model{m}(1:60,1:60)+diag(NaN(1,60)))) %Ensure diagonal is NaN because it is ignored by Mahalanobis distance
             axis square
@@ -680,6 +726,7 @@ if save_design_matrices
             drawnow
             saveas(gcf,[multivariate_matrix_dir this_model_name{m} '_withcolorbar.pdf'])
             saveas(gcf,[multivariate_matrix_dir this_model_name{m} '_withcolorbar.png'])
+            end
         end
     end
 end
