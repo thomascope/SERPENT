@@ -2007,6 +2007,32 @@ these_maps = spm_vol(char(patient_normalised_tsnr_maps));
 spm_imcalc(these_maps,'mean_patient_tSNR_map.nii','mean(X)',{1 0 0})
 spm_imcalc(char([cellstr('mean_patient_tSNR_map.nii'); scriptdir 'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img']),'masked_mean_patient_tSNR_map.nii','i1.*(i2>0.05)')
 
+%% Now plot along tensors
+
+downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+outpath = [preprocessedpathstem '/stats_native_mask0.3_3_coreg_reversedbuttons/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level'];
+
+this_model_name{1} = {
+    'Photo to Line templates_noself_hires'
+    'Photo to Line lsm_ll_sa_noself_hires'
+    };
+
+this_model_name{2} = {
+    'All GIST Euclidean_hires'
+    'All CNN_2_pp_corr_noself_hires'
+    'All CNN_3_pp_corr_noself_hires'
+    'All CNN_4_pp_corr_noself_hires'
+    'All CNN_5_pp_corr_noself_hires'
+    'All CNN_6_pp_corr_noself_hires'
+    'All CNN_7_pp_corr_noself_hires'
+    };
+
+these_tensors = load('all_interpolated_MNI_locations');
+these_tensors = these_tensors.all_interpolated_MNI_locations;
+for this_model_set =1:length(this_model_name)
+    module_plot_these_tensors(this_model_name{this_model_set},these_tensors,outpath,group,subjects)
+end
+
 %% Assess behavioural performance
 for i = 1:length(subjects)
     this_dir = pwd;
