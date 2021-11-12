@@ -1843,23 +1843,111 @@ if make_atlas_rois
 end
 
 
-% Now create a vector along the ventral stream, using Engell's Face-Scene
-% contrast: Engell A.D. and McCarthy G. (2013). fMRI activation by face and biological motion perception: Comparison of response maps and creation of probabilistic atlases. NeuroImage, 74, 140-151.
-face_map_info = spm_vol('./Regions_of_Interest/ASAP_maps/facescene_pmap_N124_stat3.nii');
-face_map = spm_read_vols(face_map_info); % This is the Face-Scene contrast for 124 young healthy people, expressed as percent significant in each voxel
+% % Now create a vector along the ventral stream, using Engell's Face-Scene
+% % contrast: Engell A.D. and McCarthy G. (2013). fMRI activation by face and biological motion perception: Comparison of response maps and creation of probabilistic atlases. NeuroImage, 74, 140-151.
+% face_map_info = spm_vol('./Regions_of_Interest/ASAP_maps/facescene_pmap_N124_stat3.nii');
+% face_map = spm_read_vols(face_map_info); % This is the Face-Scene contrast for 124 young healthy people, expressed as percent significant in each voxel
+% 
+% %Find peak location on each side (Right and left FFA)
+% left_half = face_map;
+% left_half(1:floor(size(face_map,1)/2),:,:) = 0; %NB: x-direction negative indexed here
+% right_half = face_map;
+% right_half(ceil((size(face_map,1))/2):end,:,:) = 0;
+% [~,idx_r] = max(right_half(:));
+% [~,idx_l] = max(left_half(:));
+% all_interpolated_MNI_locations = {};
+% for start_idx = [idx_r, idx_l]
+%     %Work forwards and backwards from those points to make a tensor;
+%     [r,c,p] = ind2sub(size(face_map),start_idx);
+%     MNI_x = [face_map_info.mat(1,4)+(r*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(c*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(p*face_map_info.mat(3,3))];
+%     
+%     %Work forwards and backwards from that point to make a tensor;
+%     y_start = MNI_x(2);
+%     %First go backwards
+%     last_location = [r,c,p];
+%     these_negative_locations = [];
+%     these_negative_MNI_locations = [];
+%     for this_y = (c-1):-1:(c-50)
+%         this_plane = face_map((last_location(1)-5):(last_location(1)+5),this_y,(last_location(3)-5):(last_location(3)+5));
+%         [mxv,idx] = max(this_plane(:)); % Look for a voxel within 1cm of previous in X+Z
+%         if mxv>0.1 % More than 10% of subjects have face preference here
+%             [r_temp,c_temp,p_temp] = ind2sub(size(this_plane),idx);
+%             last_location = [last_location(1)+r_temp-6,this_y,last_location(3)+p_temp-6];
+%             these_negative_locations = [these_negative_locations; last_location];
+%             last_MNI_location = [face_map_info.mat(1,4)+(last_location(1)*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(last_location(2)*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(last_location(3)*face_map_info.mat(3,3))];
+%             these_negative_MNI_locations = [these_negative_MNI_locations; last_MNI_location];
+%         else % Less than 10% of subjects have face preference - end of tensor
+%             break
+%         end
+%     end
+%     
+%     %Then go forwards
+%     last_location = [r,c,p];
+%     these_positive_locations = [];
+%     these_positive_MNI_locations = [];
+%     for this_y = (c+1):1:(c+50)
+%         this_plane = face_map((last_location(1)-5):(last_location(1)+5),this_y,(last_location(3)-5):(last_location(3)+5));
+%         [mxv,idx] = max(this_plane(:)); % Look for a voxel within 1cm of previous in X+Z
+%         if mxv>0.1 % More than 10% of subjects have face preference here
+%             [r_temp,c_temp,p_temp] = ind2sub(size(this_plane),idx);
+%             last_location = [last_location(1)+r_temp-6,this_y,last_location(3)+p_temp-6];
+%             these_positive_locations = [these_positive_locations; last_location];
+%             last_MNI_location = (face_map_info.mat*[last_location 1]')';
+%             last_MNI_location = last_MNI_location(1:3);
+%             %last_MNI_location = [face_map_info.mat(1,4)+(last_location(1)*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(last_location(2)*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(last_location(3)*face_map_info.mat(3,3))];
+%             these_positive_MNI_locations = [these_positive_MNI_locations; last_MNI_location];
+%         else % Less than 10% of subjects have face preference - end of tensor
+%             break
+%         end
+%     end
+%     
+%     %Then create tensor
+%     these_locations = [flipud(these_negative_locations); [r,c,p]; these_positive_locations];
+%     these_MNI_locations = [flipud(these_negative_MNI_locations); MNI_x; these_positive_MNI_locations];
+%     % Interpolate from 2mm to 1mm resolution
+%     these_interpolated_MNI_locations = [];
+%     for this_y_loc = 1:size(these_MNI_locations,1)-1
+%         these_interpolated_MNI_locations = [these_interpolated_MNI_locations; these_MNI_locations(this_y_loc,:)];
+%         these_interpolated_MNI_locations = [these_interpolated_MNI_locations; mean(these_MNI_locations(this_y_loc:this_y_loc+1,:),1)];
+%     end
+%     these_interpolated_MNI_locations = [these_interpolated_MNI_locations; these_MNI_locations(end,:)];
+%     all_interpolated_MNI_locations{end+1} = these_interpolated_MNI_locations;
+% end
+% 
+% % Write these tensors for visualisation
+% example_volume_info = spm_vol('photo_line_template_noself.nii'); %An example multivariate contrast 
+% example_volume = spm_read_vols(example_volume_info); %An example multivariate contrast 
+% tensors_to_write = zeros(size(example_volume));
+% for this_tensor = 1:length(all_interpolated_MNI_locations)
+%     for this_location = 1:length(all_interpolated_MNI_locations{this_tensor})
+%         these_voxel_coordinates = [all_interpolated_MNI_locations{this_tensor}(this_location,:),1]*(inv(example_volume_info.mat))';
+%         try
+%             tensors_to_write(these_voxel_coordinates(1),these_voxel_coordinates(2),these_voxel_coordinates(3)) = 1;
+%         end
+%     end
+% end
+% tensor_volume_info = example_volume_info;
+% tensor_volume_info.descrip = 'Tensors for multivariate analysis';
+% tensor_volume_info.fname = 'face-scene tensors.nii';
+% spm_write_vol(tensor_volume_info,tensors_to_write)
 
-%Find peak location on each side (Right and left FFA)
-left_half = face_map;
-left_half(1:floor(size(face_map,1)/2),:,:) = 0; %NB: x-direction negative indexed here
-right_half = face_map;
-right_half(ceil((size(face_map,1))/2):end,:,:) = 0;
-[~,idx_r] = max(right_half(:));
-[~,idx_l] = max(left_half(:));
+save('all_interpolated_facescene_MNI_locations','all_interpolated_MNI_locations')
+
+% Now try defining tensors based on our own Pictures - Null contrast
+%seeds = [32.0 -44.0 -20.0; -35.0 -44.0 -23.0]; %Most anterior voxels of the ventral stream, manually located.
+seeds = [43 -52.0 -13.0; 50 -68 -1]; %Most significant FFA voxels in the ventral stream, manually located.
+
+picture_map_info = spm_vol('./Regions_of_Interest/Pictures-null-cluster.nii');
+picture_map = spm_read_vols(picture_map_info); % This is the Face-Scene contrast for 124 young healthy people, expressed as percent significant in each voxel
+
 all_interpolated_MNI_locations = {};
-for start_idx = [idx_r, idx_l]
+for this_seed = 1:size(seeds,1)
     %Work forwards and backwards from those points to make a tensor;
-    [r,c,p] = ind2sub(size(face_map),start_idx);
-    MNI_x = [face_map_info.mat(1,4)+(r*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(c*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(p*face_map_info.mat(3,3))];
+    seeds_voxelspace = round([seeds(this_seed,:),1]*(inv(picture_map_info.mat))');
+    r = seeds_voxelspace(1,1);
+    c = seeds_voxelspace(1,2);
+    p = seeds_voxelspace(1,3);
+    MNI_x = [picture_map_info.mat(1,4)+(r*picture_map_info.mat(1,1)), picture_map_info.mat(2,4)+(c*picture_map_info.mat(2,2)), picture_map_info.mat(3,4)+(p*picture_map_info.mat(3,3))];
     
     %Work forwards and backwards from that point to make a tensor;
     y_start = MNI_x(2);
@@ -1868,13 +1956,13 @@ for start_idx = [idx_r, idx_l]
     these_negative_locations = [];
     these_negative_MNI_locations = [];
     for this_y = (c-1):-1:(c-50)
-        this_plane = face_map((last_location(1)-5):(last_location(1)+5),this_y,(last_location(3)-5):(last_location(3)+5));
+        this_plane = picture_map((last_location(1)-5):(last_location(1)+5),this_y,(last_location(3)-5):(last_location(3)+5));
         [mxv,idx] = max(this_plane(:)); % Look for a voxel within 1cm of previous in X+Z
         if mxv>0.1 % More than 10% of subjects have face preference here
             [r_temp,c_temp,p_temp] = ind2sub(size(this_plane),idx);
             last_location = [last_location(1)+r_temp-6,this_y,last_location(3)+p_temp-6];
             these_negative_locations = [these_negative_locations; last_location];
-            last_MNI_location = [face_map_info.mat(1,4)+(last_location(1)*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(last_location(2)*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(last_location(3)*face_map_info.mat(3,3))];
+            last_MNI_location = [picture_map_info.mat(1,4)+(last_location(1)*picture_map_info.mat(1,1)), picture_map_info.mat(2,4)+(last_location(2)*picture_map_info.mat(2,2)), picture_map_info.mat(3,4)+(last_location(3)*picture_map_info.mat(3,3))];
             these_negative_MNI_locations = [these_negative_MNI_locations; last_MNI_location];
         else % Less than 10% of subjects have face preference - end of tensor
             break
@@ -1886,15 +1974,15 @@ for start_idx = [idx_r, idx_l]
     these_positive_locations = [];
     these_positive_MNI_locations = [];
     for this_y = (c+1):1:(c+50)
-        this_plane = face_map((last_location(1)-5):(last_location(1)+5),this_y,(last_location(3)-5):(last_location(3)+5));
+        this_plane = picture_map((last_location(1)-5):(last_location(1)+5),this_y,(last_location(3)-5):(last_location(3)+5));
         [mxv,idx] = max(this_plane(:)); % Look for a voxel within 1cm of previous in X+Z
         if mxv>0.1 % More than 10% of subjects have face preference here
             [r_temp,c_temp,p_temp] = ind2sub(size(this_plane),idx);
             last_location = [last_location(1)+r_temp-6,this_y,last_location(3)+p_temp-6];
             these_positive_locations = [these_positive_locations; last_location];
-            last_MNI_location = (face_map_info.mat*[last_location 1]')';
+            last_MNI_location = (picture_map_info.mat*[last_location 1]')';
             last_MNI_location = last_MNI_location(1:3);
-            %last_MNI_location = [face_map_info.mat(1,4)+(last_location(1)*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(last_location(2)*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(last_location(3)*face_map_info.mat(3,3))];
+            %last_MNI_location = [picture_map_info.mat(1,4)+(last_location(1)*picture_map_info.mat(1,1)), picture_map_info.mat(2,4)+(last_location(2)*picture_map_info.mat(2,2)), picture_map_info.mat(3,4)+(last_location(3)*picture_map_info.mat(3,3))];
             these_positive_MNI_locations = [these_positive_MNI_locations; last_MNI_location];
         else % Less than 10% of subjects have face preference - end of tensor
             break
@@ -1904,13 +1992,16 @@ for start_idx = [idx_r, idx_l]
     %Then create tensor
     these_locations = [flipud(these_negative_locations); [r,c,p]; these_positive_locations];
     these_MNI_locations = [flipud(these_negative_MNI_locations); MNI_x; these_positive_MNI_locations];
-    % Interpolate from 2mm to 1mm resolution
+    % Interpolate from 1.5mm to 0.5mm resolution
     these_interpolated_MNI_locations = [];
     for this_y_loc = 1:size(these_MNI_locations,1)-1
         these_interpolated_MNI_locations = [these_interpolated_MNI_locations; these_MNI_locations(this_y_loc,:)];
-        these_interpolated_MNI_locations = [these_interpolated_MNI_locations; mean(these_MNI_locations(this_y_loc:this_y_loc+1,:),1)];
+        these_interpolated_MNI_locations = [these_interpolated_MNI_locations; mean([these_MNI_locations(this_y_loc,:);these_MNI_locations(this_y_loc:this_y_loc+1,:)],1)];
+        these_interpolated_MNI_locations = [these_interpolated_MNI_locations; mean([these_MNI_locations(this_y_loc+1,:);these_MNI_locations(this_y_loc:this_y_loc+1,:)],1)];
     end
     these_interpolated_MNI_locations = [these_interpolated_MNI_locations; these_MNI_locations(end,:)];
+    % Now downsample to 1mm resolution
+    these_interpolated_MNI_locations = these_interpolated_MNI_locations(1:2:end,:);
     all_interpolated_MNI_locations{end+1} = these_interpolated_MNI_locations;
 end
 
@@ -1920,7 +2011,7 @@ example_volume = spm_read_vols(example_volume_info); %An example multivariate co
 tensors_to_write = zeros(size(example_volume));
 for this_tensor = 1:length(all_interpolated_MNI_locations)
     for this_location = 1:length(all_interpolated_MNI_locations{this_tensor})
-        these_voxel_coordinates = [all_interpolated_MNI_locations{this_tensor}(this_location,:),1]*(inv(example_volume_info.mat))';
+        these_voxel_coordinates = round([all_interpolated_MNI_locations{this_tensor}(this_location,:),1]*(inv(example_volume_info.mat))');
         try
             tensors_to_write(these_voxel_coordinates(1),these_voxel_coordinates(2),these_voxel_coordinates(3)) = 1;
         end
@@ -1928,10 +2019,10 @@ for this_tensor = 1:length(all_interpolated_MNI_locations)
 end
 tensor_volume_info = example_volume_info;
 tensor_volume_info.descrip = 'Tensors for multivariate analysis';
-tensor_volume_info.fname = 'face-scene tensors.nii';
+tensor_volume_info.fname = 'Picture-null tensors.nii';
 spm_write_vol(tensor_volume_info,tensors_to_write)
 
-save('all_interpolated_MNI_locations','all_interpolated_MNI_locations')
+save('all_interpolated_picturenull_MNI_locations','all_interpolated_MNI_locations')
 
 %% Calculate tSNR maps
 nrun = size(subjects,2); % enter the number of runs here
@@ -2011,6 +2102,7 @@ spm_imcalc(char([cellstr('mean_patient_tSNR_map.nii'); scriptdir 'control_majori
 
 downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 outpath = [preprocessedpathstem '/stats_native_mask0.3_3_coreg_reversedbuttons/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level'];
+radius = 5; %Tolerance on the tensor - find maximum voxel within X mm
 
 this_model_name{1} = {
     'Photo to Line templates_noself_hires'
@@ -2027,9 +2119,10 @@ this_model_name{2} = {
     'All CNN_7_pp_corr_noself_hires'
     };
 
-these_tensors = load('all_interpolated_MNI_locations');
+these_tensors = load('all_interpolated_picturenull_MNI_locations');
 these_tensors = these_tensors.all_interpolated_MNI_locations;
 for this_model_set =1:length(this_model_name)
+    module_plot_these_tensors_radius(this_model_name{this_model_set},these_tensors,outpath,group,subjects,radius)
     module_plot_these_tensors(this_model_name{this_model_set},these_tensors,outpath,group,subjects)
 end
 
