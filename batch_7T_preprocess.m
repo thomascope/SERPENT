@@ -1823,27 +1823,9 @@ outpath = [preprocessedpathstem '/stats_native_mask0.3_3_coreg_reversedbuttons/s
 searchlighthighressecondlevel = []; % Sampling at 1mm isotropic - preferable for REML
 searchlighthighressecondlevel = module_searchlight_secondlevel_hires(GLMDir,subjects_noP16,group,age_lookup,outpath,downsamp_ratio);
 
-%% Now do ROI analysis
-% First separate out probablistic map into components: Wang, Liang, et al. "Probabilistic maps of visual topography in human cortex." Cerebral cortex 25.10 (2015): 3911-3931.
-% 01 - V1v	    
-% 02 - V1d	   
-% 03 - V2v	   
-% 04 - V2d	   
-% 05 - V3v	    
-% 06 - V3d	    
-% 07 - hV4	  
-% 08 - VO1	    
-% 09 - VO2	
-make_atlas_rois = 0; %Already done
-if make_atlas_rois
-    for this_roi = 1:9
-    spm_imcalc('./Regions_of_Interest/maxprob_vol_lh.nii',['./Regions_of_Interest/lh_roi_' num2str(this_roi) '.nii'],['i1==' num2str(this_roi)])
-    spm_imcalc('./Regions_of_Interest/maxprob_vol_rh.nii',['./Regions_of_Interest/rh_roi_' num2str(this_roi) '.nii'],['i1==' num2str(this_roi)])
-    end
-end
+% NB: Note S7P14 frontal atrophy - examine whether outlier
 
-
-% % Now create a vector along the ventral stream, using Engell's Face-Scene
+%% Now create a vector along the ventral stream, using Engell's Face-Scene
 % % contrast: Engell A.D. and McCarthy G. (2013). fMRI activation by face and biological motion perception: Comparison of response maps and creation of probabilistic atlases. NeuroImage, 74, 140-151.
 % face_map_info = spm_vol('./Regions_of_Interest/ASAP_maps/facescene_pmap_N124_stat3.nii');
 % face_map = spm_read_vols(face_map_info); % This is the Face-Scene contrast for 124 young healthy people, expressed as percent significant in each voxel
@@ -2023,6 +2005,120 @@ tensor_volume_info.fname = 'Picture-null tensors.nii';
 spm_write_vol(tensor_volume_info,tensors_to_write)
 
 save('all_interpolated_picturenull_MNI_locations','all_interpolated_MNI_locations')
+
+%% Now do ROI analysis - First create ROIS
+% First separate out probablistic map into components: Wang, Liang, et al. "Probabilistic maps of visual topography in human cortex." Cerebral cortex 25.10 (2015): 3911-3931.
+% 01 - V1v	    
+% 02 - V1d	   
+% 03 - V2v	   
+% 04 - V2d	   
+% 05 - V3v	    
+% 06 - V3d	    
+% 07 - hV4	  
+% 08 - VO1	    
+% 09 - VO2	
+make_atlas_rois = 0; %Already done
+if make_atlas_rois
+    for this_roi = 1:9
+    spm_imcalc('./Regions_of_Interest/maxprob_vol_lh.nii',['./Regions_of_Interest/lh_roi_' num2str(this_roi) '.nii'],['i1==' num2str(this_roi)])
+    spm_imcalc('./Regions_of_Interest/maxprob_vol_rh.nii',['./Regions_of_Interest/rh_roi_' num2str(this_roi) '.nii'],['i1==' num2str(this_roi)])
+    end
+end
+
+%% Now normalise the template space masks into native space
+
+images2normalise = {};
+
+for this_roi = 1:9
+    images2normalise{end+1} = ['./Regions_of_Interest/lh_roi_' num2str(this_roi) '.nii'];
+    images2normalise{end+1} = ['./Regions_of_Interest/rh_roi_' num2str(this_roi) '.nii'];
+end
+
+images2normalise{end+1} = ['./Regions_of_Interest/lh_template_noself_crossmod.nii']
+images2normalise{end+1} = ['./Regions_of_Interest/rh_template_noself_crossmod.nii']
+
+%'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/Blank_ROI/blank_mask.nii'
+    %'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Blank_2016_inflated.nii' %Blank and Davis 2018 mask
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_cross_group_cluster.nii' %M to MM Shared Segments:  Cross Negative partialling
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Frontal_Univariate_MM>M.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Temporal_Univariate_MM>M.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PostSTG_Univariate_Interaction.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction1.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction2.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction3.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction1.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction2.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction_combined.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction_combined.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate8mm_15>3.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate3mm_15>3.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_SSMatchnoself_combined.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_All_Shared_Segments.nii'
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_All_Shared_Segments_hires.nii'
+    };
+
+% search_labels = {
+%     'Left STG'
+%     'Left PT'
+%     'Left PrG'
+%     'Left FO'
+%     'Left TrIFG'
+%     };
+
+% xA=spm_atlas('load','Neuromorphometrics');
+
+search_labels = {
+    %     'Left Superior Temporal Gyrus'
+    %     'Left Angular Gyrus'
+    %     'Left Precentral Gyrus'
+    %     'Left Frontal Operculum'
+    %     'Left Inferior Frontal Angular Gyrus'
+    %     'Right Superior Temporal Gyrus'
+    %     'Right Angular Gyrus'
+    %     'Right Precentral Gyrus'
+    %     'Right Frontal Operculum'
+    %     'Right Inferior Frontal Angular Gyrus'
+    %     'Left Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
+    %     'Right Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
+    };
+
+% cat_install_atlases
+% xA=spm_atlas('load','dartel_neuromorphometrics');
+% for i = 1:size(xA.labels,2)
+%     all_labels{i} = xA.labels(i).name;
+% end
+
+% S = cell(1,length(search_labels));
+% for i = 1:length(search_labels)
+%     S{i} = find(strncmp(all_labels,search_labels{i},size(search_labels{i},2)));
+% end
+% if ~exist('./atlas_Neuromorphometrics/','dir')
+%     mkdir('./atlas_Neuromorphometrics/');
+% end
+% for i = 1:size(S,2)
+%     fname=strcat(strrep(search_labels{i}, ' ', '_'),'.nii');
+%     VM=spm_atlas('mask',xA,xA.labels(S{i}).name);
+%     VM.fname=['./atlas_Neuromorphometrics/' fname];
+%     spm_write_vol(VM,spm_read_vols(VM));
+%     images2normalise{end+1} = [pwd '/atlas_Neuromorphometrics/' fname];
+% end
+
+nrun = size(subjects,2); % enter the number of runs here
+template2nativeworkedcorrectly = zeros(1,nrun);
+parfor crun = 1:nrun
+    addpath(genpath('./RSA_scripts'))
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    reslice_template = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/mask.nii']; %Template for reslicing
+    try
+        module_template_2_nativemap(images2normalise,outpath,1,reslice_template);
+        template2nativeworkedcorrectly(crun) = 1;
+    catch
+        template2nativeworkedcorrectly(crun) = 0;
+    end
+end
+
 
 %% Calculate tSNR maps
 nrun = size(subjects,2); % enter the number of runs here
