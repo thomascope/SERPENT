@@ -2007,22 +2007,63 @@ spm_write_vol(tensor_volume_info,tensors_to_write)
 save('all_interpolated_picturenull_MNI_locations','all_interpolated_MNI_locations')
 
 %% Now do ROI analysis - First create ROIS
-% First separate out probablistic map into components: Wang, Liang, et al. "Probabilistic maps of visual topography in human cortex." Cerebral cortex 25.10 (2015): 3911-3931.
-% 01 - V1v	    
-% 02 - V1d	   
-% 03 - V2v	   
-% 04 - V2d	   
-% 05 - V3v	    
-% 06 - V3d	    
-% 07 - hV4	  
-% 08 - VO1	    
-% 09 - VO2	
 make_atlas_rois = 0; %Already done
 if make_atlas_rois
+    % First separate out probablistic map into components: Wang, Liang, et al. "Probabilistic maps of visual topography in human cortex." Cerebral cortex 25.10 (2015): 3911-3931.
+    % 01 - V1v
+    % 02 - V1d
+    % 03 - V2v
+    % 04 - V2d
+    % 05 - V3v
+    % 06 - V3d
+    % 07 - hV4
+    % 08 - VO1
+    % 09 - VO2
     for this_roi = 1:9
-    spm_imcalc('./Regions_of_Interest/maxprob_vol_lh.nii',['./Regions_of_Interest/lh_roi_' num2str(this_roi) '.nii'],['i1==' num2str(this_roi)])
-    spm_imcalc('./Regions_of_Interest/maxprob_vol_rh.nii',['./Regions_of_Interest/rh_roi_' num2str(this_roi) '.nii'],['i1==' num2str(this_roi)])
+        spm_imcalc('./Regions_of_Interest/maxprob_vol_lh.nii',['./Regions_of_Interest/lh_roi_' num2str(this_roi) '.nii'],['i1==' num2str(this_roi)])
+        spm_imcalc('./Regions_of_Interest/maxprob_vol_rh.nii',['./Regions_of_Interest/rh_roi_' num2str(this_roi) '.nii'],['i1==' num2str(this_roi)])
     end
+    
+    % Now better, more recent map: Rosenke, Mona, et al. "A probabilistic functional atlas of human occipito-temporal visual cortex." Cerebral Cortex 31.1 (2021): 603-619.
+    region_key= {
+        'lh_mFus_faces'
+        'lh_pFus_faces'
+        'lh_IOG_faces'
+        'lh_OTS_bodies'
+        'lh_ITG_bodies'
+        'lh_MTG_bodies'
+        'lh_LOS_bodies'
+        'lh_pOTS_characters'
+        'lh_IOS_haracters'
+        'lh_CoS_places'
+        'lh_hMT_motion'
+        'lh_v1d_retinotopic'
+        'lh_v2d_retinotopic'
+        'lh_v3d_retinotopic'
+        'lh_v1v_retinotopic'
+        'lh_v2v_retinotopic'
+        'lh_v3v_retinotopic'
+        'rh_mFus_faces'
+        'rh_pFus_faces'
+        'rh_IOG_faces'
+        'rh_OTS_bodies'
+        'rh_ITG_bodies'
+        'rh_MTG_bodies'
+        'rh_LOS_bodies'
+        'rh_CoS_places'
+        'rh_TOS_places'
+        'rh_hMT_motion'
+        'rh_v1d_retinotopic'
+        'rh_v2d_retinotopic'
+        'rh_v3d_retinotopic'
+        'rh_v1v_retinotopic'
+        'rh_v2v_retinotopic'
+        'rh_v3v_retinotopic'
+        }
+    for this_roi = 1:length(region_key)
+        spm_imcalc('./Regions_of_Interest/visfAtlas_MNI152_volume.nii',['./Regions_of_Interest/Rosenke_' region_key{this_roi} '.nii'],['i1==' num2str(this_roi)]) %NB: Not zero based indexing in the atlas, despite what it implies in the XML
+    end
+    
 end
 
 %% Now normalise the template space masks into native space
@@ -2034,30 +2075,48 @@ for this_roi = 1:9
     images2normalise{end+1} = ['./Regions_of_Interest/rh_roi_' num2str(this_roi) '.nii'];
 end
 
-images2normalise{end+1} = ['./Regions_of_Interest/lh_template_noself_crossmod.nii']
-images2normalise{end+1} = ['./Regions_of_Interest/rh_template_noself_crossmod.nii']
+images2normalise{end+1} = ['./Regions_of_Interest/lh_template_noself_crossmod.nii'];
+images2normalise{end+1} = ['./Regions_of_Interest/rh_template_noself_crossmod.nii'];
 
-%'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/Blank_ROI/blank_mask.nii'
-    %'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Blank_2016_inflated.nii' %Blank and Davis 2018 mask
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_cross_group_cluster.nii' %M to MM Shared Segments:  Cross Negative partialling
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Frontal_Univariate_MM>M.nii'
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Temporal_Univariate_MM>M.nii'
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PostSTG_Univariate_Interaction.nii'
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction1.nii'
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction2.nii'
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction3.nii'
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction1.nii'
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction2.nii'
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction_combined.nii'
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction_combined.nii'
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate8mm_15>3.nii'
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate3mm_15>3.nii'
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_SSMatchnoself_combined.nii'
-    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_All_Shared_Segments.nii'
-    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_All_Shared_Segments_hires.nii'
-    };
+region_key= {
+        'lh_mFus_faces'
+        'lh_pFus_faces'
+        'lh_IOG_faces'
+        'lh_OTS_bodies'
+        'lh_ITG_bodies'
+        'lh_MTG_bodies'
+        'lh_LOS_bodies'
+        'lh_pOTS_characters'
+        'lh_IOS_haracters'
+        'lh_CoS_places'
+        'lh_hMT_motion'
+        'lh_v1d_retinotopic'
+        'lh_v2d_retinotopic'
+        'lh_v3d_retinotopic'
+        'lh_v1v_retinotopic'
+        'lh_v2v_retinotopic'
+        'lh_v3v_retinotopic'
+        'rh_mFus_faces'
+        'rh_pFus_faces'
+        'rh_IOG_faces'
+        'rh_OTS_bodies'
+        'rh_ITG_bodies'
+        'rh_MTG_bodies'
+        'rh_LOS_bodies'
+        'rh_CoS_places'
+        'rh_TOS_places'
+        'rh_hMT_motion'
+        'rh_v1d_retinotopic'
+        'rh_v2d_retinotopic'
+        'rh_v3d_retinotopic'
+        'rh_v1v_retinotopic'
+        'rh_v2v_retinotopic'
+        'rh_v3v_retinotopic'
+        };
+    
+    for this_roi = 1:length(region_key)
+        images2normalise{end+1} = ['./Regions_of_Interest/Rosenke_' region_key{this_roi} '.nii'];
+    end
 
 % search_labels = {
 %     'Left STG'
@@ -2069,20 +2128,20 @@ images2normalise{end+1} = ['./Regions_of_Interest/rh_template_noself_crossmod.ni
 
 % xA=spm_atlas('load','Neuromorphometrics');
 
-search_labels = {
-    %     'Left Superior Temporal Gyrus'
-    %     'Left Angular Gyrus'
-    %     'Left Precentral Gyrus'
-    %     'Left Frontal Operculum'
-    %     'Left Inferior Frontal Angular Gyrus'
-    %     'Right Superior Temporal Gyrus'
-    %     'Right Angular Gyrus'
-    %     'Right Precentral Gyrus'
-    %     'Right Frontal Operculum'
-    %     'Right Inferior Frontal Angular Gyrus'
-    %     'Left Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
-    %     'Right Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
-    };
+% search_labels = {
+%     %     'Left Superior Temporal Gyrus'
+%     %     'Left Angular Gyrus'
+%     %     'Left Precentral Gyrus'
+%     %     'Left Frontal Operculum'
+%     %     'Left Inferior Frontal Angular Gyrus'
+%     %     'Right Superior Temporal Gyrus'
+%     %     'Right Angular Gyrus'
+%     %     'Right Precentral Gyrus'
+%     %     'Right Frontal Operculum'
+%     %     'Right Inferior Frontal Angular Gyrus'
+%     %     'Left Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
+%     %     'Right Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
+%     };
 
 % cat_install_atlases
 % xA=spm_atlas('load','dartel_neuromorphometrics');
@@ -2110,12 +2169,837 @@ template2nativeworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     outpath = [preprocessedpathstem subjects{crun} '/'];
-    reslice_template = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/mask.nii']; %Template for reslicing
+    reslice_template = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/mask.nii']; %Template for reslicing
+    inverse_deformation_path = ['mri/iy_p' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}(1:end-4) '_denoised.nii'];
     try
-        module_template_2_nativemap(images2normalise,outpath,1,reslice_template);
+        module_template_2_nativemap(images2normalise,outpath,1,reslice_template,inverse_deformation_path);
         template2nativeworkedcorrectly(crun) = 1;
     catch
         template2nativeworkedcorrectly(crun) = 0;
+    end
+end
+
+%% Analyse by condition and brain region
+addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox?
+
+masks = {};
+
+for this_roi = 1:9
+    masks{end+1} = ['rwlh_roi_' num2str(this_roi)];
+    masks{end+1} = ['rwrh_roi_' num2str(this_roi)];
+end
+
+masks{end+1} = ['rwlh_template_noself_crossmod'];
+masks{end+1} = ['rwrh_template_noself_crossmod'];
+
+region_key= {
+        'lh_mFus_faces'
+        'lh_pFus_faces'
+        'lh_IOG_faces'
+        'lh_OTS_bodies'
+        'lh_ITG_bodies'
+        'lh_MTG_bodies'
+        'lh_LOS_bodies'
+        'lh_pOTS_characters'
+        'lh_IOS_haracters'
+        'lh_CoS_places'
+        'lh_hMT_motion'
+        'lh_v1d_retinotopic'
+        'lh_v2d_retinotopic'
+        'lh_v3d_retinotopic'
+        'lh_v1v_retinotopic'
+        'lh_v2v_retinotopic'
+        'lh_v3v_retinotopic'
+        'rh_mFus_faces'
+        'rh_pFus_faces'
+        'rh_IOG_faces'
+        'rh_OTS_bodies'
+        'rh_ITG_bodies'
+        'rh_MTG_bodies'
+        'rh_LOS_bodies'
+        'rh_CoS_places'
+        'rh_TOS_places'
+        'rh_hMT_motion'
+        'rh_v1d_retinotopic'
+        'rh_v2d_retinotopic'
+        'rh_v3d_retinotopic'
+        'rh_v1v_retinotopic'
+        'rh_v2v_retinotopic'
+        'rh_v3v_retinotopic'
+        };
+    
+    for this_roi = 1:length(region_key)
+        masks{end+1} = ['rwRosenke_' region_key{this_roi}];
+    end
+
+GLMDir = [preprocessedpathstem subjects{1} '/stats_native_mask0.3_3_coreg_reversedbuttons']; %Template, first subject
+% temp = load([GLMDir filesep 'SPM.mat']);
+% labelnames = {};
+% for i = 1:length(temp.SPM.Sess(1).U)
+%     if ~strncmp(temp.SPM.Sess(1).U(i).name,{'photo','line'},4)
+%         continue
+%     else
+%         labelnames(end+1) = temp.SPM.Sess(1).U(i).name;
+%     end
+% end
+% labels = 1:length(labelnames);
+% labelnames_denumbered = {};
+% for i = 1:length(labelnames)
+%     labelnames_denumbered{i} = labelnames{i}(isletter(labelnames{i})|isspace(labelnames{i}));
+% end
+% conditionnames = unique(labelnames_denumbered,'stable');
+% clear temp labelnames_denumbered labelnames
+
+nrun = size(subjects,2); % enter the number of runs here
+mahalanobisroiworkedcorrectly = zeros(1,nrun);
+parfor crun = 1:nrun
+    addpath(genpath('./RSA_scripts'))
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons']; %Where is the SPM model?
+    mask_dir = [preprocessedpathstem subjects{crun}]; %Where are the native space ROI masks?
+    try
+        TDTCrossnobisAnalysis_roi(GLMDir,mask_dir,masks);
+        mahalanobisroiworkedcorrectly(crun) = 1;
+    catch
+        mahalanobisroiworkedcorrectly(crun) = 0;
+    end
+end
+
+
+%% Now do RSA on ROI data
+nrun = size(subjects,2); % enter the number of runs here
+RSAroiworkedcorrectly = zeros(1,nrun);
+partialRSAroiworkedcorrectly = zeros(1,nrun);
+masks = {};
+
+for this_roi = 1:9
+    masks{end+1} = ['rwlh_roi_' num2str(this_roi)];
+    masks{end+1} = ['rwrh_roi_' num2str(this_roi)];
+end
+
+masks{end+1} = ['rwlh_template_noself_crossmod'];
+masks{end+1} = ['rwrh_template_noself_crossmod'];
+
+region_key= {
+    'lh_mFus_faces'
+    'lh_pFus_faces'
+    'lh_IOG_faces'
+    'lh_OTS_bodies'
+    'lh_ITG_bodies'
+    'lh_MTG_bodies'
+    'lh_LOS_bodies'
+    'lh_pOTS_characters'
+    'lh_IOS_haracters'
+    'lh_CoS_places'
+    'lh_hMT_motion'
+    'lh_v1d_retinotopic'
+    'lh_v2d_retinotopic'
+    'lh_v3d_retinotopic'
+    'lh_v1v_retinotopic'
+    'lh_v2v_retinotopic'
+    'lh_v3v_retinotopic'
+    'rh_mFus_faces'
+    'rh_pFus_faces'
+    'rh_IOG_faces'
+    'rh_OTS_bodies'
+    'rh_ITG_bodies'
+    'rh_MTG_bodies'
+    'rh_LOS_bodies'
+    'rh_CoS_places'
+    'rh_TOS_places'
+    'rh_hMT_motion'
+    'rh_v1d_retinotopic'
+    'rh_v2d_retinotopic'
+    'rh_v3d_retinotopic'
+    'rh_v1v_retinotopic'
+    'rh_v2v_retinotopic'
+    'rh_v3v_retinotopic'
+    };
+
+for this_roi = 1:length(region_key)
+    masks{end+1} = ['rwRosenke_' region_key{this_roi}];
+end
+
+
+parfor crun = 1:nrun
+    addpath(genpath('./RSA_scripts'))
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons']; %Where is the SPM model?
+    try
+        module_roi_RSA(GLMDir,masks,subjects{crun})
+        RSAroiworkedcorrectly(crun) = 1;
+    catch
+        RSAroiworkedcorrectly(crun) = 0;
+    end
+end
+matrices_to_partial = {'Global V1_ds','Global GIST correlation'};
+parfor crun = 1:nrun
+    addpath(genpath('./RSA_scripts'))
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons']; %Where is the SPM model?
+    try
+        module_partial_roi_RSA(GLMDir,masks,subjects{crun},matrices_to_partial)
+        partialRSAroiworkedcorrectly(crun) = 1;
+    catch
+        partialRSAroiworkedcorrectly(crun) = 0;
+    end
+end
+
+%% Now visualise ROI results and do basic stats
+GLMDir = [preprocessedpathstem subjects{1} '/stats_native_mask0.3_3_coreg_reversedbuttons']; %Template, first subject
+outdir = ['./ROI_figures/stats_native_mask0.3_3_coreg_reversedbuttons'];
+mkdir(outdir)
+temp = load([GLMDir filesep 'SPM.mat']);
+
+labelnames = {};
+for i = 1:length(temp.SPM.Sess(1).U)
+    if ~strncmp(temp.SPM.Sess(1).U(i).name,{'photo','line'},4)
+        continue
+    else
+        labelnames(end+1) = temp.SPM.Sess(1).U(i).name;
+    end
+end
+labels = 1:length(labelnames);
+
+% Add covariates of interest XXX - Add in anterior temporal thickness
+age_lookup = readtable('SERPENT_Only_Included.csv');
+for crun = 1:length(subjects)
+this_age(crun) = age_lookup.Age(strcmp(age_lookup.x_SubjectID,subjects{crun}));
+end
+covariates = [this_age'];
+%covariates = [this_age',nanmean(all_sigma_pred)'];
+%covariate_names = horzcat('Age','Prior_Precision',all_roi_thicknesses.Properties.VariableNames);
+covariate_names = horzcat({'Age'});
+
+%Now build model space for testing
+
+clear this_model_name mask_names
+
+this_model_name{1} = {
+    'Photo to Line V1_ds'
+    'Photo to Line GIST correlation'
+    'Photo to Line templates_noself'
+    'Photo to Line visible_dissimilarity_noself'
+    'Photo to Line knowledge_dissimilarity_noself'
+    'Photo to Line judgment_noself'
+    'Photo to Line l_sa_noself'
+    'Photo to Line l_s_a_noself'
+    'Photo to Line lsm_ll_sa_noself'
+    'Photo to Line decoding'
+    };
+
+this_model_name{2} = {
+    'Global V1_ds'
+    'Global GIST correlation'
+    'Global templates_noself'
+    'Global visible_dissimilarity_noself'
+    'Global knowledge_dissimilarity_noself'
+    'Global judgment_noself'
+    'Global l_sa_noself'
+    'Global l_s_a_noself'
+    'Global lsm_ll_sa_noself'
+    'Global decoding'
+    };
+
+this_model_name{3} = {
+    'All V1_ds'
+    'All GIST correlation'
+    'All templates_noself'
+    'All visible_dissimilarity_noself'
+    'All knowledge_dissimilarity_noself'
+    'All judgment_noself'
+    'All l_sa_noself'
+    'All l_s_a_noself'
+    'All lsm_ll_sa_noself'
+    'All decoding'
+    };
+
+
+mask_names = {};
+
+mask_names{1} = {};
+for this_roi = 1:9
+    mask_names{1}{end+1} = ['rwlh_roi_' num2str(this_roi)];
+    mask_names{1}{end+1} = ['rwrh_roi_' num2str(this_roi)];
+end
+
+mask_names{2} = {};
+mask_names{2}{end+1} = ['rwlh_template_noself_crossmod'];
+mask_names{2}{end+1} = ['rwrh_template_noself_crossmod'];
+
+nrun = size(subjects,2); % enter the number of runs here
+% First load in the similarities
+RSA_ROI_data_exist = zeros(1,nrun);
+all_data = [];
+
+all_rho = [];
+all_corr_ps = [];
+all_corrected_rho = [];
+all_corrected_corr_ps = [];
+
+% First plot model sets by brain region (i.e. one model set per brain region)
+
+for j = 1:length(this_model_name)
+    for k = 1:length(mask_names)
+        for i = 1:length(mask_names{k})
+            all_data = [];
+            all_corrected_data = [];
+            for crun = 1:nrun
+                %ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
+                ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI/' mask_names{k}{i} '/RSA/spearman'];
+                if ~exist(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j}{1} '.mat']),'file')
+                    ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI' mask_names{k}{i} '/RSA/spearman']; % Stupid coding error earlier in analysis led to misnamed directories
+                end
+                for m = 1:length(this_model_name{j})
+                    try
+                        temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j}{m} '.mat']));
+                        all_data(m,:,crun) = temp_data.roi_effect; %Create a matrix of condition by ROI by subject
+                        RSA_ROI_data_exist(crun) = 1;
+                    catch
+                        warning(['No data for ' subjects{crun} ' probably because of SPM dropout, ignoring them'])
+                        %error
+                        RSA_ROI_data_exist(crun) = 0;
+                        continue
+                    end
+                end
+            end
+            roi_names = temp_data.roi_names;
+            clear temp_data
+            disp(['Excluding subjects ' num2str(find(RSA_ROI_data_exist==0)) ' belonging to groups ' num2str(group(RSA_ROI_data_exist==0)) ' maybe check them'])
+            all_data(:,:,RSA_ROI_data_exist==0) = NaN;
+            all_corrected_data(:,:,group==1) = es_removeBetween_rotated(all_data(:,:,group==1),[3,1,2]); %Subjects, conditions, measures columns = 3,1,2 here
+            all_corrected_data(:,:,group==2) = es_removeBetween_rotated(all_data(:,:,group==2),[3,1,2]); %Subjects, conditions, measures columns = 3,1,2 here
+            
+            
+            this_ROI = find(strcmp(mask_names{k}{i},roi_names));
+            %Test covariates
+            for m = 1:length(this_model_name{j})
+                [all_rho(j,k,i,m,:),all_corr_ps(j,k,i,m,:)] = corr(covariates,squeeze(all_data(m,this_ROI,:)),'rows','pairwise');
+                for this_corr = 1:size(all_corr_ps,5);
+                    if all_corr_ps(j,k,i,m,this_corr) < 0.05
+                        disp(['Exploratory correlation in ' mask_names{k}{i}(3:end) ' ' this_model_name{j}{m} ' for ' covariate_names{this_corr}])
+                    end
+                end
+            end
+            
+            
+            figure
+            set(gcf,'Position',[100 100 1600 800]);
+            set(gcf, 'PaperPositionMode', 'auto');
+            hold on
+            errorbar([1:length(this_model_name{j})]-0.1,nanmean(squeeze(all_data(:,this_ROI,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_data(:,this_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'kx')
+            errorbar([1:length(this_model_name{j})]+0.1,nanmean(squeeze(all_data(:,this_ROI,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_data(:,this_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'rx')
+%                         for m = 1:length(this_model_name{j})
+%                             scatter(repmat(m-0.1,1,size(squeeze(all_data(:,this_ROI,group==1&RSA_ROI_data_exist)),2)),squeeze(all_data(m,this_ROI,group==1&RSA_ROI_data_exist))','k')
+%                             scatter(repmat(m+0.1,1,size(squeeze(all_data(:,this_ROI,group==2&RSA_ROI_data_exist)),2)),squeeze(all_data(m,this_ROI,group==2&RSA_ROI_data_exist))','r')
+%                         end
+            xlim([0 length(this_model_name{j})+1])
+            set(gca,'xtick',[1:length(this_model_name{j})],'xticklabels',this_model_name{j},'XTickLabelRotation',45,'TickLabelInterpreter','none')
+            plot([0 length(this_model_name{j})+1],[0,0],'k--')
+            title([mask_names{k}{i}(3:end) ' RSA'],'Interpreter','none')
+            if verLessThan('matlab', '9.2')
+                legend('Controls','Patients','location','southeast')
+            else
+                legend('Controls','Patients','location','southeast','AutoUpdate','off')
+            end
+            [h,p] = ttest(squeeze(all_data(:,this_ROI,logical(RSA_ROI_data_exist)))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h),these_y_lims(2)-diff(these_y_lims/10),'g*')
+            end
+            [h,p] = ttest(squeeze(all_data(:,this_ROI,group==1&logical(RSA_ROI_data_exist)))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h)-0.1,these_y_lims(2)-diff(these_y_lims/10),'k*')
+            end
+            [h,p] = ttest(squeeze(all_data(:,this_ROI,group==2&logical(RSA_ROI_data_exist)))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h)+0.1,these_y_lims(2)-diff(these_y_lims/10),'r*')
+            end
+            
+            [h,p] = ttest2(squeeze(all_data(:,this_ROI,group==1&logical(RSA_ROI_data_exist)))',squeeze(all_data(:,this_ROI,group==2&logical(RSA_ROI_data_exist)))');
+            if sum(h)~=0
+                plot(find(h),these_y_lims(2)-diff(these_y_lims/20),'gx')
+            end
+            for m = 1:length(this_model_name{j})
+                for this_corr = 1:size(all_corr_ps,5);
+                    if all_corr_ps(j,k,i,m,this_corr) < 0.05
+                        text(m, these_y_lims(2)-(this_corr*diff(these_y_lims/100)),covariate_names{this_corr},'Interpreter','None')
+                    end
+                end
+            end
+            drawnow
+            saveas(gcf,[outdir filesep mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png'])
+            saveas(gcf,[outdir filesep mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.pdf'])
+            
+            for m = 1:length(this_model_name{j})
+                [all_corrected_rho(j,k,i,m,:),all_corrected_corr_ps(j,k,i,m,:)] = corr(covariates,squeeze(all_data(m,this_ROI,:)),'rows','pairwise');
+                for this_corr = 1:size(all_corr_ps,5);
+                    if all_corr_ps(j,k,i,m,this_corr) < 0.05
+                        disp(['Exploratory corrected correlation in ' mask_names{k}{i}(3:end) ' ' this_model_name{j}{m} ' for ' covariate_names{this_corr}])
+                    end
+                end
+            end
+            
+            figure
+            set(gcf,'Position',[100 100 1600 800]);
+            set(gcf, 'PaperPositionMode', 'auto');
+            hold on
+            errorbar([1:length(this_model_name{j})]-0.1,nanmean(squeeze(all_corrected_data(:,this_ROI,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(:,this_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'kx')
+            errorbar([1:length(this_model_name{j})]+0.1,nanmean(squeeze(all_corrected_data(:,this_ROI,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(:,this_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'rx')
+%                                     for m = 1:length(this_model_name{j})
+%                             scatter(repmat(m-0.1,1,size(squeeze(all_corrected_data(:,this_ROI,group==1&RSA_ROI_data_exist)),2)),squeeze(all_corrected_data(m,this_ROI,group==1&RSA_ROI_data_exist))','k')
+%                             scatter(repmat(m+0.1,1,size(squeeze(all_corrected_data(:,this_ROI,group==2&RSA_ROI_data_exist)),2)),squeeze(all_corrected_data(m,this_ROI,group==2&RSA_ROI_data_exist))','r')
+%                         end
+            xlim([0 length(this_model_name{j})+1])
+            set(gca,'xtick',[1:length(this_model_name{j})],'xticklabels',this_model_name{j},'XTickLabelRotation',45,'TickLabelInterpreter','none')
+            plot([0 length(this_model_name{j})+1],[0,0],'k--')
+            title(['Corrected ' mask_names{k}{i}(3:end) ' RSA'],'Interpreter','none')
+            if verLessThan('matlab', '9.2')
+                legend('Controls','Patients','location','southeast')
+            else
+                legend('Controls','Patients','location','southeast','AutoUpdate','off')
+            end
+            [h,p] = ttest(squeeze(all_corrected_data(:,this_ROI,logical(RSA_ROI_data_exist)))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h),these_y_lims(2)-diff(these_y_lims/10),'g*')
+            end
+            [h,p] = ttest(squeeze(all_corrected_data(:,this_ROI,group==1&logical(RSA_ROI_data_exist)))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h)-0.1,these_y_lims(2)-diff(these_y_lims/10),'k*')
+            end
+            [h,p] = ttest(squeeze(all_corrected_data(:,this_ROI,group==2&logical(RSA_ROI_data_exist)))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h)+0.1,these_y_lims(2)-diff(these_y_lims/10),'r*')
+            end
+            
+            [h,p] = ttest2(squeeze(all_corrected_data(:,this_ROI,group==1&logical(RSA_ROI_data_exist)))',squeeze(all_corrected_data(:,this_ROI,group==2&logical(RSA_ROI_data_exist)))');
+            if sum(h)~=0
+                plot(find(h),these_y_lims(2)-diff(these_y_lims/20),'gx')
+            end
+            for m = 1:length(this_model_name{j})
+                for this_corr = 1:size(all_corrected_corr_ps,5);
+                    if all_corrected_corr_ps(j,k,i,m,this_corr) < 0.05
+                        text(m, these_y_lims(2)-(this_corr*diff(these_y_lims/100)),covariate_names{this_corr},'Interpreter','None')
+                    end
+                end
+            end
+            drawnow
+            saveas(gcf,[outdir filesep 'Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png'])
+            saveas(gcf,[outdir filesep 'Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.pdf'])
+            
+        end
+        close all
+    end
+end
+
+%% Now reverse, and plot a model over many brain regions of interest
+GLMDir = [preprocessedpathstem subjects{1} '/stats_native_mask0.3_3_coreg_reversedbuttons']; %Template, first subject
+outdir = ['./ROI_figures/stats_native_mask0.3_3_coreg_reversedbuttons'];
+mkdir(outdir)
+temp = load([GLMDir filesep 'SPM.mat']);
+
+labelnames = {};
+for i = 1:length(temp.SPM.Sess(1).U)
+    if ~strncmp(temp.SPM.Sess(1).U(i).name,{'photo','line'},4)
+        continue
+    else
+        labelnames(end+1) = temp.SPM.Sess(1).U(i).name;
+    end
+end
+labels = 1:length(labelnames);
+
+% % Add covariates of interest XXX - Add in anterior temporal thickness
+% age_lookup = readtable('SERPENT_Only_Included.csv');
+% for crun = 1:length(subjects)
+% this_age(crun) = age_lookup.Age(strcmp(age_lookup.x_SubjectID,subjects{crun}));
+% end
+% covariates = [this_age'];
+% %covariates = [this_age',nanmean(all_sigma_pred)'];
+% %covariate_names = horzcat('Age','Prior_Precision',all_roi_thicknesses.Properties.VariableNames);
+% covariate_names = horzcat({'Age'});
+
+%Now build model space for testing
+
+clear this_model_name mask_names
+
+this_model_name = {
+    'Photo to Line V1_ds'
+    'Photo to Line GIST correlation'
+    'Photo to Line templates_noself'
+    'Photo to Line visible_dissimilarity_noself'
+    'Photo to Line knowledge_dissimilarity_noself'
+    'Photo to Line judgment_noself'
+    'Photo to Line l_sa_noself'
+    'Photo to Line l_s_a_noself'
+    'Photo to Line lsm_ll_sa_noself'
+    'Photo to Line decoding'
+    'Global V1_ds'
+    'Global GIST correlation'
+    'Global templates_noself'
+    'Global visible_dissimilarity_noself'
+    'Global knowledge_dissimilarity_noself'
+    'Global judgment_noself'
+    'Global l_sa_noself'
+    'Global l_s_a_noself'
+    'Global lsm_ll_sa_noself'
+    'Global decoding'
+    'All V1_ds'
+    'All GIST correlation'
+    'All templates_noself'
+    'All visible_dissimilarity_noself'
+    'All knowledge_dissimilarity_noself'
+    'All judgment_noself'
+    'All l_sa_noself'
+    'All l_s_a_noself'
+    'All lsm_ll_sa_noself'
+    'All decoding'
+    'Photo to Line CNN_1_pp_corr_noself'
+    'Photo to Line CNN_2_pp_corr_noself'
+    'Photo to Line CNN_3_pp_corr_noself'
+    'Photo to Line CNN_4_pp_corr_noself'
+    'Photo to Line CNN_5_pp_corr_noself'
+    'Photo to Line CNN_6_pp_corr_noself'
+    'Photo to Line CNN_7_pp_corr_noself'
+    'Photo to Line CNN_8_pp_corr_noself'
+    'Left to Right V1_ds'
+    'Left to Right GIST correlation'
+    'Left to Right templates_noself'
+    'Left to Right visible_dissimilarity_noself'
+    'Left to Right knowledge_dissimilarity_noself'
+    'Left to Right judgment_noself'
+    'Left to Right l_sa_noself'
+    'Left to Right l_s_a_noself'
+    'Left to Right lsm_ll_sa_noself'
+    'Left to Right decoding'
+    'Left to Right CNN_1_pp_corr_noself'
+    'Left to Right CNN_2_pp_corr_noself'
+    'Left to Right CNN_3_pp_corr_noself'
+    'Left to Right CNN_4_pp_corr_noself'
+    'Left to Right CNN_5_pp_corr_noself'
+    'Left to Right CNN_6_pp_corr_noself'
+    'Left to Right CNN_7_pp_corr_noself'
+    'Left to Right CNN_8_pp_corr_noself'
+    };
+
+
+mask_names = {};
+
+region_key= {
+    'lh_v1d_retinotopic'
+    'lh_v2d_retinotopic'
+    'lh_v3d_retinotopic'
+    'lh_v1v_retinotopic'
+    'lh_v2v_retinotopic'
+    'lh_v3v_retinotopic'
+    'lh_hMT_motion'
+    'lh_CoS_places'
+    'lh_IOS_haracters'
+    'lh_pOTS_characters'
+    'lh_LOS_bodies'
+    'lh_MTG_bodies'
+    'lh_ITG_bodies'
+    'lh_OTS_bodies'
+    'lh_IOG_faces'
+    'lh_pFus_faces'
+    'lh_mFus_faces'
+    'rh_v1d_retinotopic'
+    'rh_v2d_retinotopic'
+    'rh_v3d_retinotopic'
+    'rh_v1v_retinotopic'
+    'rh_v2v_retinotopic'
+    'rh_v3v_retinotopic'
+    'rh_hMT_motion'
+    'rh_TOS_places'
+    'rh_CoS_places'
+    'rh_LOS_bodies'
+    'rh_MTG_bodies'
+    'rh_ITG_bodies'
+    'rh_OTS_bodies'
+    'rh_IOG_faces'
+    'rh_pFus_faces'
+    'rh_mFus_faces'
+    };
+    
+    for this_roi = 1:ceil(length(region_key)/2) %Note 1 more LH than RH ROI so ceil rather than expected floor
+        mask_names{end+1} = ['rwRosenke_' region_key{this_roi}];
+    end
+
+mask_names{end+1} = ['rwlh_template_noself_crossmod'];
+
+    for this_roi = ceil(length(region_key)/2)+1:length(region_key)
+        mask_names{end+1} = ['rwRosenke_' region_key{this_roi}];
+    end
+mask_names{end+1} = ['rwrh_template_noself_crossmod'];
+
+nrun = size(subjects,2); % enter the number of runs here
+% First load in the similarities
+RSA_ROI_data_exist = zeros(length(this_model_name),length(mask_names),nrun);
+all_data = [];
+
+all_rho = [];
+all_corr_ps = [];
+all_corrected_rho = [];
+all_corrected_corr_ps = [];
+
+for j = 1:length(this_model_name)
+    all_data = [];
+    all_corrected_data = [];
+    for k = 1:length(mask_names)
+        for crun = 1:nrun
+            %ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
+            ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI/' mask_names{k} '/RSA/spearman'];
+            if ~exist(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j} '.mat']),'file')
+                ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI' mask_names{k} '/RSA/spearman']; % Stupid coding error earlier in analysis led to misnamed directories
+            end
+            try
+                temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j} '.mat']));
+                all_data(j,k,crun) = temp_data.roi_effect; %Create a matrix of condition by ROI by subject
+                RSA_ROI_data_exist(j,k,crun) = 1;
+            catch
+                warning(['No data for ' subjects{crun} ' probably because of SPM dropout, ignoring them'])
+                %error
+                RSA_ROI_data_exist(j,k,crun) = 0;
+                all_data(j,k,crun) = NaN;
+                continue
+            end
+        end
+        roi_names = temp_data.roi_names;
+        disp(['Excluding subjects ' num2str(find(squeeze(RSA_ROI_data_exist(j,k,:))==0)) ' belonging to groups ' num2str(group(squeeze(RSA_ROI_data_exist(j,k,:))==0)) ' maybe check them'])
+    end
+    all_corrected_data(j,:,group==1) = es_removeBetween_rotated(all_data(j,:,group==1),[3,2,1]); %Subjects, conditions, measures columns = 3,2,1 here
+    all_corrected_data(j,:,group==2) = es_removeBetween_rotated(all_data(j,:,group==2),[3,2,1]); %Subjects, conditions, measures columns = 3,2,1 here
+    
+    figure
+    set(gcf,'Position',[100 100 1600 800]);
+    set(gcf, 'PaperPositionMode', 'auto');
+    hold on
+    errorbar([1:length(mask_names)]-0.1,nanmean(squeeze(all_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),'kx')
+    errorbar([1:length(mask_names)]+0.1,nanmean(squeeze(all_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),'rx')
+    %                         for m = 1:length(mask_names)
+    %                             scatter(repmat(m-0.1,1,size(squeeze(all_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_data(j,m,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))','k')
+    %                             scatter(repmat(m+0.1,1,size(squeeze(all_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_data(j,m,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))','r')
+    %                         end
+    xlim([0 length(mask_names)+1])
+    set(gca,'xtick',[1:length(mask_names)],'xticklabels',mask_names,'XTickLabelRotation',45,'TickLabelInterpreter','none')
+    plot([0 length(mask_names)+1],[0,0],'k--')
+    title([this_model_name{j} ' RSA'],'Interpreter','none')
+    if verLessThan('matlab', '9.2')
+        legend('Controls','Patients','location','southeast')
+    else
+        legend('Controls','Patients','location','southeast','AutoUpdate','off')
+    end
+    [h,p] = ttest(squeeze(all_data(j,:,logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    these_y_lims = ylim;
+    if sum(h)~=0
+        plot(find(h),these_y_lims(2)-diff(these_y_lims/10),'g*')
+    end
+    [h,p] = ttest(squeeze(all_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    these_y_lims = ylim;
+    if sum(h)~=0
+        plot(find(h)-0.1,these_y_lims(2)-diff(these_y_lims/10),'k*')
+    end
+    [h,p] = ttest(squeeze(all_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    these_y_lims = ylim;
+    if sum(h)~=0
+        plot(find(h)+0.1,these_y_lims(2)-diff(these_y_lims/10),'r*')
+    end
+    
+    [h,p] = ttest2(squeeze(all_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))',squeeze(all_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    if sum(h)~=0
+        plot(find(h),these_y_lims(2)-diff(these_y_lims/20),'gx')
+    end
+    
+    drawnow
+    saveas(gcf,[outdir filesep this_model_name{j} '_by_region.png'])
+    saveas(gcf,[outdir filesep this_model_name{j} '_by_region.pdf'])
+        
+    figure
+    set(gcf,'Position',[100 100 1600 800]);
+    set(gcf, 'PaperPositionMode', 'auto');
+    hold on
+    errorbar([1:length(mask_names)]-0.1,nanmean(squeeze(all_corrected_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_corrected_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),'kx')
+    errorbar([1:length(mask_names)]+0.1,nanmean(squeeze(all_corrected_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_corrected_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),'rx')
+    %                                     for m = 1:length(mask_names)
+    %                             scatter(repmat(m-0.1,1,size(squeeze(all_corrected_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_corrected_data(j,m,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))','k')
+    %                             scatter(repmat(m+0.1,1,size(squeeze(all_corrected_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_corrected_data(j,m,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))','r')
+    %                         end
+    xlim([0 length(mask_names)+1])
+    set(gca,'xtick',[1:length(mask_names)],'xticklabels',mask_names,'XTickLabelRotation',45,'TickLabelInterpreter','none')
+    plot([0 length(mask_names)+1],[0,0],'k--')
+    title(['Corrected ' this_model_name{j} ' RSA'],'Interpreter','none')
+    if verLessThan('matlab', '9.2')
+        legend('Controls','Patients','location','southeast')
+    else
+        legend('Controls','Patients','location','southeast','AutoUpdate','off')
+    end
+    [h,p] = ttest(squeeze(all_corrected_data(j,:,logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    these_y_lims = ylim;
+    if sum(h)~=0
+        plot(find(h),these_y_lims(2)-diff(these_y_lims/10),'g*')
+    end
+    [h,p] = ttest(squeeze(all_corrected_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    these_y_lims = ylim;
+    if sum(h)~=0
+        plot(find(h)-0.1,these_y_lims(2)-diff(these_y_lims/10),'k*')
+    end
+    [h,p] = ttest(squeeze(all_corrected_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    these_y_lims = ylim;
+    if sum(h)~=0
+        plot(find(h)+0.1,these_y_lims(2)-diff(these_y_lims/10),'r*')
+    end
+    
+    [h,p] = ttest2(squeeze(all_corrected_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))',squeeze(all_corrected_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    if sum(h)~=0
+        plot(find(h),these_y_lims(2)-diff(these_y_lims/20),'gx')
+    end
+
+    drawnow
+    saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} '_by_region.png'])
+    saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} '_by_region.pdf'])
+    
+end
+close all
+
+
+% Now repeat with partialled correlations
+matrices_to_partial = {'Global V1_ds','Global GIST correlation'};
+partial_matrices = [];
+for this_partial = 1:length(matrices_to_partial)
+    IndexC = strcmp(this_model_name,matrices_to_partial(this_partial));
+    partial_matrices = [partial_matrices find(IndexC==1)];
+end
+
+for j = 1:length(this_model_name)
+    all_data = [];
+    all_corrected_data = [];
+    
+    for these_partial_numbers = 1:length(partial_matrices)
+        all_partial_combinations = nchoosek(partial_matrices,these_partial_numbers);
+        for this_partial = 1:size(all_partial_combinations,1)
+            number_partialled_out = size(all_partial_combinations,2);
+            partial_name = [];
+            for this_partial_matrix = 1:number_partialled_out
+                partial_name = [partial_name '+' this_model_name{all_partial_combinations(this_partial,this_partial_matrix)}];
+            end
+            partial_name = ['_partialling_' partial_name(2:end)];
+            
+            for k = 1:length(mask_names)
+                for crun = 1:nrun
+                    %ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
+                    ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI/' mask_names{k} '/RSA/spearman'];
+                    if ~exist(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j} partial_name '.mat']),'file')
+                        ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI' mask_names{k} '/RSA/spearman']; % Stupid coding error earlier in analysis led to misnamed directories
+                    end
+                    try
+                        temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j} partial_name '.mat']));
+                        all_data(j,k,crun) = temp_data.roi_effect; %Create a matrix of condition by ROI by subject
+                        RSA_ROI_data_exist(j,k,crun) = 1;
+                    catch
+                        warning(['No data for ' subjects{crun} ' probably because of SPM dropout, ignoring them'])
+                        %error
+                        RSA_ROI_data_exist(j,k,crun) = 0;
+                        all_data(j,k,crun) = NaN;
+                        continue
+                    end
+                end
+                roi_names = temp_data.roi_names;
+                disp(['Excluding subjects ' num2str(find(squeeze(RSA_ROI_data_exist(j,k,:))==0)) ' belonging to groups ' num2str(group(squeeze(RSA_ROI_data_exist(j,k,:))==0)) ' maybe check them'])
+            end
+            all_corrected_data(j,:,group==1) = es_removeBetween_rotated(all_data(j,:,group==1),[3,2,1]); %Subjects, conditions, measures columns = 3,2,1 here
+            all_corrected_data(j,:,group==2) = es_removeBetween_rotated(all_data(j,:,group==2),[3,2,1]); %Subjects, conditions, measures columns = 3,2,1 here
+            
+            figure
+            set(gcf,'Position',[100 100 1600 800]);
+            set(gcf, 'PaperPositionMode', 'auto');
+            hold on
+            errorbar([1:length(mask_names)]-0.1,nanmean(squeeze(all_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),'kx')
+            errorbar([1:length(mask_names)]+0.1,nanmean(squeeze(all_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),'rx')
+            %                         for m = 1:length(mask_names)
+            %                             scatter(repmat(m-0.1,1,size(squeeze(all_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_data(j,m,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))','k')
+            %                             scatter(repmat(m+0.1,1,size(squeeze(all_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_data(j,m,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))','r')
+            %                         end
+            xlim([0 length(mask_names)+1])
+            set(gca,'xtick',[1:length(mask_names)],'xticklabels',mask_names,'XTickLabelRotation',45,'TickLabelInterpreter','none')
+            plot([0 length(mask_names)+1],[0,0],'k--')
+            title([this_model_name{j} partial_name ' RSA'],'Interpreter','none')
+            if verLessThan('matlab', '9.2')
+                legend('Controls','Patients','location','southeast')
+            else
+                legend('Controls','Patients','location','southeast','AutoUpdate','off')
+            end
+            [h,p] = ttest(squeeze(all_data(j,:,logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h),these_y_lims(2)-diff(these_y_lims/10),'g*')
+            end
+            [h,p] = ttest(squeeze(all_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h)-0.1,these_y_lims(2)-diff(these_y_lims/10),'k*')
+            end
+            [h,p] = ttest(squeeze(all_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h)+0.1,these_y_lims(2)-diff(these_y_lims/10),'r*')
+            end
+            
+            [h,p] = ttest2(squeeze(all_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))',squeeze(all_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            if sum(h)~=0
+                plot(find(h),these_y_lims(2)-diff(these_y_lims/20),'gx')
+            end
+            
+            drawnow
+            saveas(gcf,[outdir filesep this_model_name{j} partial_name '_by_region.png'])
+            saveas(gcf,[outdir filesep this_model_name{j} partial_name '_by_region.pdf'])
+            
+            figure
+            set(gcf,'Position',[100 100 1600 800]);
+            set(gcf, 'PaperPositionMode', 'auto');
+            hold on
+            errorbar([1:length(mask_names)]-0.1,nanmean(squeeze(all_corrected_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_corrected_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),'kx')
+            errorbar([1:length(mask_names)]+0.1,nanmean(squeeze(all_corrected_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_corrected_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),'rx')
+            %                                     for m = 1:length(mask_names)
+            %                             scatter(repmat(m-0.1,1,size(squeeze(all_corrected_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_corrected_data(j,m,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))','k')
+            %                             scatter(repmat(m+0.1,1,size(squeeze(all_corrected_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_corrected_data(j,m,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))','r')
+            %                         end
+            xlim([0 length(mask_names)+1])
+            set(gca,'xtick',[1:length(mask_names)],'xticklabels',mask_names,'XTickLabelRotation',45,'TickLabelInterpreter','none')
+            plot([0 length(mask_names)+1],[0,0],'k--')
+            title(['Corrected ' this_model_name{j} partial_name ' RSA'],'Interpreter','none')
+            if verLessThan('matlab', '9.2')
+                legend('Controls','Patients','location','southeast')
+            else
+                legend('Controls','Patients','location','southeast','AutoUpdate','off')
+            end
+            [h,p] = ttest(squeeze(all_corrected_data(j,:,logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h),these_y_lims(2)-diff(these_y_lims/10),'g*')
+            end
+            [h,p] = ttest(squeeze(all_corrected_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h)-0.1,these_y_lims(2)-diff(these_y_lims/10),'k*')
+            end
+            [h,p] = ttest(squeeze(all_corrected_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h)+0.1,these_y_lims(2)-diff(these_y_lims/10),'r*')
+            end
+            
+            [h,p] = ttest2(squeeze(all_corrected_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))',squeeze(all_corrected_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            if sum(h)~=0
+                plot(find(h),these_y_lims(2)-diff(these_y_lims/20),'gx')
+            end
+            
+            drawnow
+            saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} partial_name '_by_region.png'])
+            saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} partial_name '_by_region.pdf'])
+            
+        end
+        close all
     end
 end
 
