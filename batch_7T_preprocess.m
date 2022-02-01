@@ -2063,6 +2063,12 @@ if make_atlas_rois
     for this_roi = 1:length(region_key)
         spm_imcalc('./Regions_of_Interest/visfAtlas_MNI152_volume.nii',['./Regions_of_Interest/Rosenke_' region_key{this_roi} '.nii'],['i1==' num2str(this_roi)]) %NB: Not zero based indexing in the atlas, despite what it implies in the XML
     end
+     
+    %Now parcellate Glasser (2016). A multi-modal parcellation of human cerebral cortex. Nature, 1-11.
+    Glasser_regions = readtable('./Regions_of_Interest/HCP-MMP1_UniqueRegionList.csv');
+    for this_roi = 1:height(Glasser_regions)
+        spm_imcalc('./Regions_of_Interest/HCP-MMP_1mm.nii',['./Regions_of_Interest/Glasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi} '.nii'],['i1==' num2str(Glasser_regions.regionID(this_roi))])
+    end
     
 end
 
