@@ -1827,97 +1827,98 @@ searchlighthighressecondlevel = module_searchlight_secondlevel_hires(GLMDir,subj
 
 %% Now create a vector along the ventral stream, using Engell's Face-Scene
 % % contrast: Engell A.D. and McCarthy G. (2013). fMRI activation by face and biological motion perception: Comparison of response maps and creation of probabilistic atlases. NeuroImage, 74, 140-151.
-% face_map_info = spm_vol('./Regions_of_Interest/ASAP_maps/facescene_pmap_N124_stat3.nii');
-% face_map = spm_read_vols(face_map_info); % This is the Face-Scene contrast for 124 young healthy people, expressed as percent significant in each voxel
-% 
-% %Find peak location on each side (Right and left FFA)
-% left_half = face_map;
-% left_half(1:floor(size(face_map,1)/2),:,:) = 0; %NB: x-direction negative indexed here
-% right_half = face_map;
-% right_half(ceil((size(face_map,1))/2):end,:,:) = 0;
-% [~,idx_r] = max(right_half(:));
-% [~,idx_l] = max(left_half(:));
-% all_interpolated_MNI_locations = {};
-% for start_idx = [idx_r, idx_l]
-%     %Work forwards and backwards from those points to make a tensor;
-%     [r,c,p] = ind2sub(size(face_map),start_idx);
-%     MNI_x = [face_map_info.mat(1,4)+(r*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(c*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(p*face_map_info.mat(3,3))];
-%     
-%     %Work forwards and backwards from that point to make a tensor;
-%     y_start = MNI_x(2);
-%     %First go backwards
-%     last_location = [r,c,p];
-%     these_negative_locations = [];
-%     these_negative_MNI_locations = [];
-%     for this_y = (c-1):-1:(c-50)
-%         this_plane = face_map((last_location(1)-5):(last_location(1)+5),this_y,(last_location(3)-5):(last_location(3)+5));
-%         [mxv,idx] = max(this_plane(:)); % Look for a voxel within 1cm of previous in X+Z
-%         if mxv>0.1 % More than 10% of subjects have face preference here
-%             [r_temp,c_temp,p_temp] = ind2sub(size(this_plane),idx);
-%             last_location = [last_location(1)+r_temp-6,this_y,last_location(3)+p_temp-6];
-%             these_negative_locations = [these_negative_locations; last_location];
-%             last_MNI_location = [face_map_info.mat(1,4)+(last_location(1)*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(last_location(2)*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(last_location(3)*face_map_info.mat(3,3))];
-%             these_negative_MNI_locations = [these_negative_MNI_locations; last_MNI_location];
-%         else % Less than 10% of subjects have face preference - end of tensor
-%             break
-%         end
-%     end
-%     
-%     %Then go forwards
-%     last_location = [r,c,p];
-%     these_positive_locations = [];
-%     these_positive_MNI_locations = [];
-%     for this_y = (c+1):1:(c+50)
-%         this_plane = face_map((last_location(1)-5):(last_location(1)+5),this_y,(last_location(3)-5):(last_location(3)+5));
-%         [mxv,idx] = max(this_plane(:)); % Look for a voxel within 1cm of previous in X+Z
-%         if mxv>0.1 % More than 10% of subjects have face preference here
-%             [r_temp,c_temp,p_temp] = ind2sub(size(this_plane),idx);
-%             last_location = [last_location(1)+r_temp-6,this_y,last_location(3)+p_temp-6];
-%             these_positive_locations = [these_positive_locations; last_location];
-%             last_MNI_location = (face_map_info.mat*[last_location 1]')';
-%             last_MNI_location = last_MNI_location(1:3);
-%             %last_MNI_location = [face_map_info.mat(1,4)+(last_location(1)*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(last_location(2)*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(last_location(3)*face_map_info.mat(3,3))];
-%             these_positive_MNI_locations = [these_positive_MNI_locations; last_MNI_location];
-%         else % Less than 10% of subjects have face preference - end of tensor
-%             break
-%         end
-%     end
-%     
-%     %Then create tensor
-%     these_locations = [flipud(these_negative_locations); [r,c,p]; these_positive_locations];
-%     these_MNI_locations = [flipud(these_negative_MNI_locations); MNI_x; these_positive_MNI_locations];
-%     % Interpolate from 2mm to 1mm resolution
-%     these_interpolated_MNI_locations = [];
-%     for this_y_loc = 1:size(these_MNI_locations,1)-1
-%         these_interpolated_MNI_locations = [these_interpolated_MNI_locations; these_MNI_locations(this_y_loc,:)];
-%         these_interpolated_MNI_locations = [these_interpolated_MNI_locations; mean(these_MNI_locations(this_y_loc:this_y_loc+1,:),1)];
-%     end
-%     these_interpolated_MNI_locations = [these_interpolated_MNI_locations; these_MNI_locations(end,:)];
-%     all_interpolated_MNI_locations{end+1} = these_interpolated_MNI_locations;
-% end
-% 
-% % Write these tensors for visualisation
-% example_volume_info = spm_vol('photo_line_template_noself.nii'); %An example multivariate contrast 
-% example_volume = spm_read_vols(example_volume_info); %An example multivariate contrast 
-% tensors_to_write = zeros(size(example_volume));
-% for this_tensor = 1:length(all_interpolated_MNI_locations)
-%     for this_location = 1:length(all_interpolated_MNI_locations{this_tensor})
-%         these_voxel_coordinates = [all_interpolated_MNI_locations{this_tensor}(this_location,:),1]*(inv(example_volume_info.mat))';
-%         try
-%             tensors_to_write(these_voxel_coordinates(1),these_voxel_coordinates(2),these_voxel_coordinates(3)) = 1;
-%         end
-%     end
-% end
-% tensor_volume_info = example_volume_info;
-% tensor_volume_info.descrip = 'Tensors for multivariate analysis';
-% tensor_volume_info.fname = 'face-scene tensors.nii';
-% spm_write_vol(tensor_volume_info,tensors_to_write)
+face_map_info = spm_vol('./Regions_of_Interest/ASAP_maps/facescene_pmap_N124_stat3.nii');
+face_map = spm_read_vols(face_map_info); % This is the Face-Scene contrast for 124 young healthy people, expressed as percent significant in each voxel
+
+%Find peak location on each side (Right and left FFA)
+left_half = face_map;
+left_half(1:floor(size(face_map,1)/2),:,:) = 0; %NB: x-direction negative indexed here
+right_half = face_map;
+right_half(ceil((size(face_map,1))/2):end,:,:) = 0;
+[~,idx_r] = max(right_half(:));
+[~,idx_l] = max(left_half(:));
+all_interpolated_MNI_locations = {};
+for start_idx = [idx_r, idx_l]
+    %Work forwards and backwards from those points to make a tensor;
+    [r,c,p] = ind2sub(size(face_map),start_idx);
+    MNI_x = [face_map_info.mat(1,4)+(r*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(c*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(p*face_map_info.mat(3,3))];
+    
+    %Work forwards and backwards from that point to make a tensor;
+    y_start = MNI_x(2);
+    %First go backwards
+    last_location = [r,c,p];
+    these_negative_locations = [];
+    these_negative_MNI_locations = [];
+    for this_y = (c-1):-1:(c-50)
+        this_plane = face_map((last_location(1)-5):(last_location(1)+5),this_y,(last_location(3)-5):(last_location(3)+5));
+        [mxv,idx] = max(this_plane(:)); % Look for a voxel within 1cm of previous in X+Z
+        if mxv>0.1 % More than 10% of subjects have face preference here
+            [r_temp,c_temp,p_temp] = ind2sub(size(this_plane),idx);
+            last_location = [last_location(1)+r_temp-6,this_y,last_location(3)+p_temp-6];
+            these_negative_locations = [these_negative_locations; last_location];
+            last_MNI_location = [face_map_info.mat(1,4)+(last_location(1)*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(last_location(2)*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(last_location(3)*face_map_info.mat(3,3))];
+            these_negative_MNI_locations = [these_negative_MNI_locations; last_MNI_location];
+        else % Less than 10% of subjects have face preference - end of tensor
+            break
+        end
+    end
+    
+    %Then go forwards
+    last_location = [r,c,p];
+    these_positive_locations = [];
+    these_positive_MNI_locations = [];
+    for this_y = (c+1):1:(c+50)
+        this_plane = face_map((last_location(1)-5):(last_location(1)+5),this_y,(last_location(3)-5):(last_location(3)+5));
+        [mxv,idx] = max(this_plane(:)); % Look for a voxel within 1cm of previous in X+Z
+        if mxv>0.1 % More than 10% of subjects have face preference here
+            [r_temp,c_temp,p_temp] = ind2sub(size(this_plane),idx);
+            last_location = [last_location(1)+r_temp-6,this_y,last_location(3)+p_temp-6];
+            these_positive_locations = [these_positive_locations; last_location];
+            last_MNI_location = (face_map_info.mat*[last_location 1]')';
+            last_MNI_location = last_MNI_location(1:3);
+            %last_MNI_location = [face_map_info.mat(1,4)+(last_location(1)*face_map_info.mat(1,1)), face_map_info.mat(2,4)+(last_location(2)*face_map_info.mat(2,2)), face_map_info.mat(3,4)+(last_location(3)*face_map_info.mat(3,3))];
+            these_positive_MNI_locations = [these_positive_MNI_locations; last_MNI_location];
+        else % Less than 10% of subjects have face preference - end of tensor
+            break
+        end
+    end
+    
+    %Then create tensor
+    these_locations = [flipud(these_negative_locations); [r,c,p]; these_positive_locations];
+    these_MNI_locations = [flipud(these_negative_MNI_locations); MNI_x; these_positive_MNI_locations];
+    % Interpolate from 2mm to 1mm resolution
+    these_interpolated_MNI_locations = [];
+    for this_y_loc = 1:size(these_MNI_locations,1)-1
+        these_interpolated_MNI_locations = [these_interpolated_MNI_locations; these_MNI_locations(this_y_loc,:)];
+        these_interpolated_MNI_locations = [these_interpolated_MNI_locations; mean(these_MNI_locations(this_y_loc:this_y_loc+1,:),1)];
+    end
+    these_interpolated_MNI_locations = [these_interpolated_MNI_locations; these_MNI_locations(end,:)];
+    all_interpolated_MNI_locations{end+1} = these_interpolated_MNI_locations;
+end
+
+% Write these tensors for visualisation
+example_volume_info = spm_vol('photo_line_template_noself.nii'); %An example multivariate contrast 
+example_volume = spm_read_vols(example_volume_info); %An example multivariate contrast 
+tensors_to_write = zeros(size(example_volume));
+for this_tensor = 1:length(all_interpolated_MNI_locations)
+    for this_location = 1:length(all_interpolated_MNI_locations{this_tensor})
+        these_voxel_coordinates = [all_interpolated_MNI_locations{this_tensor}(this_location,:),1]*(inv(example_volume_info.mat))';
+        try
+            tensors_to_write(these_voxel_coordinates(1),these_voxel_coordinates(2),these_voxel_coordinates(3)) = 1;
+        end
+    end
+end
+tensor_volume_info = example_volume_info;
+tensor_volume_info.descrip = 'Tensors for multivariate analysis';
+tensor_volume_info.fname = 'face-scene tensors.nii';
+spm_write_vol(tensor_volume_info,tensors_to_write)
 
 save('all_interpolated_facescene_MNI_locations','all_interpolated_MNI_locations')
 
 % Now try defining tensors based on our own Pictures - Null contrast
-%seeds = [32.0 -44.0 -20.0; -35.0 -44.0 -23.0]; %Most anterior voxels of the ventral stream, manually located.
-seeds = [43 -52.0 -13.0; 50 -68 -1]; %Most significant FFA voxels in the ventral stream, manually located.
+% seeds = [32.0 -44.0 -20.0; -35.0 -44.0 -23.0]; %Most anterior voxels of the ventral stream, manually located.
+% seeds = [43 -52.0 -13.0; 50 -68 -1]; %Most significant FFA voxels in the ventral stream, manually located.
+seeds = [32.0 -44.0 -20.0; -35.0 -44.0 -23.0; 43 -52.0 -13.0; 50 -68 -1]; % Both
 
 picture_map_info = spm_vol('./Regions_of_Interest/Pictures-null-cluster.nii');
 picture_map = spm_read_vols(picture_map_info); % This is the Face-Scene contrast for 124 young healthy people, expressed as percent significant in each voxel
@@ -2123,6 +2124,13 @@ region_key= {
     for this_roi = 1:length(region_key)
         images2normalise{end+1} = ['./Regions_of_Interest/Rosenke_' region_key{this_roi} '.nii'];
     end
+    
+        %Now parcellate Glasser (2016). A multi-modal parcellation of human cerebral cortex. Nature, 1-11.
+    Glasser_regions = readtable('./Regions_of_Interest/HCP-MMP1_UniqueRegionList.csv');
+    for this_roi = 1:height(Glasser_regions)
+        images2normalise{end+1} = ['./Regions_of_Interest/Glasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi} '.nii'];
+    end
+    
 
 % search_labels = {
 %     'Left STG'
@@ -2237,6 +2245,12 @@ region_key= {
     for this_roi = 1:length(region_key)
         masks{end+1} = ['rwRosenke_' region_key{this_roi}];
     end
+    
+    %Now parcellate Glasser (2016). A multi-modal parcellation of human cerebral cortex. Nature, 1-11.
+    Glasser_regions = readtable('./Regions_of_Interest/HCP-MMP1_UniqueRegionList.csv');
+    for this_roi = 1:height(Glasser_regions)
+        masks{end+1} = ['rwGlasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi}];
+    end
 
 GLMDir = [preprocessedpathstem subjects{1} '/stats_native_mask0.3_3_coreg_reversedbuttons']; %Template, first subject
 % temp = load([GLMDir filesep 'SPM.mat']);
@@ -2323,6 +2337,12 @@ region_key= {
 
 for this_roi = 1:length(region_key)
     masks{end+1} = ['rwRosenke_' region_key{this_roi}];
+end
+
+%Now parcellate Glasser (2016). A multi-modal parcellation of human cerebral cortex. Nature, 1-11.
+Glasser_regions = readtable('./Regions_of_Interest/HCP-MMP1_UniqueRegionList.csv');
+for this_roi = 1:height(Glasser_regions)
+    masks{end+1} = ['rwGlasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi}];
 end
 
 
@@ -3108,10 +3128,382 @@ this_model_name{2} = {
 these_tensors = load('all_interpolated_picturenull_MNI_locations');
 these_tensors = these_tensors.all_interpolated_MNI_locations;
 for this_model_set =1:length(this_model_name)
-    module_plot_these_tensors_radius(this_model_name{this_model_set},these_tensors,outpath,group,subjects,radius)
-    module_plot_these_tensors(this_model_name{this_model_set},these_tensors,outpath,group,subjects)
+%     module_plot_these_tensors_radius(this_model_name{this_model_set},these_tensors,outpath,group,subjects,radius)
+%     module_plot_these_tensors(this_model_name{this_model_set},these_tensors,outpath,group,subjects)
+
 end
 
+%% Find which Glasser ROIs are along a tensor path
+atlaspath = ['./Regions_of_Interest/HCP-MMP_1mm.nii'];
+radius = 5; % Tolerance radius along the tensor path
+
+these_tensors_template = load('all_interpolated_picturenull_MNI_locations');
+these_tensors = these_tensors_template.all_interpolated_MNI_locations;
+
+these_tensors_template = load('all_interpolated_facescene_MNI_locations');
+these_tensors = [these_tensors these_tensors_template.all_interpolated_MNI_locations];
+
+these_roi_numbers = module_plot_tensor_ROI(these_tensors,atlaspath,radius);
+
+%Create images of these tensor/ROI combinations
+for this_roi = 1:length(these_roi_numbers)
+    this_statement = [];
+    for this_region = 1:size(these_roi_numbers{this_roi},1)
+        this_statement = [this_statement '|i1==' num2str(these_roi_numbers{this_roi}(this_region))];
+    end
+    this_statement = this_statement(2:end);
+    spm_imcalc('./Regions_of_Interest/HCP-MMP_1mm.nii',['./Regions_of_Interest/Tensor_' num2str(this_roi) '.nii'],this_statement)
+end
+
+%Concentrate on tensors 5+6 from the face/scene contrast. Ensure
+%symmetricity and comprehensive coverage, ordered from posterior to
+%anterior in the y-dimension
+all_facescene_regions = union(these_roi_numbers{5}-200,these_roi_numbers{6},'stable');
+all_facescene_regions = [all_facescene_regions all_facescene_regions+200];
+region_table = Glasser_regions(ismember(Glasser_regions.regionID,all_facescene_regions),:);
+ordered_region_table = sortrows(region_table,{'LR','y_cog'});
+
+clear this_model_name mask_names
+mask_names = {};
+for this_roi = 1:height(ordered_region_table)
+    mask_names{end+1} = ['rwGlasser_ ' num2str(ordered_region_table.regionID(this_roi)) '_' ordered_region_table.x_regionName{this_roi}];
+end
+
+% Now plot ROI results
+GLMDir = [preprocessedpathstem subjects{1} '/stats_native_mask0.3_3_coreg_reversedbuttons']; %Template, first subject
+outdir = ['./ROI_figures/stats_native_mask0.3_3_coreg_reversedbuttons'];
+mkdir(outdir)
+temp = load([GLMDir filesep 'SPM.mat']);
+
+this_model_name = {
+    'Photo to Line V1_ds'
+    'Photo to Line GIST correlation'
+    'Photo to Line templates_noself'
+    'Photo to Line visible_dissimilarity_noself'
+    'Photo to Line knowledge_dissimilarity_noself'
+    'Photo to Line judgment_noself'
+    'Photo to Line l_sa_noself'
+    'Photo to Line l_s_a_noself'
+    'Photo to Line lsm_ll_sa_noself'
+    'Photo to Line decoding'
+    'Global V1_ds'
+    'Global GIST correlation'
+    'Global templates_noself'
+    'Global visible_dissimilarity_noself'
+    'Global knowledge_dissimilarity_noself'
+    'Global judgment_noself'
+    'Global l_sa_noself'
+    'Global l_s_a_noself'
+    'Global lsm_ll_sa_noself'
+    'Global decoding'
+    'All V1_ds'
+    'All GIST correlation'
+    'All templates_noself'
+    'All visible_dissimilarity_noself'
+    'All knowledge_dissimilarity_noself'
+    'All judgment_noself'
+    'All l_sa_noself'
+    'All l_s_a_noself'
+    'All lsm_ll_sa_noself'
+    'All decoding'
+    'Photo to Line CNN_1_pp_corr_noself'
+    'Photo to Line CNN_2_pp_corr_noself'
+    'Photo to Line CNN_3_pp_corr_noself'
+    'Photo to Line CNN_4_pp_corr_noself'
+    'Photo to Line CNN_5_pp_corr_noself'
+    'Photo to Line CNN_6_pp_corr_noself'
+    'Photo to Line CNN_7_pp_corr_noself'
+    'Photo to Line CNN_8_pp_corr_noself'
+    'Left to Right V1_ds'
+    'Left to Right GIST correlation'
+    'Left to Right templates_noself'
+    'Left to Right visible_dissimilarity_noself'
+    'Left to Right knowledge_dissimilarity_noself'
+    'Left to Right judgment_noself'
+    'Left to Right l_sa_noself'
+    'Left to Right l_s_a_noself'
+    'Left to Right lsm_ll_sa_noself'
+    'Left to Right decoding'
+    'Left to Right CNN_1_pp_corr_noself'
+    'Left to Right CNN_2_pp_corr_noself'
+    'Left to Right CNN_3_pp_corr_noself'
+    'Left to Right CNN_4_pp_corr_noself'
+    'Left to Right CNN_5_pp_corr_noself'
+    'Left to Right CNN_6_pp_corr_noself'
+    'Left to Right CNN_7_pp_corr_noself'
+    'Left to Right CNN_8_pp_corr_noself'
+    };
+
+
+nrun = size(subjects,2); % enter the number of runs here
+% First load in the similarities
+RSA_ROI_data_exist = zeros(length(this_model_name),length(mask_names),nrun);
+all_data = [];
+
+all_rho = [];
+all_corr_ps = [];
+all_corrected_rho = [];
+all_corrected_corr_ps = [];
+
+for j = 1:length(this_model_name)
+    all_data = [];
+    all_corrected_data = [];
+    for k = 1:length(mask_names)
+        for crun = 1:nrun
+            %ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
+            ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI/' mask_names{k} '/RSA/spearman'];
+            if ~exist(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j} '.mat']),'file')
+                ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI' mask_names{k} '/RSA/spearman']; % Stupid coding error earlier in analysis led to misnamed directories
+            end
+            try
+                temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j} '.mat']));
+                all_data(j,k,crun) = temp_data.roi_effect; %Create a matrix of condition by ROI by subject
+                RSA_ROI_data_exist(j,k,crun) = 1;
+            catch
+                warning(['No data for ' subjects{crun} ' probably because of SPM dropout, ignoring them'])
+                %error
+                RSA_ROI_data_exist(j,k,crun) = 0;
+                all_data(j,k,crun) = NaN;
+                continue
+            end
+        end
+        roi_names = temp_data.roi_names;
+        disp(['Excluding subjects ' num2str(find(squeeze(RSA_ROI_data_exist(j,k,:))==0)) ' belonging to groups ' num2str(group(squeeze(RSA_ROI_data_exist(j,k,:))==0)) ' maybe check them'])
+    end
+    all_corrected_data(j,:,group==1) = es_removeBetween_rotated(all_data(j,:,group==1),[3,2,1]); %Subjects, conditions, measures columns = 3,2,1 here
+    all_corrected_data(j,:,group==2) = es_removeBetween_rotated(all_data(j,:,group==2),[3,2,1]); %Subjects, conditions, measures columns = 3,2,1 here
+    
+    figure
+    set(gcf,'Position',[100 100 1600 800]);
+    set(gcf, 'PaperPositionMode', 'auto');
+    hold on
+    errorbar([1:length(mask_names)]-0.1,nanmean(squeeze(all_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),'kx')
+    errorbar([1:length(mask_names)]+0.1,nanmean(squeeze(all_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),'rx')
+    %                         for m = 1:length(mask_names)
+    %                             scatter(repmat(m-0.1,1,size(squeeze(all_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_data(j,m,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))','k')
+    %                             scatter(repmat(m+0.1,1,size(squeeze(all_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_data(j,m,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))','r')
+    %                         end
+    xlim([0 length(mask_names)+1])
+    set(gca,'xtick',[1:length(mask_names)],'xticklabels',mask_names,'XTickLabelRotation',45,'TickLabelInterpreter','none')
+    plot([0 length(mask_names)+1],[0,0],'k--')
+    title([this_model_name{j} ' RSA'],'Interpreter','none')
+    if verLessThan('matlab', '9.2')
+        legend('Controls','Patients','location','southeast')
+    else
+        legend('Controls','Patients','location','southeast','AutoUpdate','off')
+    end
+    [h,p] = ttest(squeeze(all_data(j,:,logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    these_y_lims = ylim;
+    if sum(h)~=0
+        plot(find(h),these_y_lims(2)-diff(these_y_lims/10),'g*')
+    end
+    [h,p] = ttest(squeeze(all_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    these_y_lims = ylim;
+    if sum(h)~=0
+        plot(find(h)-0.1,these_y_lims(2)-diff(these_y_lims/10),'k*')
+    end
+    [h,p] = ttest(squeeze(all_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    these_y_lims = ylim;
+    if sum(h)~=0
+        plot(find(h)+0.1,these_y_lims(2)-diff(these_y_lims/10),'r*')
+    end
+    
+    [h,p] = ttest2(squeeze(all_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))',squeeze(all_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    if sum(h)~=0
+        plot(find(h),these_y_lims(2)-diff(these_y_lims/20),'gx')
+    end
+    
+    drawnow
+    saveas(gcf,[outdir filesep this_model_name{j} '_by_Glasser.png'])
+    saveas(gcf,[outdir filesep this_model_name{j} '_by_Glasser.pdf'])
+        
+    figure
+    set(gcf,'Position',[100 100 1600 800]);
+    set(gcf, 'PaperPositionMode', 'auto');
+    hold on
+    errorbar([1:length(mask_names)]-0.1,nanmean(squeeze(all_corrected_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_corrected_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),'kx')
+    errorbar([1:length(mask_names)]+0.1,nanmean(squeeze(all_corrected_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_corrected_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),'rx')
+    %                                     for m = 1:length(mask_names)
+    %                             scatter(repmat(m-0.1,1,size(squeeze(all_corrected_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_corrected_data(j,m,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))','k')
+    %                             scatter(repmat(m+0.1,1,size(squeeze(all_corrected_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_corrected_data(j,m,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))','r')
+    %                         end
+    xlim([0 length(mask_names)+1])
+    set(gca,'xtick',[1:length(mask_names)],'xticklabels',mask_names,'XTickLabelRotation',45,'TickLabelInterpreter','none')
+    plot([0 length(mask_names)+1],[0,0],'k--')
+    title(['Corrected ' this_model_name{j} ' RSA'],'Interpreter','none')
+    if verLessThan('matlab', '9.2')
+        legend('Controls','Patients','location','southeast')
+    else
+        legend('Controls','Patients','location','southeast','AutoUpdate','off')
+    end
+    [h,p] = ttest(squeeze(all_corrected_data(j,:,logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    these_y_lims = ylim;
+    if sum(h)~=0
+        plot(find(h),these_y_lims(2)-diff(these_y_lims/10),'g*')
+    end
+    [h,p] = ttest(squeeze(all_corrected_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    these_y_lims = ylim;
+    if sum(h)~=0
+        plot(find(h)-0.1,these_y_lims(2)-diff(these_y_lims/10),'k*')
+    end
+    [h,p] = ttest(squeeze(all_corrected_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    these_y_lims = ylim;
+    if sum(h)~=0
+        plot(find(h)+0.1,these_y_lims(2)-diff(these_y_lims/10),'r*')
+    end
+    
+    [h,p] = ttest2(squeeze(all_corrected_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))',squeeze(all_corrected_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+    if sum(h)~=0
+        plot(find(h),these_y_lims(2)-diff(these_y_lims/20),'gx')
+    end
+
+    drawnow
+    saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} '_by_Glasser.png'])
+    saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} '_by_Glasser.pdf'])
+    
+end
+close all
+
+
+% Now repeat with partialled correlations
+matrices_to_partial = {'Global V1_ds','Global GIST correlation'};
+partial_matrices = [];
+for this_partial = 1:length(matrices_to_partial)
+    IndexC = strcmp(this_model_name,matrices_to_partial(this_partial));
+    partial_matrices = [partial_matrices find(IndexC==1)];
+end
+
+for j = 1:length(this_model_name)
+    all_data = [];
+    all_corrected_data = [];
+    
+    for these_partial_numbers = 1:length(partial_matrices)
+        all_partial_combinations = nchoosek(partial_matrices,these_partial_numbers);
+        for this_partial = 1:size(all_partial_combinations,1)
+            number_partialled_out = size(all_partial_combinations,2);
+            partial_name = [];
+            for this_partial_matrix = 1:number_partialled_out
+                partial_name = [partial_name '+' this_model_name{all_partial_combinations(this_partial,this_partial_matrix)}];
+            end
+            partial_name = ['_partialling_' partial_name(2:end)];
+            
+            for k = 1:length(mask_names)
+                for crun = 1:nrun
+                    %ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
+                    ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI/' mask_names{k} '/RSA/spearman'];
+                    if ~exist(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j} partial_name '.mat']),'file')
+                        ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI' mask_names{k} '/RSA/spearman']; % Stupid coding error earlier in analysis led to misnamed directories
+                    end
+                    try
+                        temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j} partial_name '.mat']));
+                        all_data(j,k,crun) = temp_data.roi_effect; %Create a matrix of condition by ROI by subject
+                        RSA_ROI_data_exist(j,k,crun) = 1;
+                    catch
+                        warning(['No data for ' subjects{crun} ' probably because of SPM dropout, ignoring them'])
+                        %error
+                        RSA_ROI_data_exist(j,k,crun) = 0;
+                        all_data(j,k,crun) = NaN;
+                        continue
+                    end
+                end
+                roi_names = temp_data.roi_names;
+                disp(['Excluding subjects ' num2str(find(squeeze(RSA_ROI_data_exist(j,k,:))==0)) ' belonging to groups ' num2str(group(squeeze(RSA_ROI_data_exist(j,k,:))==0)) ' maybe check them'])
+            end
+            all_corrected_data(j,:,group==1) = es_removeBetween_rotated(all_data(j,:,group==1),[3,2,1]); %Subjects, conditions, measures columns = 3,2,1 here
+            all_corrected_data(j,:,group==2) = es_removeBetween_rotated(all_data(j,:,group==2),[3,2,1]); %Subjects, conditions, measures columns = 3,2,1 here
+            
+            figure
+            set(gcf,'Position',[100 100 1600 800]);
+            set(gcf, 'PaperPositionMode', 'auto');
+            hold on
+            errorbar([1:length(mask_names)]-0.1,nanmean(squeeze(all_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),'kx')
+            errorbar([1:length(mask_names)]+0.1,nanmean(squeeze(all_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),'rx')
+            %                         for m = 1:length(mask_names)
+            %                             scatter(repmat(m-0.1,1,size(squeeze(all_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_data(j,m,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))','k')
+            %                             scatter(repmat(m+0.1,1,size(squeeze(all_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_data(j,m,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))','r')
+            %                         end
+            xlim([0 length(mask_names)+1])
+            set(gca,'xtick',[1:length(mask_names)],'xticklabels',mask_names,'XTickLabelRotation',45,'TickLabelInterpreter','none')
+            plot([0 length(mask_names)+1],[0,0],'k--')
+            title([this_model_name{j} partial_name ' RSA'],'Interpreter','none')
+            if verLessThan('matlab', '9.2')
+                legend('Controls','Patients','location','southeast')
+            else
+                legend('Controls','Patients','location','southeast','AutoUpdate','off')
+            end
+            [h,p] = ttest(squeeze(all_data(j,:,logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h),these_y_lims(2)-diff(these_y_lims/10),'g*')
+            end
+            [h,p] = ttest(squeeze(all_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h)-0.1,these_y_lims(2)-diff(these_y_lims/10),'k*')
+            end
+            [h,p] = ttest(squeeze(all_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h)+0.1,these_y_lims(2)-diff(these_y_lims/10),'r*')
+            end
+            
+            [h,p] = ttest2(squeeze(all_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))',squeeze(all_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            if sum(h)~=0
+                plot(find(h),these_y_lims(2)-diff(these_y_lims/20),'gx')
+            end
+            
+            drawnow
+            saveas(gcf,[outdir filesep this_model_name{j} partial_name '_by_Glasser.png'])
+            saveas(gcf,[outdir filesep this_model_name{j} partial_name '_by_Glasser.pdf'])
+            
+            figure
+            set(gcf,'Position',[100 100 1600 800]);
+            set(gcf, 'PaperPositionMode', 'auto');
+            hold on
+            errorbar([1:length(mask_names)]-0.1,nanmean(squeeze(all_corrected_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_corrected_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),'kx')
+            errorbar([1:length(mask_names)]+0.1,nanmean(squeeze(all_corrected_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2),nanstd(squeeze(all_corrected_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))')/sqrt(sum(group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),'rx')
+            %                                     for m = 1:length(mask_names)
+            %                             scatter(repmat(m-0.1,1,size(squeeze(all_corrected_data(j,:,group==1&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_corrected_data(j,m,group==1&squeeze(RSA_ROI_data_exist(j,k,:))'))','k')
+            %                             scatter(repmat(m+0.1,1,size(squeeze(all_corrected_data(j,:,group==2&squeeze(RSA_ROI_data_exist(j,k,:))')),2)),squeeze(all_corrected_data(j,m,group==2&squeeze(RSA_ROI_data_exist(j,k,:))'))','r')
+            %                         end
+            xlim([0 length(mask_names)+1])
+            set(gca,'xtick',[1:length(mask_names)],'xticklabels',mask_names,'XTickLabelRotation',45,'TickLabelInterpreter','none')
+            plot([0 length(mask_names)+1],[0,0],'k--')
+            title(['Corrected ' this_model_name{j} partial_name ' RSA'],'Interpreter','none')
+            if verLessThan('matlab', '9.2')
+                legend('Controls','Patients','location','southeast')
+            else
+                legend('Controls','Patients','location','southeast','AutoUpdate','off')
+            end
+            [h,p] = ttest(squeeze(all_corrected_data(j,:,logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h),these_y_lims(2)-diff(these_y_lims/10),'g*')
+            end
+            [h,p] = ttest(squeeze(all_corrected_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h)-0.1,these_y_lims(2)-diff(these_y_lims/10),'k*')
+            end
+            [h,p] = ttest(squeeze(all_corrected_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            these_y_lims = ylim;
+            if sum(h)~=0
+                plot(find(h)+0.1,these_y_lims(2)-diff(these_y_lims/10),'r*')
+            end
+            
+            [h,p] = ttest2(squeeze(all_corrected_data(j,:,group==1&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))',squeeze(all_corrected_data(j,:,group==2&logical(squeeze(RSA_ROI_data_exist(j,k,:))')))');
+            if sum(h)~=0
+                plot(find(h),these_y_lims(2)-diff(these_y_lims/20),'gx')
+            end
+            
+            drawnow
+            saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} partial_name '_by_Glasser.png'])
+            saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} partial_name '_by_Glasser.pdf'])
+            
+        end
+        close all
+    end
+end
 %% Assess behavioural performance
 for i = 1:length(subjects)
     this_dir = pwd;
