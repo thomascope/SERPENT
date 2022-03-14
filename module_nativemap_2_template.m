@@ -24,7 +24,15 @@ else
     images_done = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis_downsamp_' num2str(downsamp_ratio) '/' versionCurrent '/'], '^whireseffect-map_.*.nii'));
 end
 if ~runagain
-images = setdiff(images,strrep(images_done,'whireseffect-map','effect-map'));
+    %first identify files that are too small - likely fileserver write
+    %error in previous run
+    for i = 1:length(images_done)
+        temp = dir(images_done{i}); filesize(i) = temp.bytes;
+    end
+    too_small = filesize~=max(filesize);
+    images_done(too_small) = [];
+    
+    images = setdiff(images,strrep(images_done,'whireseffect-map','effect-map'));
 end
 
 % Write out masks
