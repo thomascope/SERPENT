@@ -19,8 +19,7 @@ for i = 1:length(mask_names)
         end
     end
     
-    
-    
+
     behaviour_folder = ['/group/language/data/thomascope/7T_SERPENT_pilot_analysis/behavioural_data/judgment_dissim_matrices/'];
     
     % Set the label names to the regressor names which you want to use for
@@ -99,7 +98,7 @@ for i = 1:length(mask_names)
     % Load behavioural judgments
     load([behaviour_folder subject '_photo_judgment_matrix.mat']);
     load([behaviour_folder subject '_line_judgment_matrix.mat']);
-    
+
     %basemodels.photo = photo_judgment_matrix;
     basemodels.photo_noself = photo_judgment_matrix;
     basemodels.photo_noself(1:16:end) = NaN;
@@ -114,6 +113,13 @@ for i = 1:length(mask_names)
     
     %basemodelNames(end+1:end+6) = {'photo','photo_noself','line','line_noself','judgment','judgment_noself'};
     basemodelNames(end+1:end+3) = {'photo_noself','line_noself','judgment_noself'};
+    
+    % Newly added average judgments
+    load([behaviour_folder 'average_judgments.mat']);
+    basemodels.control_judgment_noself = overall_control_judgment_matrix;
+    basemodels.patient_judgment_noself = overall_patient_judgment_matrix;
+    basemodels.overall_judgment_noself = (overall_control_judgment_matrix + overall_patient_judgment_matrix)/2;
+    basemodelNames(end+1:end+3) = {'control_judgment_noself','patient_judgment_noself','overall_judgment_noself'};
     
     [physical_dissimilarity,domesticity_dissimilarity,setting_dissimilarity,biological_dissimilarity,nonphysical_dissimilarity] = McRae_Dissimilarities;
     

@@ -121,6 +121,13 @@ basemodels.judgment_noself(1:16:end) = NaN;
 %basemodelNames(end+1:end+6) = {'photo','photo_noself','line','line_noself','judgment','judgment_noself'};
 basemodelNames(end+1:end+3) = {'photo_noself','line_noself','judgment_noself'};
 
+% Newly added average judgments
+load([behaviour_folder 'average_judgments.mat']);
+basemodels.control_judgment_noself = overall_control_judgment_matrix;
+basemodels.patient_judgment_noself = overall_patient_judgment_matrix;
+basemodels.overall_judgment_noself = (overall_control_judgment_matrix + overall_patient_judgment_matrix)/2;
+basemodelNames(end+1:end+3) = {'control_judgment_noself','patient_judgment_noself','overall_judgment_noself'};
+
 [physical_dissimilarity,domesticity_dissimilarity,setting_dissimilarity,biological_dissimilarity,nonphysical_dissimilarity] = McRae_Dissimilarities;
 
 %basemodels.physical_dissimilarity = physical_dissimilarity;

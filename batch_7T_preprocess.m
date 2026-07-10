@@ -51,7 +51,7 @@ for crun = 1:size(subjects,2)
     inv1folder = strrep(inv1folder,['Series_0' Series_number],['Series_0' num2str(str2num(Series_number)-flag,'%02.0f')]);
     if ~exist(inv1folder,'dir')
         flag = 1;
-        inv1folder = strrep(inv2folder,'INV2','INV1');
+        inv1folder = strrep(inv2folder,'INV2','INV1');60
         inv1folder = strrep(inv1folder,['Series_0' Series_number],['Series_0' num2str(str2num(Series_number)-flag,'%02.0f')]);
         if ~exist(inv1folder,'dir')
             error(['Cannot find INV1 folder in the expected location, please check'])
@@ -2355,7 +2355,11 @@ end
 %Now parcellate Glasser (2016). A multi-modal parcellation of human cerebral cortex. Nature, 1-11.
 Glasser_regions = readtable('./Regions_of_Interest/HCP-MMP1_UniqueRegionList.csv');
 for this_roi = 1:height(Glasser_regions)
-    masks{end+1} = ['rwGlasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi}];
+    try
+        masks{end+1} = ['rwGlasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi}];
+    catch
+        masks{end+1} = ['rwGlasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.regionName{this_roi}]; %New matlab will change variablename to meet new validity rules - need to also change this above if normalisation re-run
+    end
 end
 
 

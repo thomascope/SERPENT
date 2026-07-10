@@ -94,7 +94,19 @@ myWrapper = @(x) exist(x, 'file');
 
 parfor crun = 1:nrun
     if exist(fullfile(char(inputs{1, crun}),'SPM.mat'),'file')
-        disp([fullfile(char(inputs{1, crun}),'SPM.mat') ' already exists, delete it if you want to re-make, otherwise moving on.'])
+        if exist(fullfile(char(inputs{1, crun}),'ResMS.nii'),'file') % Check anything has been done, if not start again.
+            disp([fullfile(char(inputs{1, crun}),'SPM.mat') ' already exists, delete it if you want to re-make, otherwise moving on.'])
+        else
+            delete(fullfile(char(inputs{1, crun}),'SPM.mat'))
+            spm('defaults', 'fMRI');
+            spm_jobman('initcfg')
+            try
+                spm_jobman('run', jobs{crun}, inputs{:,crun});
+                secondlevelworkedcorrectly(crun) = 1;
+            catch
+                secondlevelworkedcorrectly(crun) = 0;
+            end
+        end
     elseif ~all(cellfun(myWrapper,inputs{2, crun})) || ~all(cellfun(myWrapper,inputs{3, crun}))
         disp(['Missing input files for ' char(inputs{1, crun}) ' moving on'])
     else

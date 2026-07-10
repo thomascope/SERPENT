@@ -2,7 +2,7 @@ function module_make_partial_effect_maps(GLMDir,downsamp_ratio,subject,matrices_
 %For taking already calculated crossnobis distances and doing RSA
 
 redo_maps = 0; %If you want to calculate them again for some reason.
-save_design_matrices = 0; %If you want to output the design matrices for visualisation
+save_design_matrices = 1; %If you want to output the design matrices for visualisation
 
 if ~exist('downsamp_ratio','var')
     downsamp_ratio = 1;
@@ -120,6 +120,13 @@ basemodels.judgment_noself(1:16:end) = NaN;
 
 %basemodelNames(end+1:end+6) = {'photo','photo_noself','line','line_noself','judgment','judgment_noself'};
 basemodelNames(end+1:end+3) = {'photo_noself','line_noself','judgment_noself'};
+
+% Newly added average judgments
+load([behaviour_folder 'average_judgments.mat']);
+basemodels.control_judgment_noself = overall_control_judgment_matrix;
+basemodels.patient_judgment_noself = overall_patient_judgment_matrix;
+basemodels.overall_judgment_noself = (overall_control_judgment_matrix + overall_patient_judgment_matrix)/2;
+basemodelNames(end+1:end+3) = {'control_judgment_noself','patient_judgment_noself','overall_judgment_noself'};
 
 [physical_dissimilarity,domesticity_dissimilarity,setting_dissimilarity,biological_dissimilarity,nonphysical_dissimilarity] = McRae_Dissimilarities;
 
