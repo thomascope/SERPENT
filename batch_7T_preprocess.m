@@ -2081,9 +2081,13 @@ if make_atlas_rois
     %Now parcellate Glasser (2016). A multi-modal parcellation of human cerebral cortex. Nature, 1-11.
     Glasser_regions = readtable('./Regions_of_Interest/HCP-MMP1_UniqueRegionList.csv');
     for this_roi = 1:height(Glasser_regions)
-        spm_imcalc('./Regions_of_Interest/HCP-MMP_1mm.nii',['./Regions_of_Interest/Glasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi} '.nii'],['i1==' num2str(Glasser_regions.regionID(this_roi))])
+        try
+            spm_imcalc('./Regions_of_Interest/HCP-MMP_1mm.nii',['./Regions_of_Interest/Glasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi} '.nii'],['i1==' num2str(Glasser_regions.regionID(this_roi))])
+        catch
+            spm_imcalc('./Regions_of_Interest/HCP-MMP_1mm.nii',['./Regions_of_Interest/Glasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.regionName{this_roi} '.nii'],['i1==' num2str(Glasser_regions.regionID(this_roi))])
+        end
     end
-    
+
 end
 
 %% Now normalise the template space masks into native space
@@ -2137,13 +2141,17 @@ region_key= {
     for this_roi = 1:length(region_key)
         images2normalise{end+1} = ['./Regions_of_Interest/Rosenke_' region_key{this_roi} '.nii'];
     end
-    
-        %Now parcellate Glasser (2016). A multi-modal parcellation of human cerebral cortex. Nature, 1-11.
+
+    %Now parcellate Glasser (2016). A multi-modal parcellation of human cerebral cortex. Nature, 1-11.
     Glasser_regions = readtable('./Regions_of_Interest/HCP-MMP1_UniqueRegionList.csv');
     for this_roi = 1:height(Glasser_regions)
-        images2normalise{end+1} = ['./Regions_of_Interest/Glasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi} '.nii'];
+        try
+            images2normalise{end+1} = ['./Regions_of_Interest/Glasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi} '.nii'];
+        catch
+            images2normalise{end+1} = ['./Regions_of_Interest/Glasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.regionName{this_roi} '.nii'];
+        end
     end
-    
+
 
 % search_labels = {
 %     'Left STG'
@@ -2262,7 +2270,11 @@ region_key= {
     %Now parcellate Glasser (2016). A multi-modal parcellation of human cerebral cortex. Nature, 1-11.
     Glasser_regions = readtable('./Regions_of_Interest/HCP-MMP1_UniqueRegionList.csv');
     for this_roi = 1:height(Glasser_regions)
-        masks{end+1} = ['rwGlasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi}];
+        try
+            masks{end+1} = ['rwGlasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi}];
+        catch
+            masks{end+1} = ['rwGlasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.regionName{this_roi}];
+        end
     end
 
 GLMDir = [preprocessedpathstem subjects{1} '/stats_native_mask0.3_3_coreg_reversedbuttons']; %Template, first subject
@@ -3136,6 +3148,7 @@ spm_imcalc(these_maps,'mean_patient_tSNR_map.nii','mean(X)',{1 0 0})
 spm_imcalc(char([cellstr('mean_patient_tSNR_map.nii'); scriptdir 'control_majority_unsmoothed_mask_p1_thr0.05_cons0.8.img']),'masked_mean_patient_tSNR_map.nii','i1.*(i2>0.05)')
 
 %% Now plot along tensors
+% This doesn't work yet
 
 downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 outpath = [preprocessedpathstem '/stats_native_mask0.3_3_coreg_reversedbuttons/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level'];
@@ -3205,11 +3218,14 @@ mask_names = {};
 % For picture-null contrast with left then right sided tensors
 Glasser_regions = readtable('./Regions_of_Interest/HCP-MMP1_UniqueRegionList.csv');
 for this_tensor = [2,1]
-for this_region = 1:size(these_roi_numbers{this_tensor},1)
-    mask_names{end+1} = ['rwGlasser_ ' num2str(these_roi_numbers{this_tensor}(this_region)) '_' Glasser_regions.x_regionName{find(Glasser_regions.regionID==these_roi_numbers{this_tensor}(this_region))}];
+    for this_region = 1:size(these_roi_numbers{this_tensor},1)
+        try
+            mask_names{end+1} = ['rwGlasser_ ' num2str(these_roi_numbers{this_tensor}(this_region)) '_' Glasser_regions.x_regionName{find(Glasser_regions.regionID==these_roi_numbers{this_tensor}(this_region))}];
+        catch
+            mask_names{end+1} = ['rwGlasser_ ' num2str(these_roi_numbers{this_tensor}(this_region)) '_' Glasser_regions.regionName{find(Glasser_regions.regionID==these_roi_numbers{this_tensor}(this_region))}];
+        end
+    end
 end
-end
-
 % Now plot ROI results
 GLMDir = [preprocessedpathstem subjects{1} '/stats_native_mask0.3_3_coreg_reversedbuttons']; %Template, first subject
 outdir = ['./ROI_figures/stats_native_mask0.3_3_coreg_reversedbuttons'];
@@ -3571,7 +3587,11 @@ all_facescene_regions = [all_facescene_regions all_facescene_regions+200];
 region_table = Glasser_regions(ismember(Glasser_regions.regionID,all_facescene_regions),:);
 ordered_region_table = sortrows(region_table,{'LR','y_cog'});
 for this_roi = 1:height(ordered_region_table)
+    try
     mask_names{end+1} = ['rwGlasser_ ' num2str(ordered_region_table.regionID(this_roi)) '_' ordered_region_table.x_regionName{this_roi}];
+    catch
+        mask_names{end+1} = ['rwGlasser_ ' num2str(ordered_region_table.regionID(this_roi)) '_' ordered_region_table.regionName{this_roi}];
+    end
 end
 
 % Now plot ROI results
