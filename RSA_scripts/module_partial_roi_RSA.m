@@ -119,9 +119,9 @@ for i = 1:length(mask_names)
     load([behaviour_folder 'average_judgments.mat']);
     basemodels.control_judgment_actually_noself = overall_control_judgment_matrix;
     basemodels.control_judgment_actually_noself(1:16:end) = NaN;
-    basemodels.patient_judgment_noself = overall_patient_judgment_matrix;
+    basemodels.patient_judgment_actually_noself = overall_patient_judgment_matrix;
     basemodels.patient_judgment_actually_noself(1:16:end) = NaN;
-    basemodels.overall_judgment_noself = (overall_control_judgment_matrix + overall_patient_judgment_matrix)/2;
+    basemodels.overall_judgment_actually_noself = (overall_control_judgment_matrix + overall_patient_judgment_matrix)/2;
     basemodels.overall_judgment_actually_noself(1:16:end) = NaN;
     basemodelNames(end+1:end+3) = {'control_judgment_actually_noself','patient_judgment_actually_noself','overall_judgment_actually_noself'}; %Actuallys because of coding error first time round where self was not removed. So control_judgment_noself has self and control_judgment_actually_noself does not.
 
