@@ -102,6 +102,18 @@ basemodels.decoding = ones(15,15);
 basemodels.decoding(1:16:end) = 0;
 basemodelNames(end+1) = {'decoding'};
 
+basemodels.common_decoding = ones(15,15);
+basemodels.common_decoding(1:16*3:end) = 0;
+basemodelNames(end+1) = {'common_decoding'};
+
+basemodels.medium_decoding = ones(15,15);
+basemodels.medium_decoding(17:16*3:end) = 0;
+basemodelNames(end+1) = {'medium_decoding'};
+
+basemodels.rare_decoding = ones(15,15);
+basemodels.rare_decoding(33:16*3:end) = 0;
+basemodelNames(end+1) = {'rare_decoding'};
+
 % Load behavioural judgments
 load([behaviour_folder subject '_photo_judgment_matrix.mat']);
 load([behaviour_folder subject '_line_judgment_matrix.mat']);

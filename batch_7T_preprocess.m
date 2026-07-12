@@ -1767,7 +1767,7 @@ parfor crun = 1:nrun
 end
 
 RSApartialnobisworkedcorrectly = zeros(1,nrun);
-matrices_to_partial = {'Global V1_ds','Global GIST correlation'};
+matrices_to_partial = {'Global V1_ds','Global GIST correlation', 'Global templates_noself', 'Global control_judgment_actually_noself'};
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons'];
@@ -2685,10 +2685,13 @@ this_model_name = {
     'Photo to Line GIST correlation'
     'Photo to Line templates_noself'
     'Photo to Line judgment_noself'
-    'Photo to Line l_sa_noself'
-    'Photo to Line l_s_a_noself'
-    'Photo to Line lsm_ll_sa_noself'
+    % 'Photo to Line l_sa_noself'
+    % 'Photo to Line l_s_a_noself'
+    % 'Photo to Line lsm_ll_sa_noself'
     'Photo to Line decoding'
+    'Photo to Line common_decoding'
+    'Photo to Line medium_decoding'
+    'Photo to Line rare_decoding'
     'Photo to Line control_judgment_noself'
     'Photo to Line patient_judgment_noself'
     'Photo to Line overall_judgment_noself'
@@ -2935,7 +2938,7 @@ close all
 
 
 % Now repeat with partialled correlations
-matrices_to_partial = {'Global V1_ds','Global GIST correlation'};
+matrices_to_partial = {'Global V1_ds','Global GIST correlation', 'Global templates_noself', 'Global control_judgment_actually_noself'};
 partial_matrices = [];
 for this_partial = 1:length(matrices_to_partial)
     IndexC = strcmp(this_model_name,matrices_to_partial(this_partial));
@@ -3239,13 +3242,16 @@ this_model_name = {
     'Photo to Line V1_ds'
     'Photo to Line GIST correlation'
     'Photo to Line templates_noself'
-    'Photo to Line l_sa_noself'
-    'Photo to Line l_s_a_noself'
-    'Photo to Line lsm_ll_sa_noself'
+    % 'Photo to Line l_sa_noself'
+    % 'Photo to Line l_s_a_noself'
+    % 'Photo to Line lsm_ll_sa_noself'
     'Photo to Line decoding'
-    'Photo to Line control_judgment_noself'
-    'Photo to Line patient_judgment_noself'
-    'Photo to Line overall_judgment_noself'
+    'Photo to Line common_decoding'
+    'Photo to Line medium_decoding'
+    'Photo to Line rare_decoding'
+    'Photo to Line control_judgment_actually_noself'
+    'Photo to Line patient_judgment_actually_noself'
+    'Photo to Line overall_judgment_actually_noself'
     'Global V1_ds' %Globals need to be here for partialling
     'Global GIST correlation'};
 
@@ -3440,7 +3446,7 @@ close all
 
 
 % Now repeat with partialled correlations
-matrices_to_partial = {'Global V1_ds','Global GIST correlation'};
+matrices_to_partial = {'Global V1_ds','Global GIST correlation', 'Global templates_noself', 'Global control_judgment_actually_noself'};
 partial_matrices = [];
 for this_partial = 1:length(matrices_to_partial)
     IndexC = strcmp(this_model_name,matrices_to_partial(this_partial));
@@ -3736,7 +3742,7 @@ close all
 
 
 % Now repeat with partialled correlations
-matrices_to_partial = {'Global V1_ds','Global GIST correlation'};
+matrices_to_partial = {'Global V1_ds','Global GIST correlation', 'Global templates_noself', 'Global control_judgment_actually_noself'};
 partial_matrices = [];
 for this_partial = 1:length(matrices_to_partial)
     IndexC = strcmp(this_model_name,matrices_to_partial(this_partial));
