@@ -20,7 +20,7 @@ all_scans = dir('./tSNR maps/*.nii');
 
 for sampling_distance = [3];
     cfg.sampling_distance = sampling_distance; % tc modification - When mesh is lower resolution than overlay image this can be problematic, now displays largest value within a Euclidean distance specified in number of voxels. Can be slow for high resolution images
-    for i = 2:length(all_scans)
+    for i = 1:length(all_scans)
 
         %         this_scan_data = spm_read_vols(spm_vol(all_scans(i).name));
         %         upper_range = max(max(max(this_scan_data)));

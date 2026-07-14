@@ -2080,6 +2080,9 @@ if make_atlas_rois
      
     %Now parcellate Glasser (2016). A multi-modal parcellation of human cerebral cortex. Nature, 1-11.
     Glasser_regions = readtable('./Regions_of_Interest/HCP-MMP1_UniqueRegionList.csv');
+
+
+
     for this_roi = 1:height(Glasser_regions)
         try
             spm_imcalc('./Regions_of_Interest/HCP-MMP_1mm.nii',['./Regions_of_Interest/Glasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi} '.nii'],['i1==' num2str(Glasser_regions.regionID(this_roi))])
@@ -3881,8 +3884,7 @@ for j = 1:length(this_model_name)
     end
 end
 
-%%
-%Correlate within ROI RSA vs neuropsychological measure
+%% Correlate within ROI RSA vs neuropsychological measure
 
 % Add covariates of interest - Animal knowlege
 % Note the lookup below relies on the new Matlab variable renaming on table
@@ -4036,4 +4038,62 @@ for i = 1:length(subjects)
     cd([scriptdir 'behavioural_data'])
     [ all_response_averages(i), all_rt_averages(i), all_reversed(i)] = SD_7T_behaviour_withnull( subjects{i}, dates{i} );
     cd(this_dir)
+end
+
+%% Code to clear up very large number of ROI files previously created for ROIs of no interest - zips folder contents
+atlaspath = ['./Regions_of_Interest/HCP-MMP_1mm.nii'];
+radius = 5; % Tolerance radius along the tensor path
+
+these_tensors_template = load('all_interpolated_picturenull_MNI_locations');
+these_tensors = these_tensors_template.all_interpolated_MNI_locations;
+
+these_tensors_template = load('all_interpolated_facescene_MNI_locations');
+these_tensors = [these_tensors these_tensors_template.all_interpolated_MNI_locations];
+
+these_roi_numbers = module_plot_tensor_ROI(these_tensors,atlaspath,radius);
+
+Glasser_regions = readtable('./Regions_of_Interest/HCP-MMP1_UniqueRegionList.csv');
+all_relevant_regions = [unique(mod(cat(1,these_roi_numbers{:}),200)); unique(mod(cat(1,these_roi_numbers{:}),200))+200];
+all_irrelevant_regions = setdiff(Glasser_regions.regionID,all_relevant_regions);
+
+Glasser_excluded = {};
+mask_names = {};
+for this_region = 1:size(all_relevant_regions,1)
+    try
+        mask_names{end+1} = ['rwGlasser_ ' num2str(all_relevant_regions(this_region)) '_' Glasser_regions.x_regionName{find(Glasser_regions.regionID==all_relevant_regions(this_region))}];
+    catch
+        mask_names{end+1} = ['rwGlasser_ ' num2str(all_relevant_regions(this_region)) '_' Glasser_regions.regionName{find(Glasser_regions.regionID==all_relevant_regions(this_region))}];
+    end
+end
+for this_region = 1:size(all_irrelevant_regions,1)
+    try
+        Glasser_excluded{end+1} = ['rwGlasser_ ' num2str(all_irrelevant_regions(this_region)) '_' Glasser_regions.x_regionName{find(Glasser_regions.regionID==all_irrelevant_regions(this_region))}];
+    catch
+        Glasser_excluded{end+1} = ['rwGlasser_ ' num2str(all_irrelevant_regions(this_region)) '_' Glasser_regions.regionName{find(Glasser_regions.regionID==all_irrelevant_regions(this_region))}];
+    end
+end
+
+%Now zip the directories
+this_dir = pwd;
+parfor crun = 1:nrun
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats_native_mask0.3_3_coreg_reversedbuttons/TDTcrossnobis_ROI']; %Where is the data to be zipped?
+    for this_parcel = 1:length(Glasser_excluded)
+        dir_to_zip = fullfile(GLMDir,Glasser_excluded{this_parcel});
+        try
+            cd(dir_to_zip) %Need to cd there or whole directory structure stored in zip
+            if exist('zipped_ROI_RSA.zip','file')
+                disp(['already zipped moving on from ' dir_to_zip])
+                cd(this_dir)
+            else
+                system(['zip -rm zipped_ROI_RSA.zip ./']) %recursively zip then delete
+                cd(this_dir)
+            end
+        catch
+            if exist('RSA','dir')
+                system(['rm zipped_ROI_RSA.zip']) %ensure half completed Zips don't cause later errors
+            end
+            cd(this_dir)
+            disp(['something went wrong in ' dir_to_zip])
+        end
+    end
 end
