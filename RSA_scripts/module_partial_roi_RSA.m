@@ -64,26 +64,26 @@ for i = 1:length(mask_names)
     basemodels.templates(32:48:end) = 1/3;
     basemodels.templates = 1-basemodels.templates;
     basemodelNames = {'templates'};
-    
+
     basemodels.templates_noself = basemodels.templates;
     basemodels.templates_noself(1:16:end) = NaN;
     basemodelNames(end+1) = {'templates_noself'};
-    
-    basemodels.l_s_a_noself = zeros(15,15);
-    basemodels.l_s_a_noself(1:9,1:9) = 1/3;
-    basemodels.l_s_a_noself(10:12,10:12) = 1/3;
-    basemodels.l_s_a_noself(13:15,13:15) = 1/3;
-    basemodels.l_s_a_noself = 1-basemodels.l_s_a_noself;
-    basemodels.l_s_a_noself(1:16:end) = NaN;
-    basemodelNames(end+1) = {'l_s_a_noself'};
-    
-    basemodels.l_sa_noself = zeros(15,15);
-    basemodels.l_sa_noself(1:9,1:9) = 1/3;
-    basemodels.l_sa_noself(10:15,10:15) = 1/3;
-    basemodels.l_sa_noself = 1-basemodels.l_sa_noself;
-    basemodels.l_sa_noself(1:16:end) = NaN;
-    basemodelNames(end+1) = {'l_sa_noself'};
-    
+    %
+    % basemodels.l_s_a_noself = zeros(15,15);
+    % basemodels.l_s_a_noself(1:9,1:9) = 1/3;
+    % basemodels.l_s_a_noself(10:12,10:12) = 1/3;
+    % basemodels.l_s_a_noself(13:15,13:15) = 1/3;
+    % basemodels.l_s_a_noself = 1-basemodels.l_s_a_noself;
+    % basemodels.l_s_a_noself(1:16:end) = NaN;
+    % basemodelNames(end+1) = {'l_s_a_noself'};
+    %
+    % basemodels.l_sa_noself = zeros(15,15);
+    % basemodels.l_sa_noself(1:9,1:9) = 1/3;
+    % basemodels.l_sa_noself(10:15,10:15) = 1/3;
+    % basemodels.l_sa_noself = 1-basemodels.l_sa_noself;
+    % basemodels.l_sa_noself(1:16:end) = NaN;
+    % basemodelNames(end+1) = {'l_sa_noself'};
+
     basemodels.lsm_ll_sa_noself = zeros(15,15);
     basemodels.lsm_ll_sa_noself(1:6,1:6) = 1/3;
     basemodels.lsm_ll_sa_noself(7:9,7:9) = 1/3;
@@ -91,7 +91,7 @@ for i = 1:length(mask_names)
     basemodels.lsm_ll_sa_noself = 1-basemodels.lsm_ll_sa_noself;
     basemodels.lsm_ll_sa_noself(1:16:end) = NaN;
     basemodelNames(end+1) = {'lsm_ll_sa_noself'};
-    
+
     basemodels.decoding = ones(15,15);
     basemodels.decoding(1:16:end) = 0;
     basemodelNames(end+1) = {'decoding'};
@@ -107,25 +107,26 @@ for i = 1:length(mask_names)
     basemodels.rare_decoding = ones(15,15);
     basemodels.rare_decoding(33:16*3:end) = 0;
     basemodelNames(end+1) = {'rare_decoding'};
-    
+
     % Load behavioural judgments
     load([behaviour_folder subject '_photo_judgment_matrix.mat']);
     load([behaviour_folder subject '_line_judgment_matrix.mat']);
-    
-    %basemodels.photo = photo_judgment_matrix;
-    basemodels.photo_noself = photo_judgment_matrix;
-    basemodels.photo_noself(1:16:end) = NaN;
-    
-    %basemodels.line = line_judgment_matrix;
-    basemodels.line_noself = line_judgment_matrix;
-    basemodels.line_noself(1:16:end) = NaN;
-    
+
+    % %basemodels.photo = photo_judgment_matrix;
+    % basemodels.photo_noself = photo_judgment_matrix;
+    % basemodels.photo_noself(1:16:end) = NaN;
+    %
+    % %basemodels.line = line_judgment_matrix;
+    % basemodels.line_noself = line_judgment_matrix;
+    % basemodels.line_noself(1:16:end) = NaN;
+
     %basemodels.judgment = (photo_judgment_matrix+line_judgment_matrix)/2;
     basemodels.judgment_noself = (photo_judgment_matrix+line_judgment_matrix)/2;
     basemodels.judgment_noself(1:16:end) = NaN;
-    
+
     %basemodelNames(end+1:end+6) = {'photo','photo_noself','line','line_noself','judgment','judgment_noself'};
-    basemodelNames(end+1:end+3) = {'photo_noself','line_noself','judgment_noself'};
+    % basemodelNames(end+1:end+3) = {'photo_noself','line_noself','judgment_noself'};
+    basemodelNames(end+1:end+3) = {'judgment_noself'};
 
     % Newly added average judgments
     load([behaviour_folder 'average_judgments.mat']);
@@ -136,31 +137,31 @@ for i = 1:length(mask_names)
     basemodels.overall_judgment_actually_noself = (overall_control_judgment_matrix + overall_patient_judgment_matrix)/2;
     basemodels.overall_judgment_actually_noself(1:16:end) = NaN;
     basemodelNames(end+1:end+3) = {'control_judgment_actually_noself','patient_judgment_actually_noself','overall_judgment_actually_noself'}; %Actuallys because of coding error first time round where self was not removed. So control_judgment_noself has self and control_judgment_actually_noself does not.
-
-    [physical_dissimilarity,domesticity_dissimilarity,setting_dissimilarity,biological_dissimilarity,nonphysical_dissimilarity] = McRae_Dissimilarities;
-    
-    %basemodels.physical_dissimilarity = physical_dissimilarity;
-    basemodels.physical_dissimilarity_noself = physical_dissimilarity;
-    basemodels.physical_dissimilarity_noself(1:16:end) = NaN;
-    
-    %basemodels.nonphysical_dissimilarity = nonphysical_dissimilarity;
-    basemodels.nonphysical_dissimilarity_noself = nonphysical_dissimilarity;
-    basemodels.nonphysical_dissimilarity_noself(1:16:end) = NaN;
-    
-    basemodelNames(end+1:end+2) = {'physical_dissimilarity_noself','nonphysical_dissimilarity_noself'};
-    
-    load('Lambon_Dissimilarities.mat')
-    
-    %basemodels.physical_dissimilarity = visible_cosine_dissimilarity;
-    basemodels.visible_dissimilarity_noself = visible_cosine_dissimilarity;
-    basemodels.visible_dissimilarity_noself(1:16:end) = NaN;
-    
-    %basemodels.nonphysical_dissimilarity = nonphysical_dissimilarity;
-    basemodels.knowledge_dissimilarity_noself = knowledge_cosine_dissimilarity;
-    basemodels.knowledge_dissimilarity_noself(1:16:end) = NaN;
-    
-    basemodelNames(end+1:end+2) = {'visible_dissimilarity_noself','knowledge_dissimilarity_noself'};
-    
+    % 
+    % [physical_dissimilarity,domesticity_dissimilarity,setting_dissimilarity,biological_dissimilarity,nonphysical_dissimilarity] = McRae_Dissimilarities;
+    % 
+    % %basemodels.physical_dissimilarity = physical_dissimilarity;
+    % basemodels.physical_dissimilarity_noself = physical_dissimilarity;
+    % basemodels.physical_dissimilarity_noself(1:16:end) = NaN;
+    % 
+    % %basemodels.nonphysical_dissimilarity = nonphysical_dissimilarity;
+    % basemodels.nonphysical_dissimilarity_noself = nonphysical_dissimilarity;
+    % basemodels.nonphysical_dissimilarity_noself(1:16:end) = NaN;
+    % 
+    % basemodelNames(end+1:end+2) = {'physical_dissimilarity_noself','nonphysical_dissimilarity_noself'};
+    % 
+    % load('Lambon_Dissimilarities.mat')
+    % 
+    % %basemodels.physical_dissimilarity = visible_cosine_dissimilarity;
+    % basemodels.visible_dissimilarity_noself = visible_cosine_dissimilarity;
+    % basemodels.visible_dissimilarity_noself(1:16:end) = NaN;
+    % 
+    % %basemodels.nonphysical_dissimilarity = nonphysical_dissimilarity;
+    % basemodels.knowledge_dissimilarity_noself = knowledge_cosine_dissimilarity;
+    % basemodels.knowledge_dissimilarity_noself(1:16:end) = NaN;
+    % 
+    % basemodelNames(end+1:end+2) = {'visible_dissimilarity_noself','knowledge_dissimilarity_noself'};
+    % 
     % Now load visual models
     gistRDM = generateGistRDMs_SERPENT; %NB: Time consuming, so just loads result if re-run
     % cnnRDM = getNetActivations_SERPENT; %NB: Requires DNN toolbox and Alexnet training - run locally and load results:
@@ -363,157 +364,157 @@ for i = 1:length(mask_names)
         models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
         this_model_name{end+1} = ['Photo to Line CNN correlation ' num2str(layer)];
     end
-    
-    cross_decode_label_pairs = {
-        'photo_right', 'line_drawings_left';
-        'photo_left', 'line_drawings_right';
-        'photo_left', 'photo_right';
-        'line_drawings_left', 'line_drawings_right';
-        };
-    
-    for i = 1:length(basemodelNames)
-        this_basemodel = eval(['basemodels.' basemodelNames{i}]);
-        model_unsorted = modeltemplate;
-        for j = 1:size(cross_decode_label_pairs,1)
-            model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
-            model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
-        end
-        models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-        this_model_name{end+1} = ['Left to Right ' basemodelNames{i}];
-    end
-    
-    model_unsorted = modeltemplate;
-    for j = 1:size(cross_decode_label_pairs,1)
-        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM;
-        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM';
-    end
-    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-    this_model_name{end+1} = ['Left to Right GIST correlation'];
-    
-    model_unsorted = modeltemplate;
-    for j = 1:size(cross_decode_label_pairs,1)
-        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = V1RDM_ds(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices)).RDM;
-        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = V1RDM_ds(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices)).RDM';
-    end
-    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-    this_model_name{end+1} = ['Left to Right V1_ds'];
-    
-    for layer = 1:8
-        model_unsorted = modeltemplate;
-        for j = 1:size(cross_decode_label_pairs,1)
-            model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM;
-            model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM';
-        end
-        models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-        this_model_name{end+1} = ['Left to Right CNN correlation ' num2str(layer)];
-    end
-    
-    cross_decode_label_pairs = {
-        'photo_left', 'photo_left'
-        'photo_right', 'photo_right';
-        'photo_right', 'photo_left';
-        };
-    
-    for i = 1:length(basemodelNames)
-        this_basemodel = eval(['basemodels.' basemodelNames{i}]);
-        model_unsorted = modeltemplate;
-        for j = 1:size(cross_decode_label_pairs,1)
-            model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
-            model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
-        end
-        models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-        this_model_name{end+1} = ['Global Photo ' basemodelNames{i}];
-    end
-    
-    model_unsorted = modeltemplate;
-    for j = 1:size(cross_decode_label_pairs,1)
-        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM;
-        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM';
-    end
-    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-    this_model_name{end+1} = ['Global Photo GIST correlation'];
-    
-    model_unsorted = modeltemplate;
-    for j = 1:size(cross_decode_label_pairs,1)
-        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = V1RDM_ds(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices)).RDM;
-        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = V1RDM_ds(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices)).RDM';
-    end
-    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-    this_model_name{end+1} = ['Global Photo V1_ds'];
-    
-    for layer = 1:8
-        model_unsorted = modeltemplate;
-        for j = 1:size(cross_decode_label_pairs,1)
-            model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM;
-            model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM';
-        end
-        models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-        this_model_name{end+1} = ['Global Photo CNN correlation ' num2str(layer)];
-    end
-    
-    cross_decode_label_pairs = {
-        'line_drawings_left', 'line_drawings_left'
-        'line_drawings_right', 'line_drawings_right';
-        'line_drawings_right', 'line_drawings_left';
-        };
-    
-    for i = 1:length(basemodelNames)
-        this_basemodel = eval(['basemodels.' basemodelNames{i}]);
-        model_unsorted = modeltemplate;
-        for j = 1:size(cross_decode_label_pairs,1)
-            model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
-            model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
-        end
-        models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-        this_model_name{end+1} = ['Global Line Drawings ' basemodelNames{i}];
-    end
-    
-    model_unsorted = modeltemplate;
-    for j = 1:size(cross_decode_label_pairs,1)
-        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM;
-        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM';
-    end
-    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-    this_model_name{end+1} = ['Global Line Drawings GIST correlation'];
-    
-    model_unsorted = modeltemplate;
-    for j = 1:size(cross_decode_label_pairs,1)
-        model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = V1RDM_ds(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices)).RDM;
-        model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = V1RDM_ds(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices)).RDM';
-    end
-    models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-    this_model_name{end+1} = ['Global Line Drawings V1_ds'];
-    
-    for layer = 1:8
-        model_unsorted = modeltemplate;
-        for j = 1:size(cross_decode_label_pairs,1)
-            model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM;
-            model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM';
-        end
-        models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-        this_model_name{end+1} = ['Global Line Drawings CNN correlation ' num2str(layer)];
-    end
-    
-    cross_decode_label_pairs = {
-        'photo_right', 'photo_left';
-        'line_drawings_right', 'line_drawings_left';
-        'photo_right', 'line_drawings_right';
-        'photo_right', 'line_drawings_left';
-        'photo_left', 'line_drawings_right';
-        'photo_left', 'line_drawings_left';
-        };
-    
-    for i = 1:length(basemodelNames)
-        this_basemodel = eval(['basemodels.' basemodelNames{i}]);
-        model_unsorted = modeltemplate;
-        for j = 1:size(cross_decode_label_pairs,1)
-            model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
-            model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
-        end
-        models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
-        this_model_name{end+1} = ['Between ' basemodelNames{i}];
-    end
-    
+    % 
+    % cross_decode_label_pairs = {
+    %     'photo_right', 'line_drawings_left';
+    %     'photo_left', 'line_drawings_right';
+    %     'photo_left', 'photo_right';
+    %     'line_drawings_left', 'line_drawings_right';
+    %     };
+    % 
+    % for i = 1:length(basemodelNames)
+    %     this_basemodel = eval(['basemodels.' basemodelNames{i}]);
+    %     model_unsorted = modeltemplate;
+    %     for j = 1:size(cross_decode_label_pairs,1)
+    %         model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
+    %         model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
+    %     end
+    %     models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    %     this_model_name{end+1} = ['Left to Right ' basemodelNames{i}];
+    % end
+    % 
+    % model_unsorted = modeltemplate;
+    % for j = 1:size(cross_decode_label_pairs,1)
+    %     model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM;
+    %     model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM';
+    % end
+    % models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    % this_model_name{end+1} = ['Left to Right GIST correlation'];
+    % 
+    % model_unsorted = modeltemplate;
+    % for j = 1:size(cross_decode_label_pairs,1)
+    %     model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = V1RDM_ds(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices)).RDM;
+    %     model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = V1RDM_ds(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices)).RDM';
+    % end
+    % models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    % this_model_name{end+1} = ['Left to Right V1_ds'];
+    % 
+    % for layer = 1:8
+    %     model_unsorted = modeltemplate;
+    %     for j = 1:size(cross_decode_label_pairs,1)
+    %         model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM;
+    %         model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM';
+    %     end
+    %     models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    %     this_model_name{end+1} = ['Left to Right CNN correlation ' num2str(layer)];
+    % end
+    % 
+    % cross_decode_label_pairs = {
+    %     'photo_left', 'photo_left'
+    %     'photo_right', 'photo_right';
+    %     'photo_right', 'photo_left';
+    %     };
+    % 
+    % for i = 1:length(basemodelNames)
+    %     this_basemodel = eval(['basemodels.' basemodelNames{i}]);
+    %     model_unsorted = modeltemplate;
+    %     for j = 1:size(cross_decode_label_pairs,1)
+    %         model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
+    %         model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
+    %     end
+    %     models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    %     this_model_name{end+1} = ['Global Photo ' basemodelNames{i}];
+    % end
+    % 
+    % model_unsorted = modeltemplate;
+    % for j = 1:size(cross_decode_label_pairs,1)
+    %     model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM;
+    %     model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM';
+    % end
+    % models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    % this_model_name{end+1} = ['Global Photo GIST correlation'];
+    % 
+    % model_unsorted = modeltemplate;
+    % for j = 1:size(cross_decode_label_pairs,1)
+    %     model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = V1RDM_ds(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices)).RDM;
+    %     model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = V1RDM_ds(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices)).RDM';
+    % end
+    % models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    % this_model_name{end+1} = ['Global Photo V1_ds'];
+    % 
+    % for layer = 1:8
+    %     model_unsorted = modeltemplate;
+    %     for j = 1:size(cross_decode_label_pairs,1)
+    %         model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM;
+    %         model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM';
+    %     end
+    %     models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    %     this_model_name{end+1} = ['Global Photo CNN correlation ' num2str(layer)];
+    % end
+    % 
+    % cross_decode_label_pairs = {
+    %     'line_drawings_left', 'line_drawings_left'
+    %     'line_drawings_right', 'line_drawings_right';
+    %     'line_drawings_right', 'line_drawings_left';
+    %     };
+    % 
+    % for i = 1:length(basemodelNames)
+    %     this_basemodel = eval(['basemodels.' basemodelNames{i}]);
+    %     model_unsorted = modeltemplate;
+    %     for j = 1:size(cross_decode_label_pairs,1)
+    %         model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
+    %         model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
+    %     end
+    %     models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    %     this_model_name{end+1} = ['Global Line Drawings ' basemodelNames{i}];
+    % end
+    % 
+    % model_unsorted = modeltemplate;
+    % for j = 1:size(cross_decode_label_pairs,1)
+    %     model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM;
+    %     model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = gistRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2).RDM';
+    % end
+    % models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    % this_model_name{end+1} = ['Global Line Drawings GIST correlation'];
+    % 
+    % model_unsorted = modeltemplate;
+    % for j = 1:size(cross_decode_label_pairs,1)
+    %     model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = V1RDM_ds(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices)).RDM;
+    %     model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = V1RDM_ds(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices)).RDM';
+    % end
+    % models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    % this_model_name{end+1} = ['Global Line Drawings V1_ds'];
+    % 
+    % for layer = 1:8
+    %     model_unsorted = modeltemplate;
+    %     for j = 1:size(cross_decode_label_pairs,1)
+    %         model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM;
+    %         model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = cnnRDM(strcmp(cross_decode_label_pairs{j,1},visual_matrices),strcmp(cross_decode_label_pairs{j,2},visual_matrices),2,layer).RDM';
+    %     end
+    %     models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    %     this_model_name{end+1} = ['Global Line Drawings CNN correlation ' num2str(layer)];
+    % end
+    % 
+    % cross_decode_label_pairs = {
+    %     'photo_right', 'photo_left';
+    %     'line_drawings_right', 'line_drawings_left';
+    %     'photo_right', 'line_drawings_right';
+    %     'photo_right', 'line_drawings_left';
+    %     'photo_left', 'line_drawings_right';
+    %     'photo_left', 'line_drawings_left';
+    %     };
+    % 
+    % for i = 1:length(basemodelNames)
+    %     this_basemodel = eval(['basemodels.' basemodelNames{i}]);
+    %     model_unsorted = modeltemplate;
+    %     for j = 1:size(cross_decode_label_pairs,1)
+    %         model_unsorted(strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated)) = this_basemodel;
+    %         model_unsorted(strcmp(cross_decode_label_pairs{j,2},all_combinations_replicated),strcmp(cross_decode_label_pairs{j,1},all_combinations_replicated)) = this_basemodel';
+    %     end
+    %     models{end+1} = model_unsorted(joined_table_originalorder.designnumber,joined_table_originalorder.designnumber);
+    %     this_model_name{end+1} = ['Between ' basemodelNames{i}];
+    % end
+    % 
     cross_decode_label_pairs = {
         'photo_left', 'photo_left'
         'photo_right', 'photo_right';

@@ -2367,16 +2367,46 @@ for this_roi = 1:length(region_key)
     masks{end+1} = ['rwRosenke_' region_key{this_roi}];
 end
 
-%Now parcellate Glasser (2016). A multi-modal parcellation of human cerebral cortex. Nature, 1-11.
+%now add only those Glasser parcels along Tensors of interest
+these_tensors_template = load('all_interpolated_picturenull_MNI_locations');
+these_tensors = these_tensors_template.all_interpolated_MNI_locations;
+
+these_tensors_template = load('all_interpolated_facescene_MNI_locations');
+these_tensors = [these_tensors these_tensors_template.all_interpolated_MNI_locations];
+
+these_roi_numbers = module_plot_tensor_ROI(these_tensors,atlaspath,radius);
+
 Glasser_regions = readtable('./Regions_of_Interest/HCP-MMP1_UniqueRegionList.csv');
-for this_roi = 1:height(Glasser_regions)
+all_relevant_regions = [unique(mod(cat(1,these_roi_numbers{:}),200)); unique(mod(cat(1,these_roi_numbers{:}),200))+200];
+all_irrelevant_regions = setdiff(Glasser_regions.regionID,all_relevant_regions);
+
+Glasser_excluded = {};
+mask_names = {};
+for this_region = 1:size(all_relevant_regions,1)
     try
-        masks{end+1} = ['rwGlasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi}];
+        mask_names{end+1} = ['rwGlasser_ ' num2str(all_relevant_regions(this_region)) '_' Glasser_regions.x_regionName{find(Glasser_regions.regionID==all_relevant_regions(this_region))}];
     catch
-        masks{end+1} = ['rwGlasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.regionName{this_roi}]; %New matlab will change variablename to meet new validity rules - need to also change this above if normalisation re-run
+        mask_names{end+1} = ['rwGlasser_ ' num2str(all_relevant_regions(this_region)) '_' Glasser_regions.regionName{find(Glasser_regions.regionID==all_relevant_regions(this_region))}];
+    end
+end
+for this_region = 1:size(all_irrelevant_regions,1)
+    try
+        Glasser_excluded{end+1} = ['rwGlasser_ ' num2str(all_irrelevant_regions(this_region)) '_' Glasser_regions.x_regionName{find(Glasser_regions.regionID==all_irrelevant_regions(this_region))}];
+    catch
+        Glasser_excluded{end+1} = ['rwGlasser_ ' num2str(all_irrelevant_regions(this_region)) '_' Glasser_regions.regionName{find(Glasser_regions.regionID==all_irrelevant_regions(this_region))}];
     end
 end
 
+% %Previous all Glasser parcels
+% %Now parcellate Glasser (2016). A multi-modal parcellation of human cerebral cortex. Nature, 1-11.
+% Glasser_regions = readtable('./Regions_of_Interest/HCP-MMP1_UniqueRegionList.csv');
+% for this_roi = 1:height(Glasser_regions)
+%     try
+%         masks{end+1} = ['rwGlasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.x_regionName{this_roi}];
+%     catch
+%         masks{end+1} = ['rwGlasser_ ' num2str(Glasser_regions.regionID(this_roi)) '_' Glasser_regions.regionName{this_roi}]; %New matlab will change variablename to meet new validity rules - need to also change this above if normalisation re-run
+%     end
+% end
 
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
