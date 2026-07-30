@@ -140,3 +140,12 @@ for j = 1:length(this_model_name)
     end
 end
 close all
+
+%simplified list
+this_model_name = {
+    'Photo to Line templates_noself'
+    'Photo to Line control_judgment_actually_noself'
+    'Global V1_ds' %Globals need to be here for partialling
+    'Global GIST correlation'
+    'Global templates_noself', 
+    'Global control_judgment_actually_noself'};

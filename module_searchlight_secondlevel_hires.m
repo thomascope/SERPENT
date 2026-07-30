@@ -26,6 +26,9 @@ jobs = repmat(jobfile, 1, nrun);
 inputs = cell(4, nrun);
 
 for this_condition = 1:(nrun/2)
+    if mod(this_condition,10) == 1
+        disp(['Preparing condition ' num2str(this_condition) ' out of ' num2str(nrun/2)])
+    end
     group1_mrilist = {}; %NB: Patient MRIs, so here group 2 (sorry)
     group1_ages = [];
     group2_mrilist = {};
@@ -37,7 +40,11 @@ for this_condition = 1:(nrun/2)
     inputs{1, this_condition} = cellstr([outpath filesep condition_name '_hires']);
     
     for crun = 1:size(subjects,2)
-        this_age = age_lookup.Age(strcmp(age_lookup.x_SubjectID,subjects{crun}));
+        try
+            this_age = age_lookup.Age(strcmp(age_lookup.x_SubjectID,subjects{crun}));
+        catch %for matlab versions that change table names
+            this_age = age_lookup.Age(strcmp(age_lookup.SubjectID,subjects{crun}));
+        end
         this_scan(crun) = cellstr(strrep(images{this_condition},subjects{1},subjects{crun}));
         
         if group(crun) == 1 % Controls

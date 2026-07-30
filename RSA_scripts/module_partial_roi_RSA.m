@@ -9,18 +9,16 @@ addpath(genpath('/group/language/data/ediz.sohoglu/matlab/rsatoolbox'));
 
 cfg.results.dir = fullfile(GLMDir,'TDTcrossnobis_ROI');
 
-for i = 1:length(mask_names)
-    cfg.results.dir = fullfile(GLMDir,'TDTcrossnobis_ROI',mask_names{i});
+for this_mask = 1:length(mask_names)
+    cfg.results.dir = fullfile(GLMDir,'TDTcrossnobis_ROI',mask_names{this_mask});
     if ~exist(fullfile(cfg.results.dir,'res_other_average.mat'),'file')
-        cfg.results.dir = fullfile(GLMDir,['TDTcrossnobis_ROI',mask_names{i}]); % Stupid coding error earlier in analysis led to misnamed directories
+        cfg.results.dir = fullfile(GLMDir,['TDTcrossnobis_ROI',mask_names{this_mask}]); % Stupid coding error earlier in analysis led to misnamed directories
         if ~exist(fullfile(cfg.results.dir,'res_other_average.mat'),'file')
             disp([cfg.results.dir '/res_other_average.mat does not exist, moving on'])
             continue
         end
     end
-    
-    
-    
+       
     behaviour_folder = ['/group/language/data/thomascope/7T_SERPENT_pilot_analysis/behavioural_data/judgment_dissim_matrices/'];
     
     % Set the label names to the regressor names which you want to use for
@@ -812,7 +810,23 @@ for i = 1:length(mask_names)
         IndexC = strcmp(this_model_name,matrices_to_partial(this_partial));
         partial_matrices = [partial_matrices find(IndexC==1)];
     end
-    
+
+    %% First check if the last model has already been made for this mask and if so, move on
+    m = length(this_model_name);
+    these_partial_numbers = length(partial_matrices);
+    all_partial_combinations = nchoosek(partial_matrices,these_partial_numbers);
+    this_partial = size(all_partial_combinations,1);
+    number_partialled_out = size(all_partial_combinations,2);
+    partial_name = [];
+    for this_partial_matrix = 1:number_partialled_out
+        partial_name = [partial_name '+' this_model_name{all_partial_combinations(this_partial,this_partial_matrix)}];
+    end
+    partial_name = ['_partialling_' partial_name(2:end)];
+    if exist(fullfile(outputDir,['roi_effects_' this_model_name{m} partial_name '.mat'])) && redo_maps == 0
+        disp([mask_names{this_mask} ' already complete - moving on - set redo_maps to 1 if you want to re-make'])
+        continue
+    end
+
     %% Now make effect maps
     for m=1:length(this_model_name) %Parallelising here impossible due to out of memory on serialisation unless data downsampled
         fprintf('\nComputing ROI effects for model %s partialling out specified models\n',this_model_name{m});

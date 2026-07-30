@@ -2381,12 +2381,11 @@ all_relevant_regions = [unique(mod(cat(1,these_roi_numbers{:}),200)); unique(mod
 all_irrelevant_regions = setdiff(Glasser_regions.regionID,all_relevant_regions);
 
 Glasser_excluded = {};
-mask_names = {};
 for this_region = 1:size(all_relevant_regions,1)
     try
-        mask_names{end+1} = ['rwGlasser_ ' num2str(all_relevant_regions(this_region)) '_' Glasser_regions.x_regionName{find(Glasser_regions.regionID==all_relevant_regions(this_region))}];
+        masks{end+1} = ['rwGlasser_ ' num2str(all_relevant_regions(this_region)) '_' Glasser_regions.x_regionName{find(Glasser_regions.regionID==all_relevant_regions(this_region))}];
     catch
-        mask_names{end+1} = ['rwGlasser_ ' num2str(all_relevant_regions(this_region)) '_' Glasser_regions.regionName{find(Glasser_regions.regionID==all_relevant_regions(this_region))}];
+        masks{end+1} = ['rwGlasser_ ' num2str(all_relevant_regions(this_region)) '_' Glasser_regions.regionName{find(Glasser_regions.regionID==all_relevant_regions(this_region))}];
     end
 end
 for this_region = 1:size(all_irrelevant_regions,1)
@@ -2616,7 +2615,7 @@ for j = 1:length(this_model_name)
             end
             drawnow
             saveas(gcf,[outdir filesep mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png'])
-            saveas(gcf,[outdir filesep mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.pdf'])
+            print(gcf,'-dpdf','-bestfit', [outdir filesep mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.pdf'])
             
             for m = 1:length(this_model_name{j})
                 [all_corrected_rho(j,k,i,m,:),all_corrected_corr_ps(j,k,i,m,:)] = corr(covariates,squeeze(all_data(m,this_ROI,:)),'rows','pairwise');
@@ -2675,7 +2674,7 @@ for j = 1:length(this_model_name)
             end
             drawnow
             saveas(gcf,[outdir filesep 'Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png'])
-            saveas(gcf,[outdir filesep 'Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.pdf'])
+            print(gcf,'-dpdf','-bestfit', [outdir filesep mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.pdf'])
             
         end
         close all
@@ -2850,6 +2849,8 @@ all_corr_ps = [];
 all_corrected_rho = [];
 all_corrected_corr_ps = [];
 
+matlab.graphics.internal.setPrintPreferences('DefaultPaperPositionMode','manual')
+
 for j = 1:length(this_model_name)
     all_data = [];
     all_corrected_data = [];
@@ -2920,7 +2921,7 @@ for j = 1:length(this_model_name)
     
     drawnow
     saveas(gcf,[outdir filesep this_model_name{j} '_by_region.png'])
-    saveas(gcf,[outdir filesep this_model_name{j} '_by_region.pdf'])
+    print(gcf,'-dpdf','-bestfit', [outdir filesep this_model_name{j} '_by_region.pdf'])
         
     figure
     set(gcf,'Position',[100 100 1600 800]);
@@ -2964,7 +2965,7 @@ for j = 1:length(this_model_name)
 
     drawnow
     saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} '_by_region.png'])
-    saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} '_by_region.pdf'])
+    print(gcf,'-dpdf','-bestfit', [outdir filesep 'Corrected_' this_model_name{j} '_by_region.pdf'])
     
 end
 close all
@@ -3059,7 +3060,7 @@ for j = 1:length(this_model_name)
             
             drawnow
             saveas(gcf,[outdir filesep this_model_name{j} partial_name '_by_region.png'])
-            saveas(gcf,[outdir filesep this_model_name{j} partial_name '_by_region.pdf'])
+            print(gcf,'-dpdf','-bestfit', [outdir filesep this_model_name{j} partial_name '_by_region.pdf'])
             
             figure
             set(gcf,'Position',[100 100 1600 800]);
@@ -3103,7 +3104,7 @@ for j = 1:length(this_model_name)
             
             drawnow
             saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} partial_name '_by_region.png'])
-            saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} partial_name '_by_region.pdf'])
+            print(gcf,'-dpdf','-bestfit', [outdir filesep 'Corrected_' this_model_name{j} partial_name '_by_region.pdf'])
             
         end
         close all
@@ -3228,13 +3229,16 @@ these_tensors = [these_tensors these_tensors_template.all_interpolated_MNI_locat
 these_roi_numbers = module_plot_tensor_ROI(these_tensors,atlaspath,radius);
 
 %Create images of these tensor/ROI combinations
-for this_roi = 1:length(these_roi_numbers)
-    this_statement = [];
-    for this_region = 1:size(these_roi_numbers{this_roi},1)
-        this_statement = [this_statement '|i1==' num2str(these_roi_numbers{this_roi}(this_region))];
+remake_tensor_images = 0;
+if remake_tensor_images
+    for this_roi = 1:length(these_roi_numbers)
+        this_statement = [];
+        for this_region = 1:size(these_roi_numbers{this_roi},1)
+            this_statement = [this_statement '|i1==' num2str(these_roi_numbers{this_roi}(this_region))];
+        end
+        this_statement = this_statement(2:end);
+        spm_imcalc('./Regions_of_Interest/HCP-MMP_1mm.nii',['./Regions_of_Interest/Tensor_' num2str(this_roi) '.nii'],this_statement)
     end
-    this_statement = this_statement(2:end);
-    spm_imcalc('./Regions_of_Interest/HCP-MMP_1mm.nii',['./Regions_of_Interest/Tensor_' num2str(this_roi) '.nii'],this_statement)
 end
 
 %Concentrate on tensors 5+6 from the face/scene contrast. Ensure
@@ -3286,7 +3290,9 @@ this_model_name = {
     'Photo to Line patient_judgment_actually_noself'
     'Photo to Line overall_judgment_actually_noself'
     'Global V1_ds' %Globals need to be here for partialling
-    'Global GIST correlation'};
+    'Global GIST correlation'
+    'Global templates_noself', 
+    'Global control_judgment_actually_noself'};
 
 % this_model_name = {
 %     'Photo to Line V1_ds'
@@ -3358,6 +3364,8 @@ all_corr_ps = [];
 all_corrected_rho = [];
 all_corrected_corr_ps = [];
 
+matlab.graphics.internal.setPrintPreferences('DefaultPaperPositionMode','manual')
+
 for j = 1:length(this_model_name)
     all_data = [];
     all_corrected_data = [];
@@ -3428,7 +3436,7 @@ for j = 1:length(this_model_name)
     
     drawnow
     saveas(gcf,[outdir filesep this_model_name{j} '_by_Glasser.png'])
-    saveas(gcf,[outdir filesep this_model_name{j} '_by_Glasser.pdf'])
+    print(gcf,'-dpdf','-bestfit', [outdir filesep this_model_name{j} '_by_Glasser.pdf'])
         
     figure
     set(gcf,'Position',[100 100 1600 800]);
@@ -3472,7 +3480,7 @@ for j = 1:length(this_model_name)
 
     drawnow
     saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} '_by_Glasser.png'])
-    saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} '_by_Glasser.pdf'])
+    print(gcf,'-dpdf','-bestfit', [outdir filesep 'Corrected_' this_model_name{j} '_by_Glasser.pdf'])
     
 end
 close all
@@ -3568,7 +3576,7 @@ for j = 1:length(this_model_name)
 
                 drawnow
                 saveas(gcf,[outdir filesep this_model_name{j} partial_name '_by_Glasser.png'])
-                saveas(gcf,[outdir filesep this_model_name{j} partial_name '_by_Glasser.pdf'])
+                print(gcf,'-dpdf','-bestfit', [outdir filesep this_model_name{j} partial_name '_by_Glasser.pdf'])
 
                 figure
                 set(gcf,'Position',[100 100 1600 800]);
@@ -3612,7 +3620,7 @@ for j = 1:length(this_model_name)
 
                 drawnow
                 saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} partial_name '_by_Glasser.png'])
-                saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} partial_name '_by_Glasser.pdf'])
+                print(gcf,'-dpdf','-bestfit', [outdir filesep 'Corrected_' this_model_name{j} partial_name '_by_Glasser.pdf'])
 
             end
             close all
@@ -3724,7 +3732,7 @@ for j = 1:length(this_model_name)
     
     drawnow
     saveas(gcf,[outdir filesep this_model_name{j} '_by_Long_Glasser.png'])
-    saveas(gcf,[outdir filesep this_model_name{j} '_by_Long_Glasser.pdf'])
+    print(gcf,'-dpdf','-bestfit', [outdir filesep this_model_name{j} '_by_Long_Glasser.pdf'])
         
     figure
     set(gcf,'Position',[100 100 1600 800]);
@@ -3768,7 +3776,7 @@ for j = 1:length(this_model_name)
 
     drawnow
     saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} '_by_Long_Glasser.png'])
-    saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} '_by_Long_Glasser.pdf'])
+    print(gcf,'-dpdf','-bestfit', [outdir filesep 'Corrected_' this_model_name{j} '_by_Long_Glasser.pdf'])
     
 end
 close all
@@ -3863,7 +3871,7 @@ for j = 1:length(this_model_name)
             
             drawnow
             saveas(gcf,[outdir filesep this_model_name{j} partial_name '_by_Long_Glasser.png'])
-            saveas(gcf,[outdir filesep this_model_name{j} partial_name '_by_Long_Glasser.pdf'])
+            print(gcf,'-dpdf','-bestfit', [outdir filesep this_model_name{j} partial_name '_by_Long_Glasser.pdf'])
             
             figure
             set(gcf,'Position',[100 100 1600 800]);
@@ -3907,7 +3915,7 @@ for j = 1:length(this_model_name)
             
             drawnow
             saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} partial_name '_by_Long_Glasser.png'])
-            saveas(gcf,[outdir filesep 'Corrected_' this_model_name{j} partial_name '_by_Long_Glasser.pdf'])
+            print(gcf,'-dpdf','-bestfit', [outdir filesep 'Corrected_' this_model_name{j} partial_name '_by_Long_Glasser.pdf'])
             
         end
         close all
@@ -4055,7 +4063,7 @@ for j = 1:length(this_model_name)
 
             drawnow
             saveas(gcf,[outdir filesep this_model_name{j} ' ' mask_names{k} ' ' covariate_names{l} '.png'])
-            saveas(gcf,[outdir filesep this_model_name{j} ' ' mask_names{k} ' ' covariate_names{l} '.pdf'])
+            print(gcf,'-dpdf','-bestfit', [outdir filesep this_model_name{j} ' ' mask_names{k} ' ' covariate_names{l} '.pdf'])
 
         end
     end
